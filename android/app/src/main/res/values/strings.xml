@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">TafutaVenue</string>
+    <string name="title_activity_main">TafutaVenue</string>
+    <string name="package_name">tz.ac.mzumbe.booking</string>
+    <string name="custom_url_scheme">tz.ac.mzumbe.booking</string>
+</resources>
