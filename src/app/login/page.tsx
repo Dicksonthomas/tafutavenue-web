@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import { Building2 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { apiErrorMessage } from "@/lib/api";
@@ -78,13 +77,6 @@ export default function LoginPage() {
             </button>
           </form>
         </div>
-
-        <p className="mt-4 text-center text-sm text-slate-500">
-          Huna akaunti?{" "}
-          <Link href="/register" className="font-medium text-accent-600 hover:underline">
-            Jisajili (CR)
-          </Link>
-        </p>
       </div>
     </div>
   );
