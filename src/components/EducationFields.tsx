@@ -33,17 +33,12 @@ export default function EducationFields({
     <>
       <div>
         <label className="mb-1 block text-sm font-medium text-slate-600">Faculty</label>
-        <select
-          required
+        <Combobox
           value={value.faculty}
-          onChange={(e) => update("faculty", e.target.value)}
-          className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500"
-        >
-          <option value="" disabled>Chagua Faculty...</option>
-          {faculties.map((f) => (
-            <option key={f.value} value={f.value}>{f.label}</option>
-          ))}
-        </select>
+          onChange={(v) => update("faculty", v)}
+          options={faculties.map((f) => f.value)}
+          placeholder="Chagua au andika faculty..."
+        />
       </div>
 
       <div>

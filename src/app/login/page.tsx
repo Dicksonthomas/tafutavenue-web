@@ -28,21 +28,21 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4">
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-brand-800 via-brand-700 to-slate-50 px-4 py-12">
       <div className="w-full max-w-sm">
         <div className="mb-6 flex flex-col items-center text-center">
           {logo_url ? (
-            <img src={logo_url} alt="Logo" className="mb-3 h-11 w-11 rounded-xl object-contain" />
+            <img src={logo_url} alt="Logo" className="mb-3 h-14 w-14 rounded-2xl bg-white object-contain p-1.5 shadow-lg" />
           ) : (
-            <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-brand-800 text-white">
-              <Building2 size={22} />
+            <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-white text-brand-800 shadow-lg">
+              <Building2 size={26} />
             </div>
           )}
-          <h1 className="text-lg font-semibold text-slate-900">University Venue Booking</h1>
-          <p className="text-sm text-slate-500">Ingia kwenye akaunti yako</p>
+          <h1 className="text-xl font-semibold text-white">University Venue Booking</h1>
+          <p className="text-sm text-brand-100">Sign in to your account</p>
         </div>
 
-        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xl">
           {error && (
             <div className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 ring-1 ring-inset ring-red-200">{error}</div>
           )}
@@ -53,8 +53,10 @@ export default function LoginPage() {
               <input
                 type="email"
                 required
+                autoFocus
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
+                placeholder="you@example.com"
                 className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500"
               />
             </div>
@@ -65,18 +67,23 @@ export default function LoginPage() {
                 required
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
                 className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500"
               />
             </div>
             <button
               type="submit"
               disabled={submitting}
-              className="w-full rounded-lg bg-accent-600 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50"
+              className="w-full rounded-lg bg-brand-800 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {submitting ? "Inaingia..." : "Ingia"}
+              {submitting ? "Signing in..." : "Sign In"}
             </button>
           </form>
         </div>
+
+        <p className="mt-6 text-center text-xs text-brand-100">
+          University Venue Booking System
+        </p>
       </div>
     </div>
   );
