@@ -3,6 +3,7 @@
 import { useRef, useState } from "react";
 import { RotateCcw, UploadCloud } from "lucide-react";
 import { api, apiErrorMessage } from "@/lib/api";
+import { useAuth } from "@/lib/auth";
 import { useSettings } from "@/lib/settings";
 import { Card, PageHeader } from "@/components/ui";
 import MyColorPreference from "@/components/MyColorPreference";
@@ -10,6 +11,7 @@ import MyColorPreference from "@/components/MyColorPreference";
 const BRAND_DEFAULT_COLOR = "#3db166";
 
 export default function AdminSettingsPage() {
+  const { user } = useAuth();
   const settings = useSettings();
   const [color, setColor] = useState(settings.default_color ?? BRAND_DEFAULT_COLOR);
   const [logoPreview, setLogoPreview] = useState<string | null>(settings.logo_url);
@@ -17,6 +19,28 @@ export default function AdminSettingsPage() {
   const [success, setSuccess] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const fileRef = useRef<HTMLInputElement>(null);
+
+  const [appName, setAppName] = useState(settings.app_name ?? "");
+  const [supportPhone, setSupportPhone] = useState(settings.support_phone ?? "");
+  const [brandingError, setBrandingError] = useState<string | null>(null);
+  const [brandingSuccess, setBrandingSuccess] = useState<string | null>(null);
+  const [savingBranding, setSavingBranding] = useState(false);
+
+  async function saveBranding(e: React.FormEvent) {
+    e.preventDefault();
+    setBrandingError(null);
+    setBrandingSuccess(null);
+    setSavingBranding(true);
+    try {
+      const { data } = await api.post("/admin/settings", { app_name: appName, support_phone: supportPhone });
+      setBrandingSuccess(data.message);
+      settings.refresh();
+    } catch (err) {
+      setBrandingError(apiErrorMessage(err));
+    } finally {
+      setSavingBranding(false);
+    }
+  }
 
   function handleLogoChange(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -90,6 +114,41 @@ export default function AdminSettingsPage() {
           </button>
         </form>
       </Card>
+
+      {user?.is_super_admin && (
+        <Card className="p-6">
+          <h2 className="mb-4 text-sm font-semibold text-slate-700">App Branding (Super Admin only)</h2>
+
+          {brandingError && <div className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{brandingError}</div>}
+          {brandingSuccess && <div className="mb-4 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-700">{brandingSuccess}</div>}
+
+          <form onSubmit={saveBranding} className="space-y-5">
+            <div>
+              <label className="mb-1 block text-sm font-medium text-slate-600">App Name (shown on the Login page)</label>
+              <input
+                value={appName}
+                onChange={(e) => setAppName(e.target.value)}
+                placeholder="University Venue Booking"
+                className="w-full max-w-md rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="mb-1 block text-sm font-medium text-slate-600">Support Phone (shown to all users)</label>
+              <input
+                value={supportPhone}
+                onChange={(e) => setSupportPhone(e.target.value)}
+                placeholder="e.g. +255 700 000 000"
+                className="w-full max-w-md rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none"
+              />
+            </div>
+
+            <button disabled={savingBranding} className="rounded-lg bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50">
+              {savingBranding ? "Saving..." : "Save Branding"}
+            </button>
+          </form>
+        </Card>
+      )}
 
       <MyColorPreference />
     </div>

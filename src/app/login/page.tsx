@@ -8,7 +8,7 @@ import { useSettings } from "@/lib/settings";
 
 export default function LoginPage() {
   const { login } = useAuth();
-  const { logo_url } = useSettings();
+  const { logo_url, app_name } = useSettings();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -39,7 +39,7 @@ export default function LoginPage() {
                 <Building2 size={26} />
               </div>
             )}
-            <h1 className="text-xl font-semibold text-slate-900">University Venue Booking</h1>
+            <h1 className="text-xl font-semibold text-slate-900">{app_name || "University Venue Booking"}</h1>
             <p className="text-sm text-slate-500">Sign in to your account</p>
           </div>
 
@@ -82,7 +82,13 @@ export default function LoginPage() {
         </div>
 
         <p className="mt-6 text-center text-xs text-brand-100">
-          University Venue Booking System
+          {app_name || "University Venue Booking System"}
+        </p>
+        <p className="mt-1 text-center text-xs text-brand-200">
+          from{" "}
+          <a href="https://dtech.co.tz/" target="_blank" rel="noopener noreferrer" className="font-medium underline hover:text-white">
+            DTECH INNOVATIONS
+          </a>
         </p>
       </div>
     </div>

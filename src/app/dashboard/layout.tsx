@@ -1,11 +1,12 @@
 "use client";
 
 import { ReactNode } from "react";
-import { Search, CalendarClock, ClipboardList, DoorOpen, User2, Settings } from "lucide-react";
+import { LayoutDashboard, Search, CalendarClock, ClipboardList, DoorOpen, User2, Settings } from "lucide-react";
 import AuthGuard from "@/components/AuthGuard";
 import DashboardShell, { NavItem } from "@/components/DashboardShell";
 
 const navItems: NavItem[] = [
+  { href: "/dashboard/home", label: "Dashboard", icon: LayoutDashboard },
   { href: "/dashboard", label: "Find Venue", icon: Search },
   { href: "/dashboard/venues", label: "All Venues", icon: DoorOpen },
   { href: "/dashboard/booked", label: "Booked Venues", icon: CalendarClock },

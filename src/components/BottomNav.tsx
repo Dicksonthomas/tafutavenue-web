@@ -6,7 +6,7 @@ import { NavItem } from "./DashboardShell";
 
 export default function BottomNav({ navItems }: { navItems: NavItem[] }) {
   const pathname = usePathname();
-  const items = navItems.slice(0, 5);
+  const items = navItems.slice(0, 6);
 
   return (
     <nav

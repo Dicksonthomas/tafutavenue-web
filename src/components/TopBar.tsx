@@ -44,7 +44,7 @@ export default function TopBar({
     .toUpperCase();
 
   return (
-    <header className="flex items-center justify-between border-b border-slate-200 bg-white px-4 py-3 sm:px-6">
+    <header className="sticky top-0 z-30 flex items-center justify-between border-b border-slate-200 bg-white px-4 py-3 sm:px-6">
       <button onClick={onMenuClick} className="text-slate-600 md:hidden">
         <Menu size={22} />
       </button>

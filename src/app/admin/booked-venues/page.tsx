@@ -1,11 +1,12 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CalendarClock, ChevronLeft, ChevronRight, DoorOpen } from "lucide-react";
+import { CalendarClock, DoorOpen } from "lucide-react";
 import { api } from "@/lib/api";
 import { Booking } from "@/lib/types";
 import { Card, EmptyState, PageHeader, PurposeBadge, Spinner, StatusBadge } from "@/components/ui";
 import PageSizeSelect from "@/components/PageSizeSelect";
+import Pagination from "@/components/Pagination";
 
 function todayIso() {
   return new Date().toISOString().slice(0, 10);
@@ -188,26 +189,8 @@ export default function AdminBookedVenuesPage() {
         </Card>
       )}
 
-      {result && result.last_page > 1 && (
-        <div className="mt-6 flex items-center justify-center gap-3">
-          <button
-            disabled={page <= 1}
-            onClick={() => setPage((p) => p - 1)}
-            className="flex items-center gap-1 rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-50 disabled:opacity-40"
-          >
-            <ChevronLeft size={14} /> Previous
-          </button>
-          <span className="text-sm text-slate-500">
-            Page {result.current_page} of {result.last_page} ({result.total} bookings)
-          </span>
-          <button
-            disabled={page >= result.last_page}
-            onClick={() => setPage((p) => p + 1)}
-            className="flex items-center gap-1 rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-50 disabled:opacity-40"
-          >
-            Next <ChevronRight size={14} />
-          </button>
-        </div>
+      {result && (
+        <Pagination page={result.current_page} lastPage={result.last_page} total={result.total} itemLabel="bookings" onPageChange={setPage} />
       )}
     </div>
   );

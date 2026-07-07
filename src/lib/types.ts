@@ -8,6 +8,7 @@ export interface User {
   reg_no?: string | null;
   email: string;
   role: Role;
+  is_super_admin?: boolean;
   phone?: string;
   campus?: string;
   sex?: "male" | "female" | null;

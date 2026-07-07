@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ChevronLeft, ChevronRight, Download, GraduationCap, Pencil, Plus, Search, Trash2, Upload, X } from "lucide-react";
+import { Download, GraduationCap, Pencil, Plus, Search, Trash2, Upload, X } from "lucide-react";
+import Pagination from "@/components/Pagination";
 import { api, apiErrorMessage } from "@/lib/api";
 import { Level, User } from "@/lib/types";
 import { Card, EmptyState, PageHeader, Spinner } from "@/components/ui";
@@ -333,26 +334,8 @@ export default function AdminStudentsPage() {
             </table>
           </Card>
 
-          {result && result.last_page > 1 && (
-            <div className="mt-6 flex items-center justify-center gap-3">
-              <button
-                disabled={page <= 1}
-                onClick={() => setPage((p) => p - 1)}
-                className="flex items-center gap-1 rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-50 disabled:opacity-40"
-              >
-                <ChevronLeft size={14} /> Previous
-              </button>
-              <span className="text-sm text-slate-500">
-                Page {result.current_page} of {result.last_page} ({result.total} CR)
-              </span>
-              <button
-                disabled={page >= result.last_page}
-                onClick={() => setPage((p) => p + 1)}
-                className="flex items-center gap-1 rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-50 disabled:opacity-40"
-              >
-                Next <ChevronRight size={14} />
-              </button>
-            </div>
+          {result && (
+            <Pagination page={result.current_page} lastPage={result.last_page} total={result.total} itemLabel="CR" onPageChange={setPage} />
           )}
         </>
       )}

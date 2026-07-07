@@ -68,18 +68,30 @@ export default function AdminHomePage() {
       </div>
 
       <h2 className="mb-3 text-sm font-semibold text-slate-700">Most Booked Venues</h2>
-      <Card>
+      <Card className="overflow-x-auto">
         {summary.most_booked_venues.length === 0 ? (
           <p className="p-4 text-sm text-slate-500">No data yet.</p>
         ) : (
-          summary.most_booked_venues.map((v) => (
-            <div key={v.venue_id} className="flex items-center justify-between border-b border-slate-100 px-5 py-3 last:border-0">
-              <span className="text-sm text-slate-700">
-                {v.venue?.name} <span className="text-slate-400">· {v.venue?.building}</span>
-              </span>
-              <span className="text-sm font-semibold text-slate-800">{v.total} bookings</span>
-            </div>
-          ))
+          <table className="w-full text-left text-sm">
+            <thead className="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+              <tr>
+                <th className="px-4 py-3">#</th>
+                <th className="px-4 py-3">Venue</th>
+                <th className="px-4 py-3">Building</th>
+                <th className="px-4 py-3 text-right">Bookings</th>
+              </tr>
+            </thead>
+            <tbody>
+              {summary.most_booked_venues.map((v, idx) => (
+                <tr key={v.venue_id} className="border-b border-slate-100 last:border-0">
+                  <td className="px-4 py-3 text-slate-400">{idx + 1}</td>
+                  <td className="px-4 py-3 text-slate-700">{v.venue?.name}</td>
+                  <td className="px-4 py-3 text-slate-500">{v.venue?.building ?? "—"}</td>
+                  <td className="px-4 py-3 text-right font-semibold text-slate-800">{v.total}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         )}
       </Card>
     </div>
