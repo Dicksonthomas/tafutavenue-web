@@ -35,7 +35,7 @@ export default function AdminHomePage() {
   if (!summary) return <Spinner />;
 
   return (
-    <div className="mx-auto max-w-4xl">
+    <div className="mx-auto max-w-7xl">
       <PageHeader
         title="Muhtasari"
         subtitle="Hali ya jumla ya mfumo wa Venue Booking."

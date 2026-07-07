@@ -27,7 +27,7 @@ export default function AllVenuesPage() {
   }, [debouncedQ]);
 
   return (
-    <div className="mx-auto max-w-5xl">
+    <div className="mx-auto max-w-7xl">
       <PageHeader
         title="Venues Zote"
         subtitle={`Tafuta venue yoyote kwa jina au namba (mfano: Ntare 108).${campusName ? ` Campus: ${campusName}.` : ""}`}

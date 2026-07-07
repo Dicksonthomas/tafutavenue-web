@@ -18,7 +18,8 @@ interface PaginatedBookings {
 }
 
 export default function AdminBookedVenuesPage() {
-  const [date, setDate] = useState("");
+  const [view, setView] = useState<"day" | "history">("day");
+  const [date, setDate] = useState(todayIso());
   const [status, setStatus] = useState("");
   const [page, setPage] = useState(1);
   const [result, setResult] = useState<PaginatedBookings | null>(null);
@@ -27,7 +28,11 @@ export default function AdminBookedVenuesPage() {
   async function load() {
     setLoading(true);
     const { data } = await api.get("/admin/bookings", {
-      params: { ...(date ? { date } : {}), ...(status ? { status } : {}), page },
+      params: {
+        ...(view === "day" && date ? { date } : {}),
+        ...(status ? { status } : {}),
+        page,
+      },
     });
     setResult(data);
     setLoading(false);
@@ -36,28 +41,40 @@ export default function AdminBookedVenuesPage() {
   useEffect(() => {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [date, status, page]);
+  }, [view, date, status, page]);
 
   const bookings = result?.data ?? [];
 
   return (
-    <div className="mx-auto max-w-6xl">
+    <div className="mx-auto max-w-7xl">
       <PageHeader
-        title="Booked Venues (Zote)"
-        subtitle="Orodha kamili ya bookings zote, aliyebook, taarifa zake, na saini yake."
+        title="Booked Venues"
+        subtitle="Angalia bookings za siku husika, au historia kamili ya bookings zote."
+        action={
+          <select
+            value={view}
+            onChange={(e) => { setPage(1); setView(e.target.value as "day" | "history"); }}
+            className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium focus:border-accent-500 focus:outline-none"
+          >
+            <option value="day">Booked Venues za Siku Husika</option>
+            <option value="history">Booked History (Zote)</option>
+          </select>
+        }
       />
 
       <Card className="mb-6 p-5">
         <div className="flex flex-wrap items-end gap-3">
-          <div>
-            <label className="mb-1 block text-xs font-medium text-slate-600">Tarehe (hiari)</label>
-            <input
-              type="date"
-              value={date}
-              onChange={(e) => { setPage(1); setDate(e.target.value); }}
-              className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none"
-            />
-          </div>
+          {view === "day" && (
+            <div>
+              <label className="mb-1 block text-xs font-medium text-slate-600">Tarehe</label>
+              <input
+                type="date"
+                value={date}
+                onChange={(e) => { setPage(1); setDate(e.target.value); }}
+                className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none"
+              />
+            </div>
+          )}
           <div>
             <label className="mb-1 block text-xs font-medium text-slate-600">Status</label>
             <select
@@ -72,11 +89,6 @@ export default function AdminBookedVenuesPage() {
               <option value="cancelled">Cancelled</option>
             </select>
           </div>
-          {date && (
-            <button onClick={() => { setPage(1); setDate(""); }} className="rounded-lg border border-slate-300 px-3 py-2 text-xs text-slate-600 hover:bg-slate-50">
-              Futa Tarehe
-            </button>
-          )}
         </div>
       </Card>
 
@@ -84,69 +96,106 @@ export default function AdminBookedVenuesPage() {
         <Spinner />
       ) : bookings.length === 0 ? (
         <EmptyState icon={DoorOpen} title="Hakuna bookings" description="Hakuna booking inayolingana na vigezo hivi." />
+      ) : view === "day" ? (
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {bookings.map((b) => (
+            <Card key={b.id} className="p-4">
+              <div className="flex items-start justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="truncate font-semibold text-slate-900">{b.venue?.name}</p>
+                  <p className="flex items-center gap-1 text-xs text-slate-500">
+                    <CalendarClock size={12} /> {b.booking_date?.slice(0, 10)} · {b.start_time}–{b.end_time}
+                  </p>
+                </div>
+                <StatusBadge status={b.status} />
+              </div>
+
+              <div className="mt-2 rounded-lg bg-slate-50 p-2">
+                <p className="text-xs font-medium text-slate-700">Booked by: {b.user?.name}</p>
+                <p className="text-xs text-slate-500">{b.user?.email}</p>
+                <p className="text-xs text-slate-500">{b.user?.program} · {b.user?.level} · {b.user?.department}</p>
+              </div>
+
+              {b.title && <p className="mt-2 text-xs text-slate-600">{b.title}</p>}
+              <div className="mt-2"><PurposeBadge purpose={b.purpose} /></div>
+
+              {b.rejection_reason && (
+                <p className="mt-2 rounded-lg bg-red-50 px-2 py-1 text-xs text-red-700">Kukataliwa: {b.rejection_reason}</p>
+              )}
+
+              {b.signature ? (
+                <div className="mt-3">
+                  <p className="mb-1 text-xs text-slate-400">Saini ya CR</p>
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={b.signature} alt="Saini" className="h-14 rounded border border-slate-200 bg-white" />
+                </div>
+              ) : (
+                <p className="mt-3 text-xs text-slate-400">Bado hajatia saini</p>
+              )}
+            </Card>
+          ))}
+        </div>
       ) : (
-        <>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {bookings.map((b) => (
-              <Card key={b.id} className="p-4">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="min-w-0">
-                    <p className="truncate font-semibold text-slate-900">{b.venue?.name}</p>
-                    <p className="flex items-center gap-1 text-xs text-slate-500">
-                      <CalendarClock size={12} /> {b.booking_date?.slice(0, 10)} · {b.start_time}–{b.end_time}
-                    </p>
-                  </div>
-                  <StatusBadge status={b.status} />
-                </div>
+        <Card className="overflow-x-auto">
+          <table className="w-full min-w-[900px] text-left text-sm">
+            <thead className="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+              <tr>
+                <th className="px-4 py-3">Venue</th>
+                <th className="px-4 py-3">Tarehe</th>
+                <th className="px-4 py-3">Muda</th>
+                <th className="px-4 py-3">Booked By</th>
+                <th className="px-4 py-3">Purpose</th>
+                <th className="px-4 py-3">Status</th>
+                <th className="px-4 py-3">Saini</th>
+              </tr>
+            </thead>
+            <tbody>
+              {bookings.map((b) => (
+                <tr key={b.id} className="border-b border-slate-100 last:border-0 hover:bg-slate-50/60">
+                  <td className="px-4 py-3 font-medium text-slate-800">{b.venue?.name}</td>
+                  <td className="px-4 py-3 text-slate-600">{b.booking_date?.slice(0, 10)}</td>
+                  <td className="px-4 py-3 text-slate-600">{b.start_time}–{b.end_time}</td>
+                  <td className="px-4 py-3">
+                    <p className="text-slate-800">{b.user?.name}</p>
+                    <p className="text-xs text-slate-400">{b.user?.email}</p>
+                  </td>
+                  <td className="px-4 py-3"><PurposeBadge purpose={b.purpose} /></td>
+                  <td className="px-4 py-3"><StatusBadge status={b.status} /></td>
+                  <td className="px-4 py-3">
+                    {b.signature ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={b.signature} alt="Saini" className="h-10 rounded border border-slate-200 bg-white" />
+                    ) : (
+                      <span className="text-xs text-slate-400">—</span>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </Card>
+      )}
 
-                <div className="mt-2 rounded-lg bg-slate-50 p-2">
-                  <p className="text-xs font-medium text-slate-700">Booked by: {b.user?.name}</p>
-                  <p className="text-xs text-slate-500">{b.user?.email}</p>
-                  <p className="text-xs text-slate-500">{b.user?.program} · {b.user?.level} · {b.user?.department}</p>
-                </div>
-
-                {b.title && <p className="mt-2 text-xs text-slate-600">{b.title}</p>}
-                <div className="mt-2"><PurposeBadge purpose={b.purpose} /></div>
-
-                {b.rejection_reason && (
-                  <p className="mt-2 rounded-lg bg-red-50 px-2 py-1 text-xs text-red-700">Kukataliwa: {b.rejection_reason}</p>
-                )}
-
-                {b.signature ? (
-                  <div className="mt-3">
-                    <p className="mb-1 text-xs text-slate-400">Saini ya CR</p>
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={b.signature} alt="Saini" className="h-14 rounded border border-slate-200 bg-white" />
-                  </div>
-                ) : (
-                  <p className="mt-3 text-xs text-slate-400">Bado hajatia saini</p>
-                )}
-              </Card>
-            ))}
-          </div>
-
-          {result && result.last_page > 1 && (
-            <div className="mt-6 flex items-center justify-center gap-3">
-              <button
-                disabled={page <= 1}
-                onClick={() => setPage((p) => p - 1)}
-                className="flex items-center gap-1 rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-50 disabled:opacity-40"
-              >
-                <ChevronLeft size={14} /> Nyuma
-              </button>
-              <span className="text-sm text-slate-500">
-                Ukurasa {result.current_page} kati ya {result.last_page} ({result.total} bookings)
-              </span>
-              <button
-                disabled={page >= result.last_page}
-                onClick={() => setPage((p) => p + 1)}
-                className="flex items-center gap-1 rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-50 disabled:opacity-40"
-              >
-                Mbele <ChevronRight size={14} />
-              </button>
-            </div>
-          )}
-        </>
+      {result && result.last_page > 1 && (
+        <div className="mt-6 flex items-center justify-center gap-3">
+          <button
+            disabled={page <= 1}
+            onClick={() => setPage((p) => p - 1)}
+            className="flex items-center gap-1 rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-50 disabled:opacity-40"
+          >
+            <ChevronLeft size={14} /> Nyuma
+          </button>
+          <span className="text-sm text-slate-500">
+            Ukurasa {result.current_page} kati ya {result.last_page} ({result.total} bookings)
+          </span>
+          <button
+            disabled={page >= result.last_page}
+            onClick={() => setPage((p) => p + 1)}
+            className="flex items-center gap-1 rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-50 disabled:opacity-40"
+          >
+            Mbele <ChevronRight size={14} />
+          </button>
+        </div>
       )}
     </div>
   );

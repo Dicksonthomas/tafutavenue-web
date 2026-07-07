@@ -29,7 +29,7 @@ export default function LecturerTimetablePage() {
   }, [debouncedName]);
 
   return (
-    <div className="mx-auto max-w-4xl">
+    <div className="mx-auto max-w-7xl">
       <PageHeader
         title="Ratiba ya Lecturer"
         subtitle="Andika jina la Lecturer wako ili uone ratiba yake yote ya wiki - bila kuhangaika."

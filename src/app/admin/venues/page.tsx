@@ -77,7 +77,7 @@ export default function AdminVenuesPage() {
   }
 
   return (
-    <div className="mx-auto max-w-6xl">
+    <div className="mx-auto max-w-7xl">
       <PageHeader
         title="Venues"
         subtitle="Simamia venue zote za chuo - ongeza mpya, weka masharti ya ku-book, badilisha status, au futa."

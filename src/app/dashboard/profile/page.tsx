@@ -33,7 +33,7 @@ export default function ProfilePage() {
   ];
 
   return (
-    <div className="mx-auto max-w-5xl">
+    <div className="mx-auto max-w-7xl">
       <PageHeader title="Profile Yangu" subtitle="Taarifa zako kama Class Representative (CR)." />
 
       <Card className="p-6">

@@ -61,7 +61,7 @@ export default function AdminBookingsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-4xl">
+    <div className="mx-auto max-w-7xl">
       <PageHeader
         title="Bookings"
         subtitle="Idhinisha au kataa maombi ya booking kutoka kwa CR."

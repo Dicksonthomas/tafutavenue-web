@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { Menu, ChevronDown, UserRound, KeyRound, LogOut, MapPin } from "lucide-react";
 import { useAuth } from "@/lib/auth";
+import InstallAppButton from "./InstallAppButton";
 
 function campusName(campus?: string): string | null {
   if (!campus) return null;
@@ -57,6 +58,7 @@ export default function TopBar({
             <MapPin size={12} /> {campusName(user.campus)}
           </span>
         )}
+        <InstallAppButton />
       </div>
 
       <div className="relative" ref={menuRef}>

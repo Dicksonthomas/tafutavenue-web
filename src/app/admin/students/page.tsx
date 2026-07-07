@@ -249,52 +249,73 @@ export default function AdminStudentsPage() {
         <EmptyState icon={GraduationCap} title="Hakuna CR bado" description="Ongeza CR mmoja au import CSV kuanza." />
       ) : (
         <>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {users.map((u) => (
-              <Card key={u.id} className="p-4">
-                <div className="flex items-start justify-between gap-2">
-                  <div className="min-w-0">
-                    <p className="truncate font-medium text-slate-900">{u.name}</p>
-                    {u.reg_no && <p className="text-xs text-slate-400">{u.reg_no}</p>}
-                  </div>
-                  <div className="flex shrink-0 gap-1">
-                    <button
-                      onClick={() => setEditingUser(u)}
-                      className="flex items-center gap-1 rounded-lg border border-slate-200 px-2 py-1 text-xs text-slate-500 hover:bg-slate-50"
-                    >
-                      <Pencil size={12} /> Hariri
-                    </button>
-                    <button
-                      onClick={() => deleteUser(u)}
-                      className="flex items-center gap-1 rounded-lg border border-red-200 px-2 py-1 text-xs text-red-600 hover:bg-red-50"
-                    >
-                      <Trash2 size={12} /> Futa
-                    </button>
-                  </div>
-                </div>
-                <p className="mt-2 truncate text-xs text-slate-500">{u.email}</p>
-                <p className="text-xs text-slate-500">{u.phone}</p>
-                <p className="mt-1 text-xs text-slate-400">{u.faculty} · {u.department}</p>
-                <p className="truncate text-xs text-slate-400">{u.program}</p>
-                <div className="mt-2 flex flex-wrap items-center gap-2">
-                  <span className="rounded-full bg-brand-50 px-2 py-0.5 text-xs font-medium text-brand-700">
-                    {campusLabel(u.campus, campuses)}
-                  </span>
-                  <span className="rounded-full bg-accent-50 px-2 py-0.5 text-xs font-medium text-accent-700">
-                    {u.level} - Mwaka {u.year_of_study ?? "?"}
-                  </span>
-                  {u.sex && (
-                    <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-600">
-                      {u.sex === "male" ? "Male" : "Female"}
-                    </span>
-                  )}
-                  {!u.is_active && (
-                    <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-500">Amesimamishwa</span>
-                  )}
-                </div>
-              </Card>
-            ))}
-          </div>
+          <Card className="overflow-x-auto">
+            <table className="w-full min-w-[1000px] text-left text-sm">
+              <thead className="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+                <tr>
+                  <th className="px-4 py-3">Jina / Reg No</th>
+                  <th className="px-4 py-3">Email / Simu</th>
+                  <th className="px-4 py-3">Campus</th>
+                  <th className="px-4 py-3">Faculty / Department</th>
+                  <th className="px-4 py-3">Program</th>
+                  <th className="px-4 py-3">Level</th>
+                  <th className="px-4 py-3">Jinsia</th>
+                  <th className="px-4 py-3">Status</th>
+                  <th className="px-4 py-3 text-right">Vitendo</th>
+                </tr>
+              </thead>
+              <tbody>
+                {users.map((u) => (
+                  <tr key={u.id} className="border-b border-slate-100 last:border-0 hover:bg-slate-50/60">
+                    <td className="px-4 py-3">
+                      <p className="font-medium text-slate-900">{u.name}</p>
+                      {u.reg_no && <p className="text-xs text-slate-400">{u.reg_no}</p>}
+                    </td>
+                    <td className="px-4 py-3">
+                      <p className="text-slate-700">{u.email}</p>
+                      <p className="text-xs text-slate-400">{u.phone}</p>
+                    </td>
+                    <td className="px-4 py-3">
+                      <span className="rounded-full bg-brand-50 px-2 py-0.5 text-xs font-medium text-brand-700">
+                        {campusLabel(u.campus, campuses)}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-slate-600">{u.faculty} · {u.department}</td>
+                    <td className="px-4 py-3 text-slate-600">{u.program}</td>
+                    <td className="px-4 py-3">
+                      <span className="rounded-full bg-accent-50 px-2 py-0.5 text-xs font-medium text-accent-700">
+                        {u.level} - Mwaka {u.year_of_study ?? "?"}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3 text-slate-600">{u.sex === "male" ? "Male" : u.sex === "female" ? "Female" : "—"}</td>
+                    <td className="px-4 py-3">
+                      {u.is_active ? (
+                        <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">Active</span>
+                      ) : (
+                        <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-500">Amesimamishwa</span>
+                      )}
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex justify-end gap-1">
+                        <button
+                          onClick={() => setEditingUser(u)}
+                          className="flex items-center gap-1 rounded-lg border border-slate-200 px-2 py-1 text-xs text-slate-500 hover:bg-slate-50"
+                        >
+                          <Pencil size={12} /> Hariri
+                        </button>
+                        <button
+                          onClick={() => deleteUser(u)}
+                          className="flex items-center gap-1 rounded-lg border border-red-200 px-2 py-1 text-xs text-red-600 hover:bg-red-50"
+                        >
+                          <Trash2 size={12} /> Futa
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </Card>
 
           {result && result.last_page > 1 && (
             <div className="mt-6 flex items-center justify-center gap-3">

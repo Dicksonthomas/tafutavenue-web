@@ -92,7 +92,7 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="mx-auto max-w-5xl">
+    <div className="mx-auto max-w-7xl">
       <PageHeader
         title="Tafuta Available Venue"
         subtitle={`Chagua semester, tarehe na muda ili kuona venue zinazopatikana. Study Unit/Test za jioni na weekend (Jumamosi/Jumapili) zinaruhusiwa.${campusName ? ` Campus: ${campusName}.` : ""}`}

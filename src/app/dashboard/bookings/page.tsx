@@ -53,7 +53,7 @@ export default function MyBookingsPage() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl">
+    <div className="mx-auto max-w-7xl">
       <PageHeader title="Bookings Zangu" subtitle="Fuatilia maombi yako yote ya venue na uthibitishe kwa saini." />
 
       {error && <div className="mb-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700 ring-1 ring-inset ring-red-200">{error}</div>}
@@ -63,7 +63,7 @@ export default function MyBookingsPage() {
       ) : bookings.length === 0 ? (
         <EmptyState icon={ClipboardList} title="Huna booking yoyote bado" description="Nenda 'Tafuta Venue' kutengeneza booking mpya." />
       ) : (
-        <div className="space-y-3">
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {bookings.map((b) => (
             <Card key={b.id} className="p-5">
               <div className="flex items-start justify-between gap-3">

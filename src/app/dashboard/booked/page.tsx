@@ -48,7 +48,7 @@ export default function BookedVenuesPage() {
   }
 
   return (
-    <div className="mx-auto max-w-4xl">
+    <div className="mx-auto max-w-7xl">
       <PageHeader
         title="Booked Venues"
         subtitle="Angalia venue zilizoshikwa (mihadhara rasmi na bookings) kwa tarehe fulani - asubuhi hadi jioni."

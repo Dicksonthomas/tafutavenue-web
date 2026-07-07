@@ -35,7 +35,7 @@ export default function AdminSemestersPage() {
   }
 
   return (
-    <div className="mx-auto max-w-3xl">
+    <div className="mx-auto max-w-7xl">
       <PageHeader
         title="Semesters"
         subtitle="Semester inayotumika (active) ndiyo huonekana kwa CR wakati wa kutafuta venue."
