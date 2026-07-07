@@ -3,9 +3,9 @@
 import { useEffect, useState } from "react";
 import { Search, MapPin, Users, CalendarSearch, Sun, Moon, CalendarClock, BookOpen, DoorOpen, CheckCircle2 } from "lucide-react";
 import { api, apiErrorMessage } from "@/lib/api";
-import { BookingPurpose, Semester, TimetableSlot, Booking, Venue } from "@/lib/types";
+import { Semester, TimetableSlot, Booking, Venue } from "@/lib/types";
 import { Card, EmptyState, PageHeader, PurposeBadge, Spinner, StatusBadge } from "@/components/ui";
-import SignaturePad from "@/components/SignaturePad";
+import BookingModal from "@/components/BookingModal";
 import { useAuth } from "@/lib/auth";
 import { useReferenceData } from "@/lib/referenceData";
 
@@ -16,14 +16,6 @@ function to12h(time: string): string {
   h = h % 12 || 12;
   return `${String(h).padStart(2, "0")}:${m} ${suffix}`;
 }
-
-const PURPOSES: { value: BookingPurpose; label: string }[] = [
-  { value: "study_unit", label: "Study Unit" },
-  { value: "test", label: "Test" },
-  { value: "makeup_class", label: "Makeup Class" },
-  { value: "meeting", label: "Meeting" },
-  { value: "other", label: "Other" },
-];
 
 export default function DashboardPage() {
   const { user } = useAuth();
@@ -230,7 +222,11 @@ export default function DashboardPage() {
       {venues && venues.length > 0 && (
         <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {venues.map((v) => (
-            <Card key={v.id} className="flex flex-col justify-between p-5">
+            <Card
+              key={v.id}
+              onClick={() => setBookingVenue(v)}
+              className="flex cursor-pointer flex-col justify-between p-5 transition hover:border-accent-300 hover:shadow-md"
+            >
               <div>
                 <h3 className="font-semibold text-slate-900">{v.name}</h3>
                 <p className="mt-0.5 flex items-center gap-1 text-xs text-slate-500">
@@ -246,7 +242,7 @@ export default function DashboardPage() {
                 )}
               </div>
               <button
-                onClick={() => setBookingVenue(v)}
+                onClick={(e) => { e.stopPropagation(); setBookingVenue(v); }}
                 className="mt-4 rounded-lg bg-emerald-600 py-2 text-sm font-medium text-white hover:bg-emerald-700"
               >
                 Book This Venue
@@ -317,107 +313,6 @@ export default function DashboardPage() {
           }}
         />
       )}
-    </div>
-  );
-}
-
-function BookingModal({
-  venue,
-  semesterId,
-  date,
-  startTime,
-  endTime,
-  onClose,
-  onSuccess,
-}: {
-  venue: Venue;
-  semesterId: string;
-  date: string;
-  startTime: string;
-  endTime: string;
-  onClose: () => void;
-  onSuccess: () => void;
-}) {
-  const [purpose, setPurpose] = useState<BookingPurpose>("study_unit");
-  const [title, setTitle] = useState("");
-  const [signature, setSignature] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [submitting, setSubmitting] = useState(false);
-
-  async function handleSubmit() {
-    if (!signature) return;
-    setError(null);
-    setSubmitting(true);
-    try {
-      await api.post("/bookings", {
-        venue_id: venue.id,
-        semester_id: Number(semesterId),
-        booking_date: date,
-        start_time: startTime,
-        end_time: endTime,
-        purpose,
-        title,
-        signature,
-      });
-      onSuccess();
-    } catch (err) {
-      setError(apiErrorMessage(err));
-    } finally {
-      setSubmitting(false);
-    }
-  }
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/40 px-4 py-8">
-      <div className="w-full max-w-sm rounded-xl bg-white p-5 shadow-xl">
-        <h2 className="font-semibold text-slate-900">Book: {venue.name}</h2>
-        <p className="mb-4 mt-0.5 text-xs text-slate-500">{date} · {startTime}–{endTime}</p>
-
-        {error && <div className="mb-3 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700">{error}</div>}
-
-        <div className="space-y-3">
-          <div>
-            <label className="mb-1 block text-xs font-medium text-slate-600">Purpose</label>
-            <select value={purpose} onChange={(e) => setPurpose(e.target.value as BookingPurpose)} className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500">
-              {PURPOSES.map((p) => (
-                <option key={p.value} value={p.value}>{p.label}</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label className="mb-1 block text-xs font-medium text-slate-600">Title/Subject (optional)</label>
-            <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Data Structures Study Group" className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500" />
-          </div>
-
-          <div className="border-t border-slate-100 pt-3">
-            <label className="mb-1 block text-xs font-medium text-slate-600">
-              Your Signature (Digital Signature) - required to confirm the booking
-            </label>
-            {signature ? (
-              <div className="flex items-center justify-between rounded-lg bg-emerald-50 px-3 py-2 text-xs text-emerald-700">
-                Signature captured ✓
-                <button type="button" onClick={() => setSignature(null)} className="underline">Redraw</button>
-              </div>
-            ) : (
-              <SignaturePad confirmLabel="Use This Signature" onSave={(dataUrl) => setSignature(dataUrl)} />
-            )}
-          </div>
-
-          <div className="flex gap-2 pt-2">
-            <button type="button" onClick={onClose} className="flex-1 rounded-lg border border-slate-300 py-2 text-sm text-slate-600 hover:bg-slate-50">
-              Cancel
-            </button>
-            <button
-              type="button"
-              onClick={handleSubmit}
-              disabled={submitting || !signature}
-              className="flex-1 rounded-lg bg-accent-600 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50"
-            >
-              {submitting ? "Submitting..." : "Confirm Booking"}
-            </button>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }

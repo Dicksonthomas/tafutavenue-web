@@ -2,9 +2,17 @@ import { ReactNode } from "react";
 import { LucideIcon } from "lucide-react";
 import { BookingStatus, VenueStatus } from "@/lib/types";
 
-export function Card({ children, className = "" }: { children: ReactNode; className?: string }) {
+export function Card({
+  children,
+  className = "",
+  onClick,
+}: {
+  children: ReactNode;
+  className?: string;
+  onClick?: () => void;
+}) {
   return (
-    <div className={`rounded-xl border border-slate-200 bg-white shadow-sm ${className}`}>
+    <div className={`rounded-xl border border-slate-200 bg-white shadow-sm ${className}`} onClick={onClick}>
       {children}
     </div>
   );

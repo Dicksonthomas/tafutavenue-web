@@ -9,6 +9,8 @@ interface AppSettings {
   logo_url: string | null;
   app_name: string | null;
   support_phone: string | null;
+  footer_text: string | null;
+  footer_link: string | null;
 }
 
 interface SettingsContextValue extends AppSettings {
@@ -21,6 +23,8 @@ const SettingsContext = createContext<SettingsContextValue>({
   logo_url: null,
   app_name: null,
   support_phone: null,
+  footer_text: null,
+  footer_link: null,
   refresh: () => {},
 });
 
@@ -41,7 +45,15 @@ function applyColor(hex: string) {
 }
 
 export function SettingsProvider({ children }: { children: ReactNode }) {
-  const [settings, setSettings] = useState<AppSettings>({ primary_color: null, default_color: null, logo_url: null, app_name: null, support_phone: null });
+  const [settings, setSettings] = useState<AppSettings>({
+    primary_color: null,
+    default_color: null,
+    logo_url: null,
+    app_name: null,
+    support_phone: null,
+    footer_text: null,
+    footer_link: null,
+  });
 
   const load = useCallback(() => {
     api.get("/settings").then(({ data }) => {

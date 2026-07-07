@@ -66,19 +66,29 @@ export default function DashboardHomePage() {
       {bookings.length === 0 ? (
         <EmptyState icon={CalendarClock} title="You have no bookings yet" description="Go to 'Find Venue' to make a new booking." />
       ) : (
-        <Card className="mb-8">
-          {bookings.map((b) => (
-            <div key={b.id} className="flex items-center justify-between gap-3 border-b border-slate-100 px-5 py-3 last:border-0">
-              <div className="min-w-0">
-                <p className="truncate text-sm font-medium text-slate-800">{b.venue?.name ?? `Venue #${b.venue_id}`}</p>
-                <p className="text-xs text-slate-400">{b.booking_date?.slice(0, 10)} · {b.start_time}–{b.end_time}</p>
-              </div>
-              <div className="flex shrink-0 items-center gap-2">
-                <PurposeBadge purpose={b.purpose} />
-                <StatusBadge status={b.status} />
-              </div>
-            </div>
-          ))}
+        <Card className="mb-8 overflow-x-auto">
+          <table className="w-full min-w-[600px] text-left text-sm">
+            <thead className="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+              <tr>
+                <th className="px-4 py-3">#</th>
+                <th className="px-4 py-3">Venue</th>
+                <th className="px-4 py-3">Date / Time</th>
+                <th className="px-4 py-3">Purpose</th>
+                <th className="px-4 py-3">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {bookings.map((b, idx) => (
+                <tr key={b.id} className="border-b border-slate-100 last:border-0">
+                  <td className="px-4 py-3 text-slate-400">{idx + 1}</td>
+                  <td className="px-4 py-3 font-medium text-slate-800">{b.venue?.name ?? `Venue #${b.venue_id}`}</td>
+                  <td className="px-4 py-3 text-xs text-slate-500">{b.booking_date?.slice(0, 10)} · {b.start_time}–{b.end_time}</td>
+                  <td className="px-4 py-3"><PurposeBadge purpose={b.purpose} /></td>
+                  <td className="px-4 py-3"><StatusBadge status={b.status} /></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </Card>
       )}
 
@@ -86,13 +96,25 @@ export default function DashboardHomePage() {
       {logs.length === 0 ? (
         <EmptyState icon={History} title="No activity yet" />
       ) : (
-        <Card>
-          {logs.map((log) => (
-            <div key={log.id} className="border-b border-slate-100 px-5 py-3 last:border-0">
-              <p className="text-sm text-slate-700">{log.message}</p>
-              <p className="mt-0.5 text-xs text-slate-400">{new Date(log.created_at).toLocaleString()}</p>
-            </div>
-          ))}
+        <Card className="overflow-x-auto">
+          <table className="w-full min-w-[600px] text-left text-sm">
+            <thead className="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
+              <tr>
+                <th className="px-4 py-3">#</th>
+                <th className="px-4 py-3">When</th>
+                <th className="px-4 py-3">Details</th>
+              </tr>
+            </thead>
+            <tbody>
+              {logs.map((log, idx) => (
+                <tr key={log.id} className="border-b border-slate-100 last:border-0">
+                  <td className="px-4 py-3 text-slate-400">{idx + 1}</td>
+                  <td className="px-4 py-3 whitespace-nowrap text-xs text-slate-500">{new Date(log.created_at).toLocaleString()}</td>
+                  <td className="px-4 py-3 text-slate-700">{log.message}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </Card>
       )}
     </div>

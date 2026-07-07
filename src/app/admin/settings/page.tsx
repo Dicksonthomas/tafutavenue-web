@@ -22,6 +22,8 @@ export default function AdminSettingsPage() {
 
   const [appName, setAppName] = useState(settings.app_name ?? "");
   const [supportPhone, setSupportPhone] = useState(settings.support_phone ?? "");
+  const [footerText, setFooterText] = useState(settings.footer_text ?? "");
+  const [footerLink, setFooterLink] = useState(settings.footer_link ?? "");
   const [brandingError, setBrandingError] = useState<string | null>(null);
   const [brandingSuccess, setBrandingSuccess] = useState<string | null>(null);
   const [savingBranding, setSavingBranding] = useState(false);
@@ -32,7 +34,12 @@ export default function AdminSettingsPage() {
     setBrandingSuccess(null);
     setSavingBranding(true);
     try {
-      const { data } = await api.post("/admin/settings", { app_name: appName, support_phone: supportPhone });
+      const { data } = await api.post("/admin/settings", {
+        app_name: appName,
+        support_phone: supportPhone,
+        footer_text: footerText,
+        footer_link: footerLink,
+      });
       setBrandingSuccess(data.message);
       settings.refresh();
     } catch (err) {
@@ -139,6 +146,27 @@ export default function AdminSettingsPage() {
                 value={supportPhone}
                 onChange={(e) => setSupportPhone(e.target.value)}
                 placeholder="e.g. +255 700 000 000"
+                className="w-full max-w-md rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="mb-1 block text-sm font-medium text-slate-600">Footer Text (shown on Login page and every dashboard footer)</label>
+              <input
+                value={footerText}
+                onChange={(e) => setFooterText(e.target.value)}
+                placeholder="DTECH INNOVATIONS"
+                className="w-full max-w-md rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none"
+              />
+            </div>
+
+            <div>
+              <label className="mb-1 block text-sm font-medium text-slate-600">Footer Link (where the footer text points to)</label>
+              <input
+                type="url"
+                value={footerLink}
+                onChange={(e) => setFooterLink(e.target.value)}
+                placeholder="https://dtech.co.tz/"
                 className="w-full max-w-md rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none"
               />
             </div>

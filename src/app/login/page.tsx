@@ -8,7 +8,7 @@ import { useSettings } from "@/lib/settings";
 
 export default function LoginPage() {
   const { login } = useAuth();
-  const { logo_url, app_name } = useSettings();
+  const { logo_url, app_name, footer_text, footer_link } = useSettings();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -86,8 +86,8 @@ export default function LoginPage() {
         </p>
         <p className="mt-1 text-center text-xs text-brand-200">
           from{" "}
-          <a href="https://dtech.co.tz/" target="_blank" rel="noopener noreferrer" className="font-medium underline hover:text-white">
-            DTECH INNOVATIONS
+          <a href={footer_link || "https://dtech.co.tz/"} target="_blank" rel="noopener noreferrer" className="font-medium underline hover:text-white">
+            {footer_text || "DTECH INNOVATIONS"}
           </a>
         </p>
       </div>

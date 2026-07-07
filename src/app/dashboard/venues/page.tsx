@@ -3,11 +3,28 @@
 import { useEffect, useState } from "react";
 import { Search, MapPin, Users, DoorOpen } from "lucide-react";
 import { api } from "@/lib/api";
-import { Venue } from "@/lib/types";
+import { Semester, Venue } from "@/lib/types";
 import { Card, EmptyState, PageHeader, Spinner, VenueStatusBadge } from "@/components/ui";
+import BookingModal from "@/components/BookingModal";
 import { useDebouncedValue } from "@/lib/useDebounce";
 import { useAuth } from "@/lib/auth";
 import { useReferenceData } from "@/lib/referenceData";
+
+function todayIso() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function nowHm() {
+  return new Date().toTimeString().slice(0, 5);
+}
+
+function to12h(time: string): string {
+  const [hStr, m] = time.split(":");
+  let h = parseInt(hStr, 10);
+  const suffix = h >= 12 ? "PM" : "AM";
+  h = h % 12 || 12;
+  return `${String(h).padStart(2, "0")}:${m} ${suffix}`;
+}
 
 export default function AllVenuesPage() {
   const { user } = useAuth();
@@ -16,21 +33,48 @@ export default function AllVenuesPage() {
   const [q, setQ] = useState("");
   const [venues, setVenues] = useState<Venue[]>([]);
   const [loading, setLoading] = useState(true);
+  const [freeMode, setFreeMode] = useState(false);
+  const [bookingVenue, setBookingVenue] = useState<Venue | null>(null);
+  const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const debouncedQ = useDebouncedValue(q, 300);
+
+  const isFreeQuery = debouncedQ.trim().toLowerCase() === "free";
 
   useEffect(() => {
     setLoading(true);
+    setSuccessMsg(null);
+
+    if (isFreeQuery) {
+      setFreeMode(true);
+      api.get("/semesters").then(({ data }: { data: Semester[] }) => {
+        const active = data.find((s) => s.is_active) ?? data[0];
+        if (!active) {
+          setVenues([]);
+          setLoading(false);
+          return;
+        }
+        api.get("/venues/available", {
+          params: { semester_id: active.id, date: todayIso(), start_time: nowHm(), end_time: "23:59" },
+        }).then(({ data: availableData }) => {
+          setVenues(availableData.venues);
+          setLoading(false);
+        });
+      });
+      return;
+    }
+
+    setFreeMode(false);
     api.get("/venues", { params: debouncedQ ? { q: debouncedQ } : {} }).then(({ data }) => {
       setVenues(data);
       setLoading(false);
     });
-  }, [debouncedQ]);
+  }, [debouncedQ, isFreeQuery]);
 
   return (
     <div className="mx-auto max-w-7xl">
       <PageHeader
         title="All Venues"
-        subtitle={`Search for any venue by name or number (e.g. Ntare 108).${campusName ? ` Campus: ${campusName}.` : ""}`}
+        subtitle={`Search for any venue by name or number (e.g. Ntare 108), or type "free" to see venues free right now.${campusName ? ` Campus: ${campusName}.` : ""}`}
       />
 
       <div className="relative mb-6">
@@ -38,10 +82,16 @@ export default function AllVenuesPage() {
         <input
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          placeholder="Type a venue name or number... (e.g. Ntare 108)"
+          placeholder='Type a venue name or number, or "free"...'
           className="w-full rounded-lg border border-slate-300 py-2.5 pl-9 pr-3 text-sm focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500"
         />
       </div>
+
+      {successMsg && <div className="mb-4 rounded-lg bg-emerald-50 px-4 py-3 text-sm text-emerald-700 ring-1 ring-inset ring-emerald-200">{successMsg}</div>}
+
+      {freeMode && !loading && (
+        <p className="mb-4 text-xs text-slate-500">Showing venues free from now until the end of today. Click a card to book it.</p>
+      )}
 
       {loading ? (
         <Spinner />
@@ -50,7 +100,11 @@ export default function AllVenuesPage() {
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {venues.map((v) => (
-            <Card key={v.id} className="p-5">
+            <Card
+              key={v.id}
+              onClick={() => setBookingVenue(v)}
+              className="cursor-pointer p-5 transition hover:border-accent-300 hover:shadow-md"
+            >
               <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
                   <h3 className="truncate font-semibold text-slate-900">{v.name}</h3>
@@ -63,6 +117,12 @@ export default function AllVenuesPage() {
                 </div>
                 <VenueStatusBadge status={v.status} />
               </div>
+
+              {freeMode && v.free_from && v.free_until && (
+                <p className="mt-2 rounded-full bg-emerald-50 px-2.5 py-1 text-center text-xs font-medium text-emerald-700 ring-1 ring-inset ring-emerald-200">
+                  Free {to12h(v.free_from)} – {to12h(v.free_until)}
+                </p>
+              )}
 
               {(v.blocked_purposes?.length || v.restricted_levels?.length || v.restricted_department) ? (
                 <div className="mt-2 flex flex-wrap gap-1">
@@ -80,6 +140,17 @@ export default function AllVenuesPage() {
             </Card>
           ))}
         </div>
+      )}
+
+      {bookingVenue && (
+        <BookingModal
+          venue={bookingVenue}
+          onClose={() => setBookingVenue(null)}
+          onSuccess={() => {
+            setSuccessMsg(`Booking for "${bookingVenue.name}" was successful and approved automatically!`);
+            setBookingVenue(null);
+          }}
+        />
       )}
     </div>
   );
