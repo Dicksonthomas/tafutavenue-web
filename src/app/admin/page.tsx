@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ClipboardList, DoorOpen, TrendingUp } from "lucide-react";
+import { ClipboardList, DoorOpen, TrendingUp, GraduationCap, UserRound } from "lucide-react";
 import { api } from "@/lib/api";
 import { Card, PageHeader, Spinner } from "@/components/ui";
 
@@ -11,6 +11,9 @@ interface Summary {
   by_purpose: Record<string, number>;
   most_booked_venues: { venue_id: number; total: number; venue: { name: string; building: string | null } }[];
   total_venues: number;
+  total_crs: number;
+  male_crs: number;
+  female_crs: number;
 }
 
 const RANGES: { value: string; label: string }[] = [
@@ -49,12 +52,19 @@ export default function AdminHomePage() {
         }
       />
 
-      <div className="mb-8 grid grid-cols-2 gap-4 sm:grid-cols-4">
+      <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
         <StatCard icon={ClipboardList} label="Jumla ya Bookings" value={summary.total_bookings} />
         <StatCard icon={DoorOpen} label="Venues" value={summary.total_venues} />
         {Object.entries(summary.by_status).map(([status, count]) => (
           <StatCard key={status} icon={TrendingUp} label={status} value={count} />
         ))}
+      </div>
+
+      <h2 className="mb-3 text-sm font-semibold text-slate-700">CRs Waliosajiliwa</h2>
+      <div className="mb-8 grid grid-cols-2 gap-4 sm:grid-cols-4">
+        <StatCard icon={GraduationCap} label="Jumla ya CRs" value={summary.total_crs} />
+        <StatCard icon={UserRound} label="Male CRs" value={summary.male_crs} color="blue" />
+        <StatCard icon={UserRound} label="Female CRs" value={summary.female_crs} color="pink" />
       </div>
 
       <h2 className="mb-3 text-sm font-semibold text-slate-700">Venues Zinazobookiwa Zaidi</h2>
@@ -76,10 +86,26 @@ export default function AdminHomePage() {
   );
 }
 
-function StatCard({ icon: Icon, label, value }: { icon: typeof ClipboardList; label: string; value: number }) {
+const COLOR_CLASSES: Record<string, string> = {
+  accent: "bg-accent-50 text-accent-600",
+  blue: "bg-blue-50 text-blue-600",
+  pink: "bg-pink-50 text-pink-600",
+};
+
+function StatCard({
+  icon: Icon,
+  label,
+  value,
+  color = "accent",
+}: {
+  icon: typeof ClipboardList;
+  label: string;
+  value: number;
+  color?: "accent" | "blue" | "pink";
+}) {
   return (
     <Card className="p-4">
-      <div className="mb-2 flex h-8 w-8 items-center justify-center rounded-lg bg-accent-50 text-accent-600">
+      <div className={`mb-2 flex h-8 w-8 items-center justify-center rounded-lg ${COLOR_CLASSES[color]}`}>
         <Icon size={16} />
       </div>
       <p className="text-xs capitalize text-slate-500">{label}</p>

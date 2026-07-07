@@ -6,8 +6,13 @@ import { api } from "@/lib/api";
 import { Venue } from "@/lib/types";
 import { Card, EmptyState, PageHeader, Spinner, VenueStatusBadge } from "@/components/ui";
 import { useDebouncedValue } from "@/lib/useDebounce";
+import { useAuth } from "@/lib/auth";
+import { useReferenceData } from "@/lib/referenceData";
 
 export default function AllVenuesPage() {
+  const { user } = useAuth();
+  const { campuses } = useReferenceData();
+  const campusName = campuses.find((c) => c.value === user?.campus)?.label ?? user?.campus;
   const [q, setQ] = useState("");
   const [venues, setVenues] = useState<Venue[]>([]);
   const [loading, setLoading] = useState(true);
@@ -23,7 +28,10 @@ export default function AllVenuesPage() {
 
   return (
     <div className="mx-auto max-w-5xl">
-      <PageHeader title="Venues Zote" subtitle="Tafuta venue yoyote kwa jina au namba (mfano: Ntare 108)." />
+      <PageHeader
+        title="Venues Zote"
+        subtitle={`Tafuta venue yoyote kwa jina au namba (mfano: Ntare 108).${campusName ? ` Campus: ${campusName}.` : ""}`}
+      />
 
       <div className="relative mb-6">
         <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />

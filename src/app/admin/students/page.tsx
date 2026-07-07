@@ -7,6 +7,12 @@ import { Level, User } from "@/lib/types";
 import { Card, EmptyState, PageHeader, Spinner } from "@/components/ui";
 import { useDebouncedValue } from "@/lib/useDebounce";
 import EducationFields, { EducationValue } from "@/components/EducationFields";
+import { useReferenceData } from "@/lib/referenceData";
+
+function campusLabel(value: string | undefined, campuses: { value: string; label: string }[]): string {
+  if (!value) return "—";
+  return campuses.find((c) => c.value === value)?.label ?? value;
+}
 
 const EMAIL_DOMAIN = "mustudent.ac.tz";
 const MIN_INTAKE_YEAR = 2022;
@@ -55,6 +61,7 @@ interface PaginatedUsers {
 }
 
 export default function AdminStudentsPage() {
+  const { campuses } = useReferenceData();
   const [result, setResult] = useState<PaginatedUsers | null>(null);
   const [page, setPage] = useState(1);
   const [q, setQ] = useState("");
@@ -264,10 +271,18 @@ export default function AdminStudentsPage() {
                 <p className="text-xs text-slate-500">{u.phone}</p>
                 <p className="mt-1 text-xs text-slate-400">{u.faculty} · {u.department}</p>
                 <p className="truncate text-xs text-slate-400">{u.program}</p>
-                <div className="mt-2 flex items-center gap-2">
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  <span className="rounded-full bg-brand-50 px-2 py-0.5 text-xs font-medium text-brand-700">
+                    {campusLabel(u.campus, campuses)}
+                  </span>
                   <span className="rounded-full bg-accent-50 px-2 py-0.5 text-xs font-medium text-accent-700">
                     {u.level} - Mwaka {u.year_of_study ?? "?"}
                   </span>
+                  {u.sex && (
+                    <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-600">
+                      {u.sex === "male" ? "Male" : "Female"}
+                    </span>
+                  )}
                   {!u.is_active && (
                     <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-500">Amesimamishwa</span>
                   )}
@@ -304,11 +319,14 @@ export default function AdminStudentsPage() {
 }
 
 function StudentForm({ onCreated }: { onCreated: (message: string) => void }) {
+  const { campuses } = useReferenceData();
   const [useManualEmail, setUseManualEmail] = useState(false);
   const [name, setName] = useState("");
   const [regNo, setRegNo] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
+  const [campus, setCampus] = useState("");
+  const [sex, setSex] = useState("");
   const [edu, setEdu] = useState<EducationValue>({
     faculty: "",
     department: "",
@@ -327,8 +345,8 @@ function StudentForm({ onCreated }: { onCreated: (message: string) => void }) {
     setSubmitting(true);
     try {
       const payload = useManualEmail
-        ? { name, email, phone, ...edu }
-        : { name, reg_no: regNo, phone, ...edu };
+        ? { name, email, phone, campus, sex, ...edu }
+        : { name, reg_no: regNo, phone, campus, sex, ...edu };
       const { data } = await api.post("/admin/users", payload);
       onCreated(data.message);
     } catch (err) {
@@ -365,7 +383,18 @@ function StudentForm({ onCreated }: { onCreated: (message: string) => void }) {
 
         <input required placeholder="Namba ya Simu" value={phone} onChange={(e) => setPhone(e.target.value)} className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none" />
 
-        <EducationFields value={edu} onChange={setEdu} />
+        <select required value={campus} onChange={(e) => setCampus(e.target.value)} className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none">
+          <option value="" disabled>Chagua Campus...</option>
+          {campuses.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
+        </select>
+
+        <select required value={sex} onChange={(e) => setSex(e.target.value)} className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none">
+          <option value="" disabled>Jinsia...</option>
+          <option value="male">Male</option>
+          <option value="female">Female</option>
+        </select>
+
+        <EducationFields value={edu} onChange={setEdu} campus={campus} />
 
         <button disabled={submitting} className="col-span-full rounded-lg bg-accent-600 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50">
           {submitting ? "Inasajili..." : "Sajili CR"}
@@ -384,9 +413,12 @@ function EditStudentModal({
   onClose: () => void;
   onSaved: (message: string) => void;
 }) {
+  const { campuses } = useReferenceData();
   const [name, setName] = useState(user.name);
   const [phone, setPhone] = useState(user.phone ?? "");
   const [password, setPassword] = useState("");
+  const [campus, setCampus] = useState(user.campus ?? "");
+  const [sex, setSex] = useState(user.sex ?? "");
   const [isActive, setIsActive] = useState(user.is_active);
   const [edu, setEdu] = useState<EducationValue>({
     faculty: user.faculty ?? "",
@@ -403,7 +435,7 @@ function EditStudentModal({
     setError(null);
     setSubmitting(true);
     try {
-      const payload: Record<string, unknown> = { name, phone, is_active: isActive, ...edu };
+      const payload: Record<string, unknown> = { name, phone, campus, sex, is_active: isActive, ...edu };
       if (password) payload.password = password;
       const { data } = await api.put(`/admin/users/${user.id}`, payload);
       onSaved(data.message);
@@ -429,7 +461,18 @@ function EditStudentModal({
           <input required placeholder="Namba ya Simu" value={phone} onChange={(e) => setPhone(e.target.value)} className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none" />
           <input type="password" placeholder="Password Mpya (hiari)" value={password} onChange={(e) => setPassword(e.target.value)} className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none" />
 
-          <EducationFields value={edu} onChange={setEdu} />
+          <select required value={campus} onChange={(e) => setCampus(e.target.value)} className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none">
+            <option value="" disabled>Chagua Campus...</option>
+            {campuses.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
+          </select>
+
+          <select required value={sex} onChange={(e) => setSex(e.target.value)} className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none">
+            <option value="" disabled>Jinsia...</option>
+            <option value="male">Male</option>
+            <option value="female">Female</option>
+          </select>
+
+          <EducationFields value={edu} onChange={setEdu} campus={campus} />
 
           <label className="col-span-full flex items-center gap-2 text-sm text-slate-600">
             <input type="checkbox" checked={isActive} onChange={(e) => setIsActive(e.target.checked)} />

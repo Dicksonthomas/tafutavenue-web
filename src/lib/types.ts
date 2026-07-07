@@ -10,6 +10,7 @@ export interface User {
   role: Role;
   phone?: string;
   campus?: string;
+  sex?: "male" | "female" | null;
   faculty?: string;
   department?: string;
   program?: string;

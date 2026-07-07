@@ -59,6 +59,7 @@ export default function RegisterPage() {
   const [name, setName] = useState("");
   const [regNo, setRegNo] = useState("");
   const [phone, setPhone] = useState("");
+  const [sex, setSex] = useState("");
   const [campus, setCampus] = useState("");
   const { campuses } = useReferenceData();
   const [edu, setEdu] = useState<EducationValue>({
@@ -78,7 +79,7 @@ export default function RegisterPage() {
     setError(null);
     setSubmitting(true);
     try {
-      const { data } = await api.post("/register", { name, reg_no: regNo, phone, campus, ...edu });
+      const { data } = await api.post("/register", { name, reg_no: regNo, phone, sex, campus, ...edu });
       localStorage.setItem("token", data.token);
       setUser(data.user);
       refreshSettings();
@@ -156,7 +157,7 @@ export default function RegisterPage() {
               </p>
             </div>
 
-            <div className="col-span-full">
+            <div>
               <label className="mb-1 block text-sm font-medium text-slate-600">Namba ya Simu</label>
               <input
                 required
@@ -164,6 +165,20 @@ export default function RegisterPage() {
                 onChange={(e) => setPhone(e.target.value)}
                 className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500"
               />
+            </div>
+
+            <div>
+              <label className="mb-1 block text-sm font-medium text-slate-600">Jinsia</label>
+              <select
+                required
+                value={sex}
+                onChange={(e) => setSex(e.target.value)}
+                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500"
+              >
+                <option value="" disabled>Chagua...</option>
+                <option value="male">Male</option>
+                <option value="female">Female</option>
+              </select>
             </div>
 
             <EducationFields value={edu} onChange={setEdu} campus={campus} />

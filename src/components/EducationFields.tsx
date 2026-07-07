@@ -23,7 +23,10 @@ export default function EducationFields({
 }) {
   const { faculties, departmentsByFaculty, programs, levelYears } = useReferenceData(campus);
 
-  const departmentOptions = departmentsByFaculty[value.faculty] ?? [];
+  // Onyesha departments zote (siyo tu zile za faculty iliyoandikwa) - kwa kuwa
+  // Faculty ni free-text sasa, kuzuia department kwa faculty kamili kulikuwa
+  // kunasababisha orodha kuwa tupu mara nyingi (uzoefu mbaya wa kuchagua).
+  const departmentOptions = Array.from(new Set(Object.values(departmentsByFaculty).flat())).sort();
   const maxYears = levelYears[value.level] ?? 3;
   const yearOptions = Array.from({ length: maxYears }, (_, i) => i + 1);
 

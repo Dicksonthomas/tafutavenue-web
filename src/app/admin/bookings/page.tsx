@@ -1,14 +1,22 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Check, X, ClipboardCheck } from "lucide-react";
+import { Check, X, ClipboardCheck, MapPin, CalendarDays, Clock } from "lucide-react";
 import { api, apiErrorMessage } from "@/lib/api";
 import { Booking } from "@/lib/types";
+import { useReferenceData } from "@/lib/referenceData";
 import { Card, EmptyState, PageHeader, PurposeBadge, Spinner, StatusBadge } from "@/components/ui";
 
+function campusLabel(value: string | undefined, campuses: { value: string; label: string }[]): string {
+  if (!value) return "—";
+  return campuses.find((c) => c.value === value)?.label ?? value;
+}
+
 export default function AdminBookingsPage() {
+  const { campuses } = useReferenceData();
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [status, setStatus] = useState<string>("pending");
+  const [counts, setCounts] = useState<Record<string, number>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [rejectingId, setRejectingId] = useState<number | null>(null);
@@ -25,6 +33,10 @@ export default function AdminBookingsPage() {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status]);
+
+  useEffect(() => {
+    api.get("/admin/reports/summary", { params: { range: "all" } }).then(({ data }) => setCounts(data.by_status ?? {}));
+  }, [bookings]);
 
   async function approve(id: number) {
     setError(null);
@@ -64,6 +76,21 @@ export default function AdminBookingsPage() {
         }
       />
 
+      <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+        {["pending", "approved", "rejected", "cancelled"].map((s) => (
+          <button
+            key={s}
+            onClick={() => setStatus(s)}
+            className={`rounded-lg border p-3 text-left transition ${
+              status === s ? "border-accent-500 bg-accent-50" : "border-slate-200 bg-white hover:bg-slate-50"
+            }`}
+          >
+            <p className="text-xs capitalize text-slate-500">{s}</p>
+            <p className="mt-0.5 text-xl font-semibold text-slate-900">{counts[s] ?? 0}</p>
+          </button>
+        ))}
+      </div>
+
       {error && <div className="mb-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700 ring-1 ring-inset ring-red-200">{error}</div>}
 
       {loading ? (
@@ -76,12 +103,20 @@ export default function AdminBookingsPage() {
             <Card key={b.id} className="p-5">
               <div className="flex items-start justify-between gap-3">
                 <div>
-                  <h3 className="font-semibold text-slate-900">{b.venue?.name ?? `Venue #${b.venue_id}`}</h3>
-                  <p className="mt-0.5 text-xs text-slate-500">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <h3 className="font-semibold text-slate-900">{b.venue?.name ?? `Venue #${b.venue_id}`}</h3>
+                    {b.venue?.campus && (
+                      <span className="flex items-center gap-1 rounded-full bg-brand-50 px-2 py-0.5 text-[11px] font-medium text-brand-700">
+                        <MapPin size={11} /> {campusLabel(b.venue.campus, campuses)}
+                      </span>
+                    )}
+                  </div>
+                  <p className="mt-1 text-xs text-slate-500">
                     {b.user?.name} · {b.user?.program} ({b.user?.level})
                   </p>
-                  <p className="mt-0.5 text-xs text-slate-500">
-                    {b.booking_date?.slice(0, 10)} · {b.start_time}–{b.end_time}
+                  <p className="mt-0.5 flex items-center gap-3 text-xs text-slate-500">
+                    <span className="flex items-center gap-1"><CalendarDays size={12} /> {b.booking_date?.slice(0, 10)}</span>
+                    <span className="flex items-center gap-1"><Clock size={12} /> {b.start_time}–{b.end_time}</span>
                   </p>
                   {b.title && <p className="mt-1 text-sm text-slate-600">{b.title}</p>}
                   <div className="mt-2">

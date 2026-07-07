@@ -6,6 +6,8 @@ import { api, apiErrorMessage } from "@/lib/api";
 import { BookingPurpose, Semester, TimetableSlot, Booking, Venue } from "@/lib/types";
 import { Card, EmptyState, PageHeader, PurposeBadge, Spinner, StatusBadge } from "@/components/ui";
 import SignaturePad from "@/components/SignaturePad";
+import { useAuth } from "@/lib/auth";
+import { useReferenceData } from "@/lib/referenceData";
 
 function to12h(time: string): string {
   const [hStr, m] = time.split(":");
@@ -24,6 +26,9 @@ const PURPOSES: { value: BookingPurpose; label: string }[] = [
 ];
 
 export default function DashboardPage() {
+  const { user } = useAuth();
+  const { campuses } = useReferenceData();
+  const campusName = campuses.find((c) => c.value === user?.campus)?.label ?? user?.campus;
   const [semesters, setSemesters] = useState<Semester[]>([]);
   const [semesterId, setSemesterId] = useState<string>("");
   const [date, setDate] = useState("");
@@ -90,7 +95,7 @@ export default function DashboardPage() {
     <div className="mx-auto max-w-5xl">
       <PageHeader
         title="Tafuta Available Venue"
-        subtitle="Chagua semester, tarehe na muda ili kuona venue zinazopatikana. Study Unit/Test za jioni na weekend (Jumamosi/Jumapili) zinaruhusiwa."
+        subtitle={`Chagua semester, tarehe na muda ili kuona venue zinazopatikana. Study Unit/Test za jioni na weekend (Jumamosi/Jumapili) zinaruhusiwa.${campusName ? ` Campus: ${campusName}.` : ""}`}
       />
 
       {overview && (
