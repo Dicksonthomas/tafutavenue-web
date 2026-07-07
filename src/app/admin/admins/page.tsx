@@ -49,7 +49,7 @@ export default function AdminAdminsPage() {
     <div className="mx-auto max-w-7xl">
       <PageHeader
         title="Admins"
-        subtitle="Manage administrator accounts. The Super Admin cannot be removed."
+        subtitle="Manage administrator accounts. The Super Admin cannot be removed, but can edit their own name, email and password."
         action={
           <button
             onClick={() => setShowForm((v) => !v)}
@@ -116,7 +116,18 @@ export default function AdminAdminsPage() {
                   </td>
                   <td className="px-4 py-3">
                     {a.is_super_admin ? (
-                      <span className="block text-right text-xs text-slate-400">—</span>
+                      a.id === user?.id ? (
+                        <div className="flex justify-end">
+                          <button
+                            onClick={() => setEditingAdmin(a)}
+                            className="flex items-center gap-1 rounded-lg border border-slate-200 px-2 py-1 text-xs text-slate-500 hover:bg-slate-50"
+                          >
+                            <Pencil size={12} /> Edit My Details
+                          </button>
+                        </div>
+                      ) : (
+                        <span className="block text-right text-xs text-slate-400">—</span>
+                      )
                     ) : (
                       <div className="flex justify-end gap-1">
                         {user?.is_super_admin && (
@@ -183,6 +194,7 @@ function AddAdminForm({ onCreated }: { onCreated: () => void }) {
 }
 
 function EditAdminModal({ admin, onClose, onSaved }: { admin: AdminUser; onClose: () => void; onSaved: () => void }) {
+  const { user, setUser } = useAuth();
   const [name, setName] = useState(admin.name);
   const [email, setEmail] = useState(admin.email);
   const [password, setPassword] = useState("");
@@ -196,7 +208,10 @@ function EditAdminModal({ admin, onClose, onSaved }: { admin: AdminUser; onClose
     try {
       const payload: Record<string, unknown> = { name, email };
       if (password) payload.password = password;
-      await api.put(`/admin/admins/${admin.id}`, payload);
+      const { data } = await api.put(`/admin/admins/${admin.id}`, payload);
+      if (user && admin.id === user.id) {
+        setUser({ ...user, name: data.user.name, email: data.user.email });
+      }
       onSaved();
     } catch (err) {
       setError(apiErrorMessage(err));
