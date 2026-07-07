@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { LucideIcon, X, Building2 } from "lucide-react";
 import TopBar from "./TopBar";
 import Footer from "./Footer";
+import BottomNav from "./BottomNav";
 import { useSettings } from "@/lib/settings";
 
 export interface NavItem {
@@ -96,8 +97,9 @@ export default function DashboardShell({
           changePasswordHref={changePasswordHref}
         />
 
-        <main className="flex-1 px-4 py-6 sm:px-6 lg:px-8">{children}</main>
-        <Footer />
+        <main className="flex-1 px-4 py-6 pb-20 sm:px-6 lg:px-8 md:pb-6">{children}</main>
+        <div className="hidden md:block"><Footer /></div>
+        <BottomNav navItems={navItems} />
       </div>
     </div>
   );

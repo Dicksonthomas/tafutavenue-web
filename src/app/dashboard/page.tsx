@@ -313,7 +313,7 @@ export default function DashboardPage() {
           onSuccess={() => {
             setBookingVenue(null);
             setVenues((prev) => prev?.filter((v) => v.id !== bookingVenue.id) ?? null);
-            setSuccessMsg(`Booking ya "${bookingVenue.name}" imetumwa na imesainiwa - inasubiri idhini ya Admin.`);
+            setSuccessMsg(`Booking for "${bookingVenue.name}" was successful and approved automatically!`);
           }}
         />
       )}

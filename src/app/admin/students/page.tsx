@@ -9,6 +9,7 @@ import { useDebouncedValue } from "@/lib/useDebounce";
 import EducationFields, { EducationValue } from "@/components/EducationFields";
 import { useReferenceData } from "@/lib/referenceData";
 import { confirmAction } from "@/lib/confirm";
+import PageSizeSelect from "@/components/PageSizeSelect";
 
 function campusLabel(value: string | undefined, campuses: { value: string; label: string }[]): string {
   if (!value) return "—";
@@ -59,12 +60,14 @@ interface PaginatedUsers {
   current_page: number;
   last_page: number;
   total: number;
+  per_page: number;
 }
 
 export default function AdminStudentsPage() {
   const { campuses } = useReferenceData();
   const [result, setResult] = useState<PaginatedUsers | null>(null);
   const [page, setPage] = useState(1);
+  const [perPage, setPerPage] = useState("20");
   const [q, setQ] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -77,16 +80,16 @@ export default function AdminStudentsPage() {
 
   const debouncedQ = useDebouncedValue(q, 350);
 
-  async function load(query = "", pageNum = 1) {
+  async function load(query = debouncedQ, pageNum = page, perPageVal = perPage) {
     setLoading(true);
-    const { data } = await api.get("/admin/users", { params: { ...(query ? { q: query } : {}), page: pageNum } });
+    const { data } = await api.get("/admin/users", { params: { ...(query ? { q: query } : {}), page: pageNum, per_page: perPageVal } });
     setResult(data);
     setLoading(false);
   }
 
   useEffect(() => {
     setPage(1);
-    load(debouncedQ, 1);
+    load(debouncedQ, 1, perPage);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debouncedQ]);
 
@@ -94,6 +97,12 @@ export default function AdminStudentsPage() {
     load(debouncedQ, page);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page]);
+
+  useEffect(() => {
+    setPage(1);
+    load(debouncedQ, 1, perPage);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [perPage]);
 
   async function deleteUser(u: User) {
     const ok = await confirmAction(
@@ -230,17 +239,20 @@ export default function AdminStudentsPage() {
         />
       )}
 
-      <div className="relative mb-4">
-        <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-        <input
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          placeholder="Tafuta kwa jina, email, reg no au program... (live search)"
-          className="w-full rounded-lg border border-slate-300 py-2 pl-9 pr-3 text-sm focus:border-accent-500 focus:outline-none"
-        />
-        {loading && q && (
-          <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400">...</span>
-        )}
+      <div className="mb-4 flex flex-col gap-2 sm:flex-row">
+        <div className="relative flex-1">
+          <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Tafuta kwa jina, email, reg no au program... (live search)"
+            className="w-full rounded-lg border border-slate-300 py-2 pl-9 pr-3 text-sm focus:border-accent-500 focus:outline-none"
+          />
+          {loading && q && (
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400">...</span>
+          )}
+        </div>
+        <PageSizeSelect value={perPage} onChange={setPerPage} />
       </div>
 
       {loading ? (
@@ -253,6 +265,7 @@ export default function AdminStudentsPage() {
             <table className="w-full min-w-[1000px] text-left text-sm">
               <thead className="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
                 <tr>
+                  <th className="px-4 py-3">#</th>
                   <th className="px-4 py-3">Jina / Reg No</th>
                   <th className="px-4 py-3">Email / Simu</th>
                   <th className="px-4 py-3">Campus</th>
@@ -265,8 +278,11 @@ export default function AdminStudentsPage() {
                 </tr>
               </thead>
               <tbody>
-                {users.map((u) => (
+                {users.map((u, idx) => (
                   <tr key={u.id} className="border-b border-slate-100 last:border-0 hover:bg-slate-50/60">
+                    <td className="px-4 py-3 text-slate-400">
+                      {((result?.current_page ?? 1) - 1) * (result?.per_page ?? 0) + idx + 1}
+                    </td>
                     <td className="px-4 py-3">
                       <p className="font-medium text-slate-900">{u.name}</p>
                       {u.reg_no && <p className="text-xs text-slate-400">{u.reg_no}</p>}

@@ -5,6 +5,7 @@ import { CalendarClock, ChevronLeft, ChevronRight, DoorOpen } from "lucide-react
 import { api } from "@/lib/api";
 import { Booking } from "@/lib/types";
 import { Card, EmptyState, PageHeader, PurposeBadge, Spinner, StatusBadge } from "@/components/ui";
+import PageSizeSelect from "@/components/PageSizeSelect";
 
 function todayIso() {
   return new Date().toISOString().slice(0, 10);
@@ -15,6 +16,7 @@ interface PaginatedBookings {
   current_page: number;
   last_page: number;
   total: number;
+  per_page: number;
 }
 
 export default function AdminBookedVenuesPage() {
@@ -22,6 +24,7 @@ export default function AdminBookedVenuesPage() {
   const [date, setDate] = useState(todayIso());
   const [status, setStatus] = useState("");
   const [page, setPage] = useState(1);
+  const [perPage, setPerPage] = useState("30");
   const [result, setResult] = useState<PaginatedBookings | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -32,6 +35,7 @@ export default function AdminBookedVenuesPage() {
         ...(view === "day" && date ? { date } : {}),
         ...(status ? { status } : {}),
         page,
+        per_page: perPage,
       },
     });
     setResult(data);
@@ -41,7 +45,7 @@ export default function AdminBookedVenuesPage() {
   useEffect(() => {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [view, date, status, page]);
+  }, [view, date, status, page, perPage]);
 
   const bookings = result?.data ?? [];
 
@@ -88,6 +92,10 @@ export default function AdminBookedVenuesPage() {
               <option value="rejected">Rejected</option>
               <option value="cancelled">Cancelled</option>
             </select>
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-medium text-slate-600">Show</label>
+            <PageSizeSelect value={perPage} onChange={(v) => { setPage(1); setPerPage(v); }} />
           </div>
         </div>
       </Card>
@@ -140,6 +148,7 @@ export default function AdminBookedVenuesPage() {
           <table className="w-full min-w-[900px] text-left text-sm">
             <thead className="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
               <tr>
+                <th className="px-4 py-3">#</th>
                 <th className="px-4 py-3">Venue</th>
                 <th className="px-4 py-3">Tarehe</th>
                 <th className="px-4 py-3">Muda</th>
@@ -150,8 +159,11 @@ export default function AdminBookedVenuesPage() {
               </tr>
             </thead>
             <tbody>
-              {bookings.map((b) => (
+              {bookings.map((b, idx) => (
                 <tr key={b.id} className="border-b border-slate-100 last:border-0 hover:bg-slate-50/60">
+                  <td className="px-4 py-3 text-slate-400">
+                    {((result?.current_page ?? 1) - 1) * (result?.per_page ?? 0) + idx + 1}
+                  </td>
                   <td className="px-4 py-3 font-medium text-slate-800">{b.venue?.name}</td>
                   <td className="px-4 py-3 text-slate-600">{b.booking_date?.slice(0, 10)}</td>
                   <td className="px-4 py-3 text-slate-600">{b.start_time}–{b.end_time}</td>
