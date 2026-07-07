@@ -8,6 +8,7 @@ import { Card, EmptyState, PageHeader, Spinner } from "@/components/ui";
 import { useDebouncedValue } from "@/lib/useDebounce";
 import EducationFields, { EducationValue } from "@/components/EducationFields";
 import { useReferenceData } from "@/lib/referenceData";
+import { confirmAction } from "@/lib/confirm";
 
 function campusLabel(value: string | undefined, campuses: { value: string; label: string }[]): string {
   if (!value) return "—";
@@ -95,7 +96,11 @@ export default function AdminStudentsPage() {
   }, [page]);
 
   async function deleteUser(u: User) {
-    if (!confirm(`Una uhakika unataka kumfuta CR "${u.name}"?\n\nTaarifa zake binafsi (jina, email, simu) zitafutwa, lakini historia ya bookings zake itabaki kwa rekodi.`)) return;
+    const ok = await confirmAction(
+      `Taarifa zake binafsi (jina, email, simu) zitafutwa, lakini historia ya bookings zake itabaki kwa rekodi.`,
+      { title: `Futa CR "${u.name}"?`, confirmText: "Ndiyo, futa" }
+    );
+    if (!ok) return;
     setError(null);
     try {
       await api.delete(`/admin/users/${u.id}`);

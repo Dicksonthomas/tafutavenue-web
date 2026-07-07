@@ -6,6 +6,7 @@ import SignaturePad from "@/components/SignaturePad";
 import { api, apiErrorMessage } from "@/lib/api";
 import { Booking } from "@/lib/types";
 import { Card, EmptyState, PageHeader, PurposeBadge, Spinner, StatusBadge } from "@/components/ui";
+import { confirmAction } from "@/lib/confirm";
 
 export default function MyBookingsPage() {
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -26,7 +27,8 @@ export default function MyBookingsPage() {
   }, []);
 
   async function cancelBooking(id: number) {
-    if (!confirm("Una uhakika unataka ku-cancel booking hii?")) return;
+    const ok = await confirmAction("Booking hii itaghairiwa na huwezi kuitumia tena.", { title: "Ghairi booking hii?", confirmText: "Ndiyo, ghairi" });
+    if (!ok) return;
     setError(null);
     try {
       await api.post(`/bookings/${id}/cancel`);

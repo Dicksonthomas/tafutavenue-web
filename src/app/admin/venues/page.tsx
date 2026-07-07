@@ -7,6 +7,7 @@ import { BookingPurpose, Level, Semester, Venue, VenueStatus, VenueType } from "
 import { Card, EmptyState, PageHeader, Spinner, VenueStatusBadge } from "@/components/ui";
 import { useDebouncedValue } from "@/lib/useDebounce";
 import { useReferenceData } from "@/lib/referenceData";
+import { confirmAction } from "@/lib/confirm";
 
 const TYPES: VenueType[] = ["lecture_hall", "laboratory", "seminar_room", "hall", "other"];
 const STATUSES: VenueStatus[] = ["available", "maintenance", "disabled"];
@@ -64,7 +65,8 @@ export default function AdminVenuesPage() {
   }
 
   async function remove(venue: Venue) {
-    if (!confirm(`Futa venue "${venue.name}"?`)) return;
+    const ok = await confirmAction("Hatua hii haiwezi kutenduliwa.", { title: `Futa venue "${venue.name}"?`, confirmText: "Ndiyo, futa" });
+    if (!ok) return;
     setError(null);
     try {
       await api.delete(`/admin/venues/${venue.id}`);

@@ -1,13 +1,17 @@
 "use client";
 
-import { Mail, Phone, Building2, GraduationCap, Layers, BookOpenCheck, IdCard } from "lucide-react";
+import { Mail, Phone, Building2, GraduationCap, Layers, BookOpenCheck, IdCard, MapPin, UserRound } from "lucide-react";
 import { useAuth } from "@/lib/auth";
+import { useReferenceData } from "@/lib/referenceData";
 import { Card, PageHeader } from "@/components/ui";
 
 export default function ProfilePage() {
   const { user } = useAuth();
+  const { campuses } = useReferenceData();
 
   if (!user) return null;
+
+  const campusLabel = campuses.find((c) => c.value === user.campus)?.label ?? user.campus ?? "—";
 
   const initials = user.name
     .split(" ")
@@ -20,6 +24,8 @@ export default function ProfilePage() {
     { icon: IdCard, label: "Reg No", value: user.reg_no || "—" },
     { icon: Mail, label: "Email", value: user.email },
     { icon: Phone, label: "Namba ya Simu", value: user.phone || "—" },
+    { icon: MapPin, label: "Campus", value: campusLabel },
+    { icon: UserRound, label: "Jinsia", value: user.sex === "male" ? "Male" : user.sex === "female" ? "Female" : "—" },
     { icon: Building2, label: "Faculty", value: user.faculty || "—" },
     { icon: Layers, label: "Department", value: user.department || "—" },
     { icon: BookOpenCheck, label: "Program", value: user.program || "—" },
@@ -27,7 +33,7 @@ export default function ProfilePage() {
   ];
 
   return (
-    <div className="mx-auto max-w-2xl">
+    <div className="mx-auto max-w-5xl">
       <PageHeader title="Profile Yangu" subtitle="Taarifa zako kama Class Representative (CR)." />
 
       <Card className="p-6">
@@ -43,7 +49,7 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <dl className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {fields.map((f) => (
             <div key={f.label} className="flex items-start gap-3 rounded-lg border border-slate-100 bg-slate-50/60 p-3">
               <f.icon size={16} className="mt-0.5 text-slate-400" />

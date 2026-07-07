@@ -35,10 +35,10 @@ export default function ChangePasswordForm() {
   }
 
   return (
-    <div className="mx-auto max-w-md">
+    <div className="mx-auto max-w-4xl">
       <PageHeader title="Badilisha Password" subtitle="Hakikisha unatumia password imara na usiishirikishe na mtu yeyote." />
 
-      <Card className="p-6">
+      <Card className="mx-auto max-w-md p-6">
         {error && <div className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 ring-1 ring-inset ring-red-200">{error}</div>}
         {success && <div className="mb-4 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-700 ring-1 ring-inset ring-emerald-200">{success}</div>}
 

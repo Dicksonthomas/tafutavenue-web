@@ -5,7 +5,7 @@ import MyColorPreference from "@/components/MyColorPreference";
 
 export default function DashboardSettingsPage() {
   return (
-    <div className="mx-auto max-w-xl">
+    <div className="mx-auto max-w-4xl">
       <PageHeader title="Mipangilio Yangu" subtitle="Badilisha mwonekano wa rangi kwa akaunti yako binafsi." />
       <MyColorPreference />
     </div>

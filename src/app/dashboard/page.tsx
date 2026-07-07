@@ -267,17 +267,15 @@ export default function DashboardPage() {
               <p className="mb-2 flex items-center gap-1 text-xs font-medium text-slate-500">
                 <BookOpen size={13} /> Ratiba Rasmi ya Mihadhara
               </p>
-              <div className="space-y-2">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 {bookedTimetable.map((t) => (
-                  <Card key={t.id} className="flex items-center justify-between p-3">
-                    <div>
-                      <p className="text-sm font-medium text-slate-800">{t.venue?.name}</p>
-                      <p className="text-xs text-slate-500">
-                        {t.course_unit ?? "—"}
-                        {t.lecturer_name ? ` · ${t.lecturer_name}` : ""}
-                      </p>
-                    </div>
-                    <span className="text-xs text-slate-500">{t.start_time}–{t.end_time}</span>
+                  <Card key={t.id} className="p-4">
+                    <p className="text-sm font-medium text-slate-800">{t.venue?.name}</p>
+                    <p className="mt-1 text-xs text-slate-500">
+                      {t.course_unit ?? "—"}
+                      {t.lecturer_name ? ` · ${t.lecturer_name}` : ""}
+                    </p>
+                    <p className="mt-2 text-xs font-medium text-amber-700">{t.start_time}–{t.end_time}</p>
                   </Card>
                 ))}
               </div>
@@ -287,14 +285,12 @@ export default function DashboardPage() {
           {bookedBookings.length > 0 && (
             <div>
               <p className="mb-2 text-xs font-medium text-slate-500">Bookings za CR</p>
-              <div className="space-y-2">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 {bookedBookings.map((b) => (
-                  <Card key={b.id} className="flex items-center justify-between p-3">
-                    <div>
-                      <p className="text-sm font-medium text-slate-800">{b.venue?.name}</p>
-                      <p className="text-xs text-slate-500">{b.start_time}–{b.end_time} · {b.user?.name}</p>
-                    </div>
-                    <div className="flex items-center gap-2">
+                  <Card key={b.id} className="p-4">
+                    <p className="text-sm font-medium text-slate-800">{b.venue?.name}</p>
+                    <p className="mt-1 text-xs text-slate-500">{b.start_time}–{b.end_time} · {b.user?.name}</p>
+                    <div className="mt-2 flex items-center gap-2">
                       <PurposeBadge purpose={b.purpose} />
                       <StatusBadge status={b.status} />
                     </div>
