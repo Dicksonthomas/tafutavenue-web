@@ -4,14 +4,12 @@ import { useState } from "react";
 import { Building2 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { apiErrorMessage } from "@/lib/api";
-import { useSettings, getReadableTextColor } from "@/lib/settings";
-
-const DEFAULT_LOGIN_BG = "#002f3a";
+import { useSettings, getReadableTextColor, DEFAULT_LOGIN_BACKGROUND_COLOR } from "@/lib/settings";
 
 export default function LoginPage() {
   const { login } = useAuth();
-  const { logo_url, app_name, footer_text, footer_link, login_background_color } = useSettings();
-  const loginBg = login_background_color || DEFAULT_LOGIN_BG;
+  const { logo_url, app_name, support_phone, footer_text, footer_link, login_background_color } = useSettings();
+  const loginBg = login_background_color || DEFAULT_LOGIN_BACKGROUND_COLOR;
   const loginText = getReadableTextColor(loginBg);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -36,12 +34,12 @@ export default function LoginPage() {
       <div className="w-full max-w-sm">
         <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xl">
           <div className="mb-6 flex flex-col items-center text-center">
-            {/* Logo size: change h-24 w-24 below (both the <img> and the fallback box) to make it bigger/smaller. Each Tailwind step is 0.25rem (4px), e.g. h-28 = 112px, h-32 = 128px. */}
+            {/* Logo size: change h-36 w-36 below (both the <img> and the fallback box) to make it bigger/smaller. Each Tailwind step is 0.25rem (4px), e.g. h-40 = 160px, h-44 = 176px. */}
             {logo_url ? (
-              <img src={logo_url} alt="Logo" className="mb-3 h-24 w-24 rounded-2xl object-contain" />
+              <img src={logo_url} alt="Logo" className="mb-3 h-36 w-36 rounded-2xl object-contain" />
             ) : (
-              <div className="mb-3 flex h-24 w-24 items-center justify-center rounded-2xl" style={{ backgroundColor: loginBg, color: loginText }}>
-                <Building2 size={44} />
+              <div className="mb-3 flex h-36 w-36 items-center justify-center rounded-2xl" style={{ backgroundColor: loginBg, color: loginText }}>
+                <Building2 size={64} />
               </div>
             )}
             <h1 className="text-xl font-semibold text-slate-900">{app_name || "University Venue Booking"}</h1>
@@ -90,6 +88,11 @@ export default function LoginPage() {
         <p className="mt-6 text-center text-xs" style={{ color: loginText, opacity: 0.85 }}>
           {app_name || "University Venue Booking System"}
         </p>
+        {support_phone && (
+          <p className="mt-1 text-center text-xs" style={{ color: loginText, opacity: 0.7 }}>
+            Need help? Call {support_phone}
+          </p>
+        )}
         <p className="mt-1 text-center text-xs" style={{ color: loginText, opacity: 0.7 }}>
           From{" "}
           <a

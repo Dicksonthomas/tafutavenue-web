@@ -4,7 +4,7 @@ import { useRef, useState } from "react";
 import { RotateCcw, UploadCloud } from "lucide-react";
 import { api, apiErrorMessage } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
-import { useSettings } from "@/lib/settings";
+import { useSettings, DEFAULT_LOGIN_BACKGROUND_COLOR } from "@/lib/settings";
 import { Card, PageHeader } from "@/components/ui";
 import MyColorPreference from "@/components/MyColorPreference";
 
@@ -24,12 +24,12 @@ export default function AdminSettingsPage() {
   const [supportPhone, setSupportPhone] = useState(settings.support_phone ?? "");
   const [footerText, setFooterText] = useState(settings.footer_text ?? "");
   const [footerLink, setFooterLink] = useState(settings.footer_link ?? "");
-  const [loginBg, setLoginBg] = useState(settings.login_background_color ?? "#002f3a");
+  const [loginBg, setLoginBg] = useState(settings.login_background_color ?? DEFAULT_LOGIN_BACKGROUND_COLOR);
   const [brandingError, setBrandingError] = useState<string | null>(null);
   const [brandingSuccess, setBrandingSuccess] = useState<string | null>(null);
   const [savingBranding, setSavingBranding] = useState(false);
 
-  async function saveBranding(e: React.FormEvent) {
+  async function saveBranding(e: React.SyntheticEvent, overrideLoginBg?: string) {
     e.preventDefault();
     setBrandingError(null);
     setBrandingSuccess(null);
@@ -40,8 +40,9 @@ export default function AdminSettingsPage() {
         support_phone: supportPhone,
         footer_text: footerText,
         footer_link: footerLink,
-        login_background_color: loginBg,
+        login_background_color: overrideLoginBg ?? loginBg,
       });
+      if (overrideLoginBg) setLoginBg(overrideLoginBg);
       setBrandingSuccess(data.message);
       settings.refresh();
     } catch (err) {
@@ -49,6 +50,10 @@ export default function AdminSettingsPage() {
     } finally {
       setSavingBranding(false);
     }
+  }
+
+  function resetLoginBg(e: React.SyntheticEvent) {
+    saveBranding(e, DEFAULT_LOGIN_BACKGROUND_COLOR);
   }
 
   function handleLogoChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -178,6 +183,14 @@ export default function AdminSettingsPage() {
               <div className="flex flex-wrap items-center gap-3">
                 <input type="color" value={loginBg} onChange={(e) => setLoginBg(e.target.value)} className="h-10 w-14 cursor-pointer rounded border border-slate-300" />
                 <input value={loginBg} onChange={(e) => setLoginBg(e.target.value)} className="w-32 rounded-lg border border-slate-300 px-3 py-2 text-sm font-mono focus:border-accent-500 focus:outline-none" />
+                <button
+                  type="button"
+                  onClick={resetLoginBg}
+                  disabled={savingBranding}
+                  className="flex items-center gap-1 rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50 disabled:opacity-50"
+                >
+                  <RotateCcw size={14} /> Reset to Default
+                </button>
               </div>
               <p className="mt-1 text-xs text-slate-400">Text on the login page automatically switches between white and dark to stay readable on this color.</p>
             </div>

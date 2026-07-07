@@ -38,6 +38,8 @@ function shadeHex(hex: string, percent: number): string {
   return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
 }
 
+export const DEFAULT_LOGIN_BACKGROUND_COLOR = "#002f3a";
+
 /** Chagua rangi ya maandishi (nyeupe au nyeusi) inayosomeka vizuri juu ya background ya hex uliyopewa. */
 export function getReadableTextColor(hex: string): string {
   const num = parseInt(hex.replace("#", ""), 16);
