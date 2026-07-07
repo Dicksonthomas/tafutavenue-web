@@ -32,11 +32,12 @@ export default function LoginPage() {
       <div className="w-full max-w-sm">
         <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xl">
           <div className="mb-6 flex flex-col items-center text-center">
+            {/* Logo size: change h-24 w-24 below (both the <img> and the fallback box) to make it bigger/smaller. Each Tailwind step is 0.25rem (4px), e.g. h-28 = 112px, h-32 = 128px. */}
             {logo_url ? (
-              <img src={logo_url} alt="Logo" className="mb-3 h-14 w-14 rounded-2xl object-contain" />
+              <img src={logo_url} alt="Logo" className="mb-3 h-24 w-24 rounded-2xl object-contain" />
             ) : (
-              <div className="mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-800 text-white">
-                <Building2 size={26} />
+              <div className="mb-3 flex h-24 w-24 items-center justify-center rounded-2xl bg-brand-800 text-white">
+                <Building2 size={44} />
               </div>
             )}
             <h1 className="text-xl font-semibold text-slate-900">{app_name || "University Venue Booking"}</h1>
