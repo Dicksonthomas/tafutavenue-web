@@ -15,11 +15,13 @@ export interface EducationValue {
 export default function EducationFields({
   value,
   onChange,
+  campus,
 }: {
   value: EducationValue;
   onChange: (value: EducationValue) => void;
+  campus?: string;
 }) {
-  const { faculties, departmentsByFaculty, programs, levelYears } = useReferenceData();
+  const { faculties, departmentsByFaculty, programs, levelYears } = useReferenceData(campus);
 
   const departmentOptions = departmentsByFaculty[value.faculty] ?? [];
   const maxYears = levelYears[value.level] ?? 3;

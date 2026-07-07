@@ -9,6 +9,7 @@ export interface User {
   email: string;
   role: Role;
   phone?: string;
+  campus?: string;
   faculty?: string;
   department?: string;
   program?: string;
@@ -36,6 +37,7 @@ export interface Venue {
   code: string | null;
   building: string | null;
   faculty: string | null;
+  campus: string;
   capacity: number;
   type: VenueType;
   status: VenueStatus;

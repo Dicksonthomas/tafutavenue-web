@@ -6,11 +6,18 @@ import { api, apiErrorMessage } from "@/lib/api";
 import { BookingPurpose, Level, Semester, Venue, VenueStatus, VenueType } from "@/lib/types";
 import { Card, EmptyState, PageHeader, Spinner, VenueStatusBadge } from "@/components/ui";
 import { useDebouncedValue } from "@/lib/useDebounce";
+import { useReferenceData } from "@/lib/referenceData";
 
 const TYPES: VenueType[] = ["lecture_hall", "laboratory", "seminar_room", "hall", "other"];
 const STATUSES: VenueStatus[] = ["available", "maintenance", "disabled"];
 const PURPOSES: BookingPurpose[] = ["study_unit", "test", "makeup_class", "meeting", "other"];
 const LEVELS: Level[] = ["Certificate", "Diploma", "Degree", "Masters", "PhD"];
+
+/** Mfano wa link ya timetable kwa kila campus - Admin bado anaweza kuibadilisha. */
+const CAMPUS_EXAMPLE_URLS: Record<string, string> = {
+  morogoro_main: "https://mutimetable.mzumbe.ac.tz/timetables/teaching/semestertwo_2025_2026_all_programmes/",
+  dar_es_salaam: "https://dcctimetable.mzumbe.ac.tz/dcctimetables/teaching/drft_25_26/",
+};
 
 interface VenueRestrictions {
   blocked_purposes: BookingPurpose[];
@@ -21,6 +28,8 @@ interface VenueRestrictions {
 export default function AdminVenuesPage() {
   const [venues, setVenues] = useState<Venue[]>([]);
   const [q, setQ] = useState("");
+  const [campusFilter, setCampusFilter] = useState("");
+  const { campuses } = useReferenceData();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
@@ -29,17 +38,20 @@ export default function AdminVenuesPage() {
   const [editingVenue, setEditingVenue] = useState<Venue | null>(null);
   const debouncedQ = useDebouncedValue(q, 300);
 
-  async function load(query = "") {
+  async function load(query = debouncedQ, campus = campusFilter) {
     setLoading(true);
-    const { data } = await api.get("/admin/venues", { params: query ? { q: query } : {} });
+    const params: Record<string, string> = {};
+    if (query) params.q = query;
+    if (campus) params.campus = campus;
+    const { data } = await api.get("/admin/venues", { params });
     setVenues(data.data ?? data);
     setLoading(false);
   }
 
   useEffect(() => {
-    load(debouncedQ);
+    load(debouncedQ, campusFilter);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [debouncedQ]);
+  }, [debouncedQ, campusFilter]);
 
   async function updateStatus(venue: Venue, status: VenueStatus) {
     setError(null);
@@ -96,14 +108,26 @@ export default function AdminVenuesPage() {
 
       {error && <div className="mb-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700 ring-1 ring-inset ring-red-200">{error}</div>}
 
-      <div className="relative mb-4">
-        <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-        <input
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          placeholder="Tafuta venue kwa jina, code au jengo... (live search)"
-          className="w-full rounded-lg border border-slate-300 py-2 pl-9 pr-3 text-sm focus:border-accent-500 focus:outline-none"
-        />
+      <div className="mb-4 flex flex-col gap-2 sm:flex-row">
+        <div className="relative flex-1">
+          <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Tafuta venue kwa jina, code au jengo... (live search)"
+            className="w-full rounded-lg border border-slate-300 py-2 pl-9 pr-3 text-sm focus:border-accent-500 focus:outline-none"
+          />
+        </div>
+        <select
+          value={campusFilter}
+          onChange={(e) => setCampusFilter(e.target.value)}
+          className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none"
+        >
+          <option value="">Campus Zote</option>
+          {campuses.map((c) => (
+            <option key={c.value} value={c.value}>{c.label}</option>
+          ))}
+        </select>
       </div>
 
       {showLinkImport && (
@@ -159,6 +183,9 @@ export default function AdminVenuesPage() {
                   </h3>
                   <p className="mt-0.5 text-xs text-slate-500">
                     {v.building || "—"} · Uwezo: {v.capacity} · {v.type.replace("_", " ")}
+                  </p>
+                  <p className="mt-0.5 text-[11px] font-medium text-brand-700">
+                    {campuses.find((c) => c.value === v.campus)?.label ?? v.campus}
                   </p>
                 </div>
                 <VenueStatusBadge status={v.status} />
@@ -261,11 +288,13 @@ function RestrictionFields({
 }
 
 function VenueForm({ onCreated }: { onCreated: () => void }) {
+  const { campuses } = useReferenceData();
   const [form, setForm] = useState({
     name: "",
     code: "",
     building: "",
     faculty: "",
+    campus: "",
     capacity: 50,
     type: "lecture_hall" as VenueType,
     description: "",
@@ -310,6 +339,10 @@ function VenueForm({ onCreated }: { onCreated: () => void }) {
         <input placeholder="Code (hiari)" value={form.code} onChange={(e) => update("code", e.target.value)} className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none" />
         <input placeholder="Jengo/Building" value={form.building} onChange={(e) => update("building", e.target.value)} className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none" />
         <input placeholder="Faculty" value={form.faculty} onChange={(e) => update("faculty", e.target.value)} className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none" />
+        <select required value={form.campus} onChange={(e) => update("campus", e.target.value)} className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none">
+          <option value="" disabled>Chagua Campus...</option>
+          {campuses.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
+        </select>
         <input required type="number" min={0} placeholder="Uwezo (capacity)" value={form.capacity} onChange={(e) => update("capacity", Number(e.target.value))} className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none" />
         <select value={form.type} onChange={(e) => update("type", e.target.value as VenueType)} className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none">
           {TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
@@ -414,9 +447,11 @@ function ImportModeChoice({
 }
 
 function ImportFromLinkForm({ onImported }: { onImported: () => void }) {
+  const { campuses } = useReferenceData();
   const [semesters, setSemesters] = useState<Semester[]>([]);
   const [semesterId, setSemesterId] = useState("");
-  const [url, setUrl] = useState("https://mutimetable.mzumbe.ac.tz/timetables/teaching/semestertwo_2025_2026_all_programmes/");
+  const [campus, setCampus] = useState("");
+  const [url, setUrl] = useState("");
   const [existingSlots, setExistingSlots] = useState<number | null>(null);
   const [mode, setMode] = useState<"add" | "replace">("add");
   const [error, setError] = useState<string | null>(null);
@@ -432,11 +467,16 @@ function ImportFromLinkForm({ onImported }: { onImported: () => void }) {
   }, []);
 
   useEffect(() => {
-    if (!semesterId) return;
-    api.get("/admin/venues/timetable-status", { params: { semester_id: semesterId } }).then(({ data }) => {
+    if (!semesterId || !campus) return;
+    api.get("/admin/venues/timetable-status", { params: { semester_id: semesterId, campus } }).then(({ data }) => {
       setExistingSlots(data.existing_slots);
     });
-  }, [semesterId]);
+  }, [semesterId, campus]);
+
+  function handleCampusChange(value: string) {
+    setCampus(value);
+    if (!url && CAMPUS_EXAMPLE_URLS[value]) setUrl(CAMPUS_EXAMPLE_URLS[value]);
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -444,7 +484,7 @@ function ImportFromLinkForm({ onImported }: { onImported: () => void }) {
     setMessage(null);
     setSubmitting(true);
     try {
-      const { data } = await api.post("/admin/timetable/import-from-link", { semester_id: Number(semesterId), url, mode });
+      const { data } = await api.post("/admin/timetable/import-from-link", { semester_id: Number(semesterId), campus, url, mode });
       setMessage(data.message);
       onImported();
     } catch (err) {
@@ -466,19 +506,36 @@ function ImportFromLinkForm({ onImported }: { onImported: () => void }) {
       {message && <div className="mb-3 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-700">{message}</div>}
 
       <form onSubmit={handleSubmit} className="space-y-3">
-        <div>
-          <label className="mb-1 block text-xs font-medium text-slate-600">Semester</label>
-          <select
-            value={semesterId}
-            onChange={(e) => setSemesterId(e.target.value)}
-            required
-            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none sm:w-auto"
-          >
-            <option value="" disabled>Chagua...</option>
-            {semesters.map((s) => (
-              <option key={s.id} value={s.id}>{s.name}</option>
-            ))}
-          </select>
+        <div className="flex flex-wrap gap-3">
+          <div>
+            <label className="mb-1 block text-xs font-medium text-slate-600">Campus</label>
+            <select
+              value={campus}
+              onChange={(e) => handleCampusChange(e.target.value)}
+              required
+              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none sm:w-auto"
+            >
+              <option value="" disabled>Chagua Campus...</option>
+              {campuses.map((c) => (
+                <option key={c.value} value={c.value}>{c.label}</option>
+              ))}
+            </select>
+          </div>
+
+          <div>
+            <label className="mb-1 block text-xs font-medium text-slate-600">Semester</label>
+            <select
+              value={semesterId}
+              onChange={(e) => setSemesterId(e.target.value)}
+              required
+              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none sm:w-auto"
+            >
+              <option value="" disabled>Chagua...</option>
+              {semesters.map((s) => (
+                <option key={s.id} value={s.id}>{s.name}</option>
+              ))}
+            </select>
+          </div>
         </div>
 
         <ImportModeChoice existingSlots={existingSlots} mode={mode} onChange={setMode} />
@@ -501,8 +558,10 @@ function ImportFromLinkForm({ onImported }: { onImported: () => void }) {
 }
 
 function ImportTimetableForm({ onImported }: { onImported: () => void }) {
+  const { campuses } = useReferenceData();
   const [semesters, setSemesters] = useState<Semester[]>([]);
   const [semesterId, setSemesterId] = useState("");
+  const [campus, setCampus] = useState("");
   const [existingSlots, setExistingSlots] = useState<number | null>(null);
   const [mode, setMode] = useState<"add" | "replace">("add");
   const [error, setError] = useState<string | null>(null);
@@ -519,22 +578,23 @@ function ImportTimetableForm({ onImported }: { onImported: () => void }) {
   }, []);
 
   useEffect(() => {
-    if (!semesterId) return;
-    api.get("/admin/venues/timetable-status", { params: { semester_id: semesterId } }).then(({ data }) => {
+    if (!semesterId || !campus) return;
+    api.get("/admin/venues/timetable-status", { params: { semester_id: semesterId, campus } }).then(({ data }) => {
       setExistingSlots(data.existing_slots);
     });
-  }, [semesterId]);
+  }, [semesterId, campus]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     const file = fileRef.current?.files?.[0];
-    if (!file || !semesterId) return;
+    if (!file || !semesterId || !campus) return;
     setError(null);
     setMessage(null);
     setSubmitting(true);
     try {
       const formData = new FormData();
       formData.append("semester_id", semesterId);
+      formData.append("campus", campus);
       formData.append("file", file);
       formData.append("mode", mode);
       const { data } = await api.post("/admin/venues/import-timetable", formData, {
@@ -560,6 +620,20 @@ function ImportTimetableForm({ onImported }: { onImported: () => void }) {
       {message && <div className="mb-3 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-700">{message}</div>}
 
       <form onSubmit={handleSubmit} className="flex flex-wrap items-end gap-3">
+        <div>
+          <label className="mb-1 block text-xs font-medium text-slate-600">Campus</label>
+          <select
+            value={campus}
+            onChange={(e) => setCampus(e.target.value)}
+            required
+            className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none"
+          >
+            <option value="" disabled>Chagua Campus...</option>
+            {campuses.map((c) => (
+              <option key={c.value} value={c.value}>{c.label}</option>
+            ))}
+          </select>
+        </div>
         <div>
           <label className="mb-1 block text-xs font-medium text-slate-600">Semester</label>
           <select

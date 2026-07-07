@@ -10,6 +10,7 @@ import { useSettings } from "@/lib/settings";
 
 import { Level } from "@/lib/types";
 import EducationFields, { EducationValue } from "@/components/EducationFields";
+import { useReferenceData } from "@/lib/referenceData";
 
 const EMAIL_DOMAIN = "mustudent.ac.tz";
 const MIN_INTAKE_YEAR = 2022;
@@ -58,6 +59,8 @@ export default function RegisterPage() {
   const [name, setName] = useState("");
   const [regNo, setRegNo] = useState("");
   const [phone, setPhone] = useState("");
+  const [campus, setCampus] = useState("");
+  const { campuses } = useReferenceData();
   const [edu, setEdu] = useState<EducationValue>({
     faculty: "",
     department: "",
@@ -75,7 +78,7 @@ export default function RegisterPage() {
     setError(null);
     setSubmitting(true);
     try {
-      const { data } = await api.post("/register", { name, reg_no: regNo, phone, ...edu });
+      const { data } = await api.post("/register", { name, reg_no: regNo, phone, campus, ...edu });
       localStorage.setItem("token", data.token);
       setUser(data.user);
       refreshSettings();
@@ -108,6 +111,21 @@ export default function RegisterPage() {
           )}
 
           <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div className="col-span-full">
+              <label className="mb-1 block text-sm font-medium text-slate-600">Campus</label>
+              <select
+                required
+                value={campus}
+                onChange={(e) => setCampus(e.target.value)}
+                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500"
+              >
+                <option value="" disabled>Chagua Campus...</option>
+                {campuses.map((c) => (
+                  <option key={c.value} value={c.value}>{c.label}</option>
+                ))}
+              </select>
+            </div>
+
             <div className="col-span-full">
               <label className="mb-1 block text-sm font-medium text-slate-600">Jina Kamili</label>
               <input
@@ -148,7 +166,7 @@ export default function RegisterPage() {
               />
             </div>
 
-            <EducationFields value={edu} onChange={setEdu} />
+            <EducationFields value={edu} onChange={setEdu} campus={campus} />
 
             <button
               type="submit"

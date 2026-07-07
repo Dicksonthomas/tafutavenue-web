@@ -62,6 +62,11 @@ export default function TopBar({
             <div className="border-b border-slate-100 px-4 py-2">
               <p className="truncate text-sm font-medium text-slate-800">{user.name}</p>
               <p className="truncate text-xs text-slate-400">{user.email}</p>
+              {user.campus && (
+                <p className="mt-0.5 truncate text-xs font-medium text-accent-700">
+                  {user.campus.split("_").map((w) => w[0].toUpperCase() + w.slice(1)).join(" ")}
+                </p>
+              )}
             </div>
 
             {profileHref && (
