@@ -24,6 +24,7 @@ export default function AdminSettingsPage() {
   const [supportPhone, setSupportPhone] = useState(settings.support_phone ?? "");
   const [footerText, setFooterText] = useState(settings.footer_text ?? "");
   const [footerLink, setFooterLink] = useState(settings.footer_link ?? "");
+  const [loginBg, setLoginBg] = useState(settings.login_background_color ?? "#002f3a");
   const [brandingError, setBrandingError] = useState<string | null>(null);
   const [brandingSuccess, setBrandingSuccess] = useState<string | null>(null);
   const [savingBranding, setSavingBranding] = useState(false);
@@ -39,6 +40,7 @@ export default function AdminSettingsPage() {
         support_phone: supportPhone,
         footer_text: footerText,
         footer_link: footerLink,
+        login_background_color: loginBg,
       });
       setBrandingSuccess(data.message);
       settings.refresh();
@@ -169,6 +171,15 @@ export default function AdminSettingsPage() {
                 placeholder="https://dtech.co.tz/"
                 className="w-full max-w-md rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none"
               />
+            </div>
+
+            <div>
+              <label className="mb-1 block text-sm font-medium text-slate-600">Login Page Background Color (also used for the Sign In button)</label>
+              <div className="flex flex-wrap items-center gap-3">
+                <input type="color" value={loginBg} onChange={(e) => setLoginBg(e.target.value)} className="h-10 w-14 cursor-pointer rounded border border-slate-300" />
+                <input value={loginBg} onChange={(e) => setLoginBg(e.target.value)} className="w-32 rounded-lg border border-slate-300 px-3 py-2 text-sm font-mono focus:border-accent-500 focus:outline-none" />
+              </div>
+              <p className="mt-1 text-xs text-slate-400">Text on the login page automatically switches between white and dark to stay readable on this color.</p>
             </div>
 
             <button disabled={savingBranding} className="rounded-lg bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50">

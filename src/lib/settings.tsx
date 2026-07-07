@@ -11,6 +11,7 @@ interface AppSettings {
   support_phone: string | null;
   footer_text: string | null;
   footer_link: string | null;
+  login_background_color: string | null;
 }
 
 interface SettingsContextValue extends AppSettings {
@@ -25,6 +26,7 @@ const SettingsContext = createContext<SettingsContextValue>({
   support_phone: null,
   footer_text: null,
   footer_link: null,
+  login_background_color: null,
   refresh: () => {},
 });
 
@@ -34,6 +36,16 @@ function shadeHex(hex: string, percent: number): string {
   const g = Math.min(255, Math.max(0, ((num >> 8) & 0xff) + Math.round(255 * percent)));
   const b = Math.min(255, Math.max(0, (num & 0xff) + Math.round(255 * percent)));
   return `#${((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1)}`;
+}
+
+/** Chagua rangi ya maandishi (nyeupe au nyeusi) inayosomeka vizuri juu ya background ya hex uliyopewa. */
+export function getReadableTextColor(hex: string): string {
+  const num = parseInt(hex.replace("#", ""), 16);
+  const r = (num >> 16) & 0xff;
+  const g = (num >> 8) & 0xff;
+  const b = num & 0xff;
+  const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+  return brightness > 155 ? "#1e293b" : "#ffffff";
 }
 
 function applyColor(hex: string) {
@@ -53,6 +65,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     support_phone: null,
     footer_text: null,
     footer_link: null,
+    login_background_color: null,
   });
 
   const load = useCallback(() => {

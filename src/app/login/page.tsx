@@ -4,11 +4,15 @@ import { useState } from "react";
 import { Building2 } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { apiErrorMessage } from "@/lib/api";
-import { useSettings } from "@/lib/settings";
+import { useSettings, getReadableTextColor } from "@/lib/settings";
+
+const DEFAULT_LOGIN_BG = "#002f3a";
 
 export default function LoginPage() {
   const { login } = useAuth();
-  const { logo_url, app_name, footer_text, footer_link } = useSettings();
+  const { logo_url, app_name, footer_text, footer_link, login_background_color } = useSettings();
+  const loginBg = login_background_color || DEFAULT_LOGIN_BG;
+  const loginText = getReadableTextColor(loginBg);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -28,7 +32,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-brand-800 via-brand-700 to-brand-900 px-4 py-12">
+    <div className="flex min-h-screen items-center justify-center px-4 py-12" style={{ backgroundColor: loginBg }}>
       <div className="w-full max-w-sm">
         <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xl">
           <div className="mb-6 flex flex-col items-center text-center">
@@ -36,7 +40,7 @@ export default function LoginPage() {
             {logo_url ? (
               <img src={logo_url} alt="Logo" className="mb-3 h-24 w-24 rounded-2xl object-contain" />
             ) : (
-              <div className="mb-3 flex h-24 w-24 items-center justify-center rounded-2xl bg-brand-800 text-white">
+              <div className="mb-3 flex h-24 w-24 items-center justify-center rounded-2xl" style={{ backgroundColor: loginBg, color: loginText }}>
                 <Building2 size={44} />
               </div>
             )}
@@ -75,19 +79,26 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={submitting}
-              className="w-full rounded-lg bg-brand-800 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-brand-700 disabled:cursor-not-allowed disabled:opacity-50"
+              style={{ backgroundColor: loginBg, color: loginText }}
+              className="w-full rounded-lg py-2.5 text-sm font-medium shadow-sm transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {submitting ? "Signing in..." : "Sign In"}
             </button>
           </form>
         </div>
 
-        <p className="mt-6 text-center text-xs text-brand-100">
+        <p className="mt-6 text-center text-xs" style={{ color: loginText, opacity: 0.85 }}>
           {app_name || "University Venue Booking System"}
         </p>
-        <p className="mt-1 text-center text-xs text-brand-200">
+        <p className="mt-1 text-center text-xs" style={{ color: loginText, opacity: 0.7 }}>
           From{" "}
-          <a href={footer_link || "https://dtech.co.tz/"} target="_blank" rel="noopener noreferrer" className="font-medium underline hover:text-white">
+          <a
+            href={footer_link || "https://dtech.co.tz/"}
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{ color: loginText }}
+            className="font-medium underline opacity-100 hover:opacity-80"
+          >
             {footer_text || "DTECH INNOVATIONS"}
           </a>
         </p>
