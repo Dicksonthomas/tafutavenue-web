@@ -36,6 +36,7 @@ export default function AdminVenuesPage() {
   const [showForm, setShowForm] = useState(false);
   const [showImport, setShowImport] = useState(false);
   const [showLinkImport, setShowLinkImport] = useState(false);
+  const [showClearTimetable, setShowClearTimetable] = useState(false);
   const [editingVenue, setEditingVenue] = useState<Venue | null>(null);
   const debouncedQ = useDebouncedValue(q, 300);
 
@@ -98,6 +99,13 @@ export default function AdminVenuesPage() {
               {showImport ? "Close" : "Import CSV"}
             </button>
             <button
+              onClick={() => setShowClearTimetable((v) => !v)}
+              className="flex items-center gap-2 rounded-lg border border-red-200 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50"
+            >
+              {showClearTimetable ? <X size={16} /> : <Trash2 size={16} />}
+              {showClearTimetable ? "Close" : "Delete Timetable"}
+            </button>
+            <button
               onClick={() => setShowForm((v) => !v)}
               className="flex items-center gap-2 rounded-lg bg-accent-600 px-3 py-2 text-sm font-medium text-white hover:bg-accent-700"
             >
@@ -145,6 +153,15 @@ export default function AdminVenuesPage() {
         <ImportTimetableForm
           onImported={() => {
             setShowImport(false);
+            load();
+          }}
+        />
+      )}
+
+      {showClearTimetable && (
+        <ClearTimetableForm
+          onCleared={() => {
+            setShowClearTimetable(false);
             load();
           }}
         />
@@ -658,6 +675,114 @@ function ImportTimetableForm({ onImported }: { onImported: () => void }) {
           <ImportModeChoice existingSlots={existingSlots} mode={mode} onChange={setMode} />
         </div>
       </form>
+    </Card>
+  );
+}
+
+function ClearTimetableForm({ onCleared }: { onCleared: () => void }) {
+  const { campuses } = useReferenceData();
+  const [semesters, setSemesters] = useState<Semester[]>([]);
+  const [semesterId, setSemesterId] = useState("");
+  const [campus, setCampus] = useState("");
+  const [existingSlots, setExistingSlots] = useState<number | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [message, setMessage] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+
+  useEffect(() => {
+    api.get("/semesters").then(({ data }) => {
+      setSemesters(data);
+      const active = data.find((s: Semester) => s.is_active) ?? data[0];
+      if (active) setSemesterId(String(active.id));
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!semesterId || !campus) return;
+    api.get("/admin/venues/timetable-status", { params: { semester_id: semesterId, campus } }).then(({ data }) => {
+      setExistingSlots(data.existing_slots);
+    });
+  }, [semesterId, campus]);
+
+  async function handleClear() {
+    const campusLabel = campuses.find((c) => c.value === campus)?.label ?? campus;
+    const ok = await confirmAction(
+      `All timetable schedule entries for ${campusLabel} in this semester will be permanently deleted (venues with no bookings will also be removed). This cannot be undone.`,
+      { title: `Delete timetable for ${campusLabel}?`, confirmText: "Yes, delete it all" }
+    );
+    if (!ok) return;
+
+    setError(null);
+    setMessage(null);
+    setSubmitting(true);
+    try {
+      const { data } = await api.delete("/admin/venues/timetable", { data: { semester_id: Number(semesterId), campus } });
+      setMessage(data.message);
+      setExistingSlots(0);
+      onCleared();
+    } catch (err) {
+      setError(apiErrorMessage(err));
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <Card className="mb-6 border-red-200 p-5">
+      <p className="mb-3 text-xs text-slate-500">
+        Wipe out all imported timetable data (schedule entries and auto-created venues with no bookings) for a specific campus and
+        semester, so you can re-import it cleanly. Venues that already have CR bookings are kept.
+      </p>
+
+      {error && <div className="mb-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div>}
+      {message && <div className="mb-3 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-700">{message}</div>}
+
+      <div className="flex flex-wrap items-end gap-3">
+        <div>
+          <label className="mb-1 block text-xs font-medium text-slate-600">Campus</label>
+          <select
+            value={campus}
+            onChange={(e) => setCampus(e.target.value)}
+            required
+            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none sm:w-auto"
+          >
+            <option value="" disabled>Choose Campus...</option>
+            {campuses.map((c) => (
+              <option key={c.value} value={c.value}>{c.label}</option>
+            ))}
+          </select>
+        </div>
+
+        <div>
+          <label className="mb-1 block text-xs font-medium text-slate-600">Semester</label>
+          <select
+            value={semesterId}
+            onChange={(e) => setSemesterId(e.target.value)}
+            required
+            className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none sm:w-auto"
+          >
+            <option value="" disabled>Choose...</option>
+            {semesters.map((s) => (
+              <option key={s.id} value={s.id}>{s.name}</option>
+            ))}
+          </select>
+        </div>
+
+        <button
+          type="button"
+          onClick={handleClear}
+          disabled={submitting || !campus || !semesterId}
+          className="flex items-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50"
+        >
+          <Trash2 size={16} /> {submitting ? "Deleting..." : "Delete Timetable"}
+        </button>
+      </div>
+
+      {existingSlots !== null && campus && semesterId && (
+        <p className="mt-2 text-xs text-slate-400">
+          {existingSlots} existing schedule {existingSlots === 1 ? "entry" : "entries"} for this campus/semester.
+        </p>
+      )}
     </Card>
   );
 }

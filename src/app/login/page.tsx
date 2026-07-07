@@ -85,7 +85,7 @@ export default function LoginPage() {
           {app_name || "University Venue Booking System"}
         </p>
         <p className="mt-1 text-center text-xs text-brand-200">
-          from{" "}
+          From{" "}
           <a href={footer_link || "https://dtech.co.tz/"} target="_blank" rel="noopener noreferrer" className="font-medium underline hover:text-white">
             {footer_text || "DTECH INNOVATIONS"}
           </a>
