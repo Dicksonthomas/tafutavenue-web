@@ -98,7 +98,13 @@ export default function DashboardPage() {
         subtitle={`Chagua semester, tarehe na muda ili kuona venue zinazopatikana. Study Unit/Test za jioni na weekend (Jumamosi/Jumapili) zinaruhusiwa.${campusName ? ` Campus: ${campusName}.` : ""}`}
       />
 
-      {overview && (
+      {overview && overview.total_venues === 0 && (
+        <div className="mb-6 rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-800 ring-1 ring-inset ring-amber-200">
+          Bado hakuna venues zilizosajiliwa kwa campus yako ({campusName}). Wasiliana na Admin ili aziongeze.
+        </div>
+      )}
+
+      {overview && overview.total_venues > 0 && (
         <div className="mb-6 grid grid-cols-3 gap-3">
           <Card className="flex items-center gap-3 p-4">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-50 text-emerald-600">

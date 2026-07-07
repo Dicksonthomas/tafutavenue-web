@@ -2,8 +2,13 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { Menu, ChevronDown, UserRound, KeyRound, LogOut } from "lucide-react";
+import { Menu, ChevronDown, UserRound, KeyRound, LogOut, MapPin } from "lucide-react";
 import { useAuth } from "@/lib/auth";
+
+function campusName(campus?: string): string | null {
+  if (!campus) return null;
+  return campus.split("_").map((w) => w[0].toUpperCase() + w.slice(1)).join(" ");
+}
 
 export default function TopBar({
   onMenuClick,
@@ -42,9 +47,17 @@ export default function TopBar({
       <button onClick={onMenuClick} className="text-slate-600 md:hidden">
         <Menu size={22} />
       </button>
-      <span className="hidden text-sm text-slate-500 md:block">
-        Habari, <span className="font-medium text-slate-800">{user.name.split(" ")[0]}</span>
-      </span>
+
+      <div className="flex items-center gap-3">
+        <span className="hidden text-sm text-slate-500 md:block">
+          Habari, <span className="font-medium text-slate-800">{user.name.split(" ")[0]}</span>
+        </span>
+        {campusName(user.campus) && (
+          <span className="flex items-center gap-1 rounded-full bg-brand-50 px-2.5 py-1 text-xs font-medium text-brand-700">
+            <MapPin size={12} /> {campusName(user.campus)}
+          </span>
+        )}
+      </div>
 
       <div className="relative" ref={menuRef}>
         <button
