@@ -23,9 +23,9 @@ export default function ProfilePage() {
   const fields = [
     { icon: IdCard, label: "Reg No", value: user.reg_no || "—" },
     { icon: Mail, label: "Email", value: user.email },
-    { icon: Phone, label: "Namba ya Simu", value: user.phone || "—" },
+    { icon: Phone, label: "Phone Number", value: user.phone || "—" },
     { icon: MapPin, label: "Campus", value: campusLabel },
-    { icon: UserRound, label: "Jinsia", value: user.sex === "male" ? "Male" : user.sex === "female" ? "Female" : "—" },
+    { icon: UserRound, label: "Sex", value: user.sex === "male" ? "Male" : user.sex === "female" ? "Female" : "—" },
     { icon: Building2, label: "Faculty", value: user.faculty || "—" },
     { icon: Layers, label: "Department", value: user.department || "—" },
     { icon: BookOpenCheck, label: "Program", value: user.program || "—" },
@@ -34,7 +34,7 @@ export default function ProfilePage() {
 
   return (
     <div className="mx-auto max-w-7xl">
-      <PageHeader title="Profile Yangu" subtitle="Taarifa zako kama Class Representative (CR)." />
+      <PageHeader title="My Profile" subtitle="Your information as a Class Representative (CR)." />
 
       <Card className="p-6">
         <div className="mb-6 flex items-center gap-4">
@@ -62,7 +62,7 @@ export default function ProfilePage() {
         </dl>
 
         <p className="mt-6 text-xs text-slate-400">
-          Kubadilisha taarifa hizi, wasiliana na Admin wa mfumo.
+          To change this information, contact the system Admin.
         </p>
       </Card>
     </div>

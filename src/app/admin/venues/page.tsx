@@ -65,7 +65,7 @@ export default function AdminVenuesPage() {
   }
 
   async function remove(venue: Venue) {
-    const ok = await confirmAction("Hatua hii haiwezi kutenduliwa.", { title: `Futa venue "${venue.name}"?`, confirmText: "Ndiyo, futa" });
+    const ok = await confirmAction("This action cannot be undone.", { title: `Delete venue "${venue.name}"?`, confirmText: "Yes, delete" });
     if (!ok) return;
     setError(null);
     try {
@@ -80,7 +80,7 @@ export default function AdminVenuesPage() {
     <div className="mx-auto max-w-7xl">
       <PageHeader
         title="Venues"
-        subtitle="Simamia venue zote za chuo - ongeza mpya, weka masharti ya ku-book, badilisha status, au futa."
+        subtitle="Manage all college venues - add new ones, set booking restrictions, change status, or delete."
         action={
           <div className="flex flex-wrap gap-2">
             <button
@@ -88,21 +88,21 @@ export default function AdminVenuesPage() {
               className="flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50"
             >
               {showLinkImport ? <X size={16} /> : <Link2 size={16} />}
-              {showLinkImport ? "Funga" : "Vuta kwa Link"}
+              {showLinkImport ? "Close" : "Import from Link"}
             </button>
             <button
               onClick={() => setShowImport((v) => !v)}
               className="flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50"
             >
               {showImport ? <X size={16} /> : <UploadCloud size={16} />}
-              {showImport ? "Funga" : "Import CSV"}
+              {showImport ? "Close" : "Import CSV"}
             </button>
             <button
               onClick={() => setShowForm((v) => !v)}
               className="flex items-center gap-2 rounded-lg bg-accent-600 px-3 py-2 text-sm font-medium text-white hover:bg-accent-700"
             >
               {showForm ? <X size={16} /> : <Plus size={16} />}
-              {showForm ? "Funga" : "Ongeza Venue"}
+              {showForm ? "Close" : "Add Venue"}
             </button>
           </div>
         }
@@ -116,7 +116,7 @@ export default function AdminVenuesPage() {
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Tafuta venue kwa jina, code au jengo... (live search)"
+            placeholder="Search venue by name, code or building... (live search)"
             className="w-full rounded-lg border border-slate-300 py-2 pl-9 pr-3 text-sm focus:border-accent-500 focus:outline-none"
           />
         </div>
@@ -125,7 +125,7 @@ export default function AdminVenuesPage() {
           onChange={(e) => setCampusFilter(e.target.value)}
           className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none"
         >
-          <option value="">Campus Zote</option>
+          <option value="">All Campuses</option>
           {campuses.map((c) => (
             <option key={c.value} value={c.value}>{c.label}</option>
           ))}
@@ -173,7 +173,7 @@ export default function AdminVenuesPage() {
       {loading ? (
         <Spinner />
       ) : venues.length === 0 ? (
-        <EmptyState icon={DoorOpen} title="Hakuna venue bado" description="Bonyeza 'Ongeza Venue' kuanza." />
+        <EmptyState icon={DoorOpen} title="No venue yet" description="Click 'Add Venue' to get started." />
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {venues.map((v) => (
@@ -184,7 +184,7 @@ export default function AdminVenuesPage() {
                     {v.name} {v.code && <span className="text-xs font-normal text-slate-400">({v.code})</span>}
                   </h3>
                   <p className="mt-0.5 text-xs text-slate-500">
-                    {v.building || "—"} · Uwezo: {v.capacity} · {v.type.replace("_", " ")}
+                    {v.building || "—"} · Capacity: {v.capacity} · {v.type.replace("_", " ")}
                   </p>
                   <p className="mt-0.5 text-[11px] font-medium text-brand-700">
                     {campuses.find((c) => c.value === v.campus)?.label ?? v.campus}
@@ -196,13 +196,13 @@ export default function AdminVenuesPage() {
               {(v.blocked_purposes?.length || v.restricted_levels?.length || v.restricted_department) ? (
                 <div className="mt-2 flex flex-wrap gap-1">
                   {v.blocked_purposes?.map((p) => (
-                    <span key={p} className="rounded-full bg-red-50 px-2 py-0.5 text-[11px] text-red-600">Hakuna {p.replace("_", " ")}</span>
+                    <span key={p} className="rounded-full bg-red-50 px-2 py-0.5 text-[11px] text-red-600">No {p.replace("_", " ")}</span>
                   ))}
                   {v.restricted_levels?.length ? (
-                    <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[11px] text-amber-700">{v.restricted_levels.join("/")} pekee</span>
+                    <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[11px] text-amber-700">{v.restricted_levels.join("/")} only</span>
                   ) : null}
                   {v.restricted_department && (
-                    <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[11px] text-amber-700">{v.restricted_department} pekee</span>
+                    <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[11px] text-amber-700">{v.restricted_department} only</span>
                   )}
                 </div>
               ) : null}
@@ -218,10 +218,10 @@ export default function AdminVenuesPage() {
                   ))}
                 </select>
                 <button onClick={() => setEditingVenue(v)} className="flex items-center gap-1 rounded-lg border border-slate-200 px-2 py-1.5 text-xs text-slate-600 hover:bg-slate-50">
-                  <Pencil size={13} /> Masharti
+                  <Pencil size={13} /> Restrictions
                 </button>
                 <button onClick={() => remove(v)} className="flex items-center gap-1 rounded-lg border border-red-200 px-2 py-1.5 text-xs text-red-600 hover:bg-red-50">
-                  <Trash2 size={13} /> Futa
+                  <Trash2 size={13} /> Delete
                 </button>
               </div>
             </Card>
@@ -254,7 +254,7 @@ function RestrictionFields({
   return (
     <div className="col-span-full space-y-3 rounded-lg bg-slate-50 p-3">
       <div>
-        <p className="mb-1 text-xs font-medium text-slate-600">Purpose zisizoruhusiwa hapa (mfano Kingalu/Labs: Study Unit &amp; Test)</p>
+        <p className="mb-1 text-xs font-medium text-slate-600">Purposes not allowed here (e.g. Kingalu/Labs: Study Unit &amp; Test)</p>
         <div className="flex flex-wrap gap-2">
           {PURPOSES.map((p) => (
             <label key={p} className="flex items-center gap-1 rounded-full border border-slate-300 px-2 py-1 text-xs">
@@ -265,7 +265,7 @@ function RestrictionFields({
         </div>
       </div>
       <div>
-        <p className="mb-1 text-xs font-medium text-slate-600">Level pekee zinazoruhusiwa (mfano venue za Masters/PhD)</p>
+        <p className="mb-1 text-xs font-medium text-slate-600">Levels allowed only (e.g. Masters/PhD venues)</p>
         <div className="flex flex-wrap gap-2">
           {LEVELS.map((l) => (
             <label key={l} className="flex items-center gap-1 rounded-full border border-slate-300 px-2 py-1 text-xs">
@@ -274,12 +274,12 @@ function RestrictionFields({
             </label>
           ))}
         </div>
-        <p className="mt-0.5 text-[11px] text-slate-400">Usichague yoyote kama venue hii ni ya wote.</p>
+        <p className="mt-0.5 text-[11px] text-slate-400">Leave none selected if this venue is for everyone.</p>
       </div>
       <div>
-        <p className="mb-1 text-xs font-medium text-slate-600">Department pekee inayoruhusiwa (mfano Ntare 112 = Law)</p>
+        <p className="mb-1 text-xs font-medium text-slate-600">Department allowed only (e.g. Ntare 112 = Law)</p>
         <input
-          placeholder="mfano: Public Law (acha wazi kama ni ya wote)"
+          placeholder="e.g. Public Law (leave blank if for everyone)"
           value={value.restricted_department}
           onChange={(e) => onChange({ ...value, restricted_department: e.target.value })}
           className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none"
@@ -337,24 +337,24 @@ function VenueForm({ onCreated }: { onCreated: () => void }) {
       <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         {error && <div className="col-span-full rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div>}
 
-        <input required placeholder="Jina la venue" value={form.name} onChange={(e) => update("name", e.target.value)} className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none" />
-        <input placeholder="Code (hiari)" value={form.code} onChange={(e) => update("code", e.target.value)} className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none" />
-        <input placeholder="Jengo/Building" value={form.building} onChange={(e) => update("building", e.target.value)} className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none" />
+        <input required placeholder="Venue name" value={form.name} onChange={(e) => update("name", e.target.value)} className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none" />
+        <input placeholder="Code (optional)" value={form.code} onChange={(e) => update("code", e.target.value)} className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none" />
+        <input placeholder="Building" value={form.building} onChange={(e) => update("building", e.target.value)} className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none" />
         <input placeholder="Faculty" value={form.faculty} onChange={(e) => update("faculty", e.target.value)} className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none" />
         <select required value={form.campus} onChange={(e) => update("campus", e.target.value)} className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none">
-          <option value="" disabled>Chagua Campus...</option>
+          <option value="" disabled>Choose Campus...</option>
           {campuses.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
         </select>
-        <input required type="number" min={0} placeholder="Uwezo (capacity)" value={form.capacity} onChange={(e) => update("capacity", Number(e.target.value))} className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none" />
+        <input required type="number" min={0} placeholder="Capacity" value={form.capacity} onChange={(e) => update("capacity", Number(e.target.value))} className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none" />
         <select value={form.type} onChange={(e) => update("type", e.target.value as VenueType)} className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none">
           {TYPES.map((t) => <option key={t} value={t}>{t}</option>)}
         </select>
-        <textarea placeholder="Maelezo (hiari)" value={form.description} onChange={(e) => update("description", e.target.value)} className="col-span-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none" />
+        <textarea placeholder="Description (optional)" value={form.description} onChange={(e) => update("description", e.target.value)} className="col-span-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none" />
 
         <RestrictionFields value={restrictions} onChange={setRestrictions} />
 
         <button disabled={submitting} className="col-span-full rounded-lg bg-accent-600 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50">
-          {submitting ? "Inahifadhi..." : "Hifadhi Venue"}
+          {submitting ? "Saving..." : "Save Venue"}
         </button>
       </form>
     </Card>
@@ -400,7 +400,7 @@ function VenueEditModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/40 px-4 py-8">
       <div className="w-full max-w-md rounded-xl bg-white p-5 shadow-xl">
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="font-semibold text-slate-900">Masharti ya Booking: {venue.name}</h2>
+          <h2 className="font-semibold text-slate-900">Booking Restrictions: {venue.name}</h2>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X size={18} /></button>
         </div>
 
@@ -409,9 +409,9 @@ function VenueEditModal({
         <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-3">
           <RestrictionFields value={restrictions} onChange={setRestrictions} />
           <div className="flex gap-2 pt-1">
-            <button type="button" onClick={onClose} className="flex-1 rounded-lg border border-slate-300 py-2 text-sm text-slate-600 hover:bg-slate-50">Ghairi</button>
+            <button type="button" onClick={onClose} className="flex-1 rounded-lg border border-slate-300 py-2 text-sm text-slate-600 hover:bg-slate-50">Cancel</button>
             <button disabled={submitting} className="flex-1 rounded-lg bg-accent-600 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50">
-              {submitting ? "Inahifadhi..." : "Hifadhi"}
+              {submitting ? "Saving..." : "Save"}
             </button>
           </div>
         </form>
@@ -434,15 +434,15 @@ function ImportModeChoice({
   return (
     <div className="rounded-lg bg-amber-50 p-3 text-xs text-amber-800 ring-1 ring-inset ring-amber-200">
       <p className="mb-2 font-medium">
-        Tayari kuna ratiba {existingSlots} kwa semester hii. Unataka nini?
+        There are already {existingSlots} timetable entries for this semester. What do you want to do?
       </p>
       <label className="mb-1 flex items-center gap-2">
         <input type="radio" checked={mode === "add"} onChange={() => onChange("add")} />
-        Ongeza Mpya (usifute zilizopo, ruka zinazofanana)
+        Add New (keep existing ones, skip duplicates)
       </label>
       <label className="flex items-center gap-2">
         <input type="radio" checked={mode === "replace"} onChange={() => onChange("replace")} />
-        Badilisha Zote (futa za zamani kwanza, kisha weka mpya)
+        Replace All (delete old entries first, then add new ones)
       </label>
     </div>
   );
@@ -499,9 +499,9 @@ function ImportFromLinkForm({ onImported }: { onImported: () => void }) {
   return (
     <Card className="mb-6 p-5">
       <p className="mb-3 text-xs text-slate-500">
-        Bandika link ya ukurasa wa semester husika kutoka <span className="font-medium">mutimetable.mzumbe.ac.tz</span> (mfano ukurasa wa
-        &quot;Teaching Timetable&quot; wa semester husika) - mfumo utavuta venues zote na ratiba (course, lecturer, muda) moja kwa moja.
-        Inaweza kuchukua sekunde kadhaa.
+        Paste the link to the relevant semester page from <span className="font-medium">mutimetable.mzumbe.ac.tz</span> (e.g. the
+        &quot;Teaching Timetable&quot; page for that semester) - the system will pull all venues and schedules (course, lecturer, time) automatically.
+        This may take a few seconds.
       </p>
 
       {error && <div className="mb-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div>}
@@ -517,7 +517,7 @@ function ImportFromLinkForm({ onImported }: { onImported: () => void }) {
               required
               className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none sm:w-auto"
             >
-              <option value="" disabled>Chagua Campus...</option>
+              <option value="" disabled>Choose Campus...</option>
               {campuses.map((c) => (
                 <option key={c.value} value={c.value}>{c.label}</option>
               ))}
@@ -532,7 +532,7 @@ function ImportFromLinkForm({ onImported }: { onImported: () => void }) {
               required
               className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none sm:w-auto"
             >
-              <option value="" disabled>Chagua...</option>
+              <option value="" disabled>Choose...</option>
               {semesters.map((s) => (
                 <option key={s.id} value={s.id}>{s.name}</option>
               ))}
@@ -542,7 +542,7 @@ function ImportFromLinkForm({ onImported }: { onImported: () => void }) {
 
         <ImportModeChoice existingSlots={existingSlots} mode={mode} onChange={setMode} />
         <div>
-          <label className="mb-1 block text-xs font-medium text-slate-600">Link ya Timetable</label>
+          <label className="mb-1 block text-xs font-medium text-slate-600">Timetable Link</label>
           <input
             required
             type="url"
@@ -552,7 +552,7 @@ function ImportFromLinkForm({ onImported }: { onImported: () => void }) {
           />
         </div>
         <button disabled={submitting} className="rounded-lg bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50">
-          {submitting ? "Inavuta Ratiba... (subiri)" : "Vuta Ratiba Sasa"}
+          {submitting ? "Importing Timetable... (please wait)" : "Import Timetable Now"}
         </button>
       </form>
     </Card>
@@ -615,7 +615,7 @@ function ImportTimetableForm({ onImported }: { onImported: () => void }) {
   return (
     <Card className="mb-6 p-5">
       <p className="mb-3 text-xs text-slate-500">
-        Pakia CSV yenye columns: <span className="font-mono">day_of_week,start_time,end_time,venue_name,venue_code,building,capacity,course_unit,lecturer_name,program</span>.
+        Upload a CSV with columns: <span className="font-mono">day_of_week,start_time,end_time,venue_name,venue_code,building,capacity,course_unit,lecturer_name,program</span>.
       </p>
 
       {error && <div className="mb-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div>}
@@ -630,7 +630,7 @@ function ImportTimetableForm({ onImported }: { onImported: () => void }) {
             required
             className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none"
           >
-            <option value="" disabled>Chagua Campus...</option>
+            <option value="" disabled>Choose Campus...</option>
             {campuses.map((c) => (
               <option key={c.value} value={c.value}>{c.label}</option>
             ))}
@@ -644,7 +644,7 @@ function ImportTimetableForm({ onImported }: { onImported: () => void }) {
             required
             className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none"
           >
-            <option value="" disabled>Chagua...</option>
+            <option value="" disabled>Choose...</option>
             {semesters.map((s) => (
               <option key={s.id} value={s.id}>{s.name}</option>
             ))}
@@ -652,7 +652,7 @@ function ImportTimetableForm({ onImported }: { onImported: () => void }) {
         </div>
         <input ref={fileRef} type="file" accept=".csv,.txt" required className="text-sm" />
         <button disabled={submitting} className="rounded-lg bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50">
-          {submitting ? "Inaingiza..." : "Ingiza Timetable"}
+          {submitting ? "Importing..." : "Import Timetable"}
         </button>
         <div className="w-full">
           <ImportModeChoice existingSlots={existingSlots} mode={mode} onChange={setMode} />

@@ -27,7 +27,7 @@ export default function MyBookingsPage() {
   }, []);
 
   async function cancelBooking(id: number) {
-    const ok = await confirmAction("Booking hii itaghairiwa na huwezi kuitumia tena.", { title: "Ghairi booking hii?", confirmText: "Ndiyo, ghairi" });
+    const ok = await confirmAction("This booking will be cancelled and you won't be able to use it again.", { title: "Cancel this booking?", confirmText: "Yes, cancel" });
     if (!ok) return;
     setError(null);
     try {
@@ -54,14 +54,14 @@ export default function MyBookingsPage() {
 
   return (
     <div className="mx-auto max-w-7xl">
-      <PageHeader title="Bookings Zangu" subtitle="Fuatilia maombi yako yote ya venue na uthibitishe kwa saini." />
+      <PageHeader title="My Bookings" subtitle="Track all your venue requests and confirm with a signature." />
 
       {error && <div className="mb-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700 ring-1 ring-inset ring-red-200">{error}</div>}
 
       {loading ? (
         <Spinner />
       ) : bookings.length === 0 ? (
-        <EmptyState icon={ClipboardList} title="Huna booking yoyote bado" description="Nenda 'Tafuta Venue' kutengeneza booking mpya." />
+        <EmptyState icon={ClipboardList} title="You have no bookings yet" description="Go to 'Find Venue' to make a new booking." />
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {bookings.map((b) => (
@@ -78,20 +78,20 @@ export default function MyBookingsPage() {
                     <PurposeBadge purpose={b.purpose} />
                     {b.signed_at && (
                       <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700 ring-1 ring-inset ring-emerald-200">
-                        <PenLine size={12} /> Imesainiwa
+                        <PenLine size={12} /> Signed
                       </span>
                     )}
                   </div>
                   {b.rejection_reason && (
                     <p className="mt-2 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700">
-                      Sababu ya kukataliwa: {b.rejection_reason}
+                      Rejection reason: {b.rejection_reason}
                     </p>
                   )}
                   {b.signature && (
                     <div className="mt-3">
-                      <p className="mb-1 text-xs text-slate-400">Saini Yako</p>
+                      <p className="mb-1 text-xs text-slate-400">Your Signature</p>
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={b.signature} alt="Saini" className="h-16 rounded border border-slate-200 bg-white" />
+                      <img src={b.signature} alt="Signature" className="h-16 rounded border border-slate-200 bg-white" />
                     </div>
                   )}
                 </div>
@@ -109,14 +109,14 @@ export default function MyBookingsPage() {
                     onClick={() => setSigningId(signingId === b.id ? null : b.id)}
                     className="rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-emerald-700"
                   >
-                    Tia Digital Signature
+                    Add Digital Signature
                   </button>
                 )}
               </div>
 
               {signingId === b.id && (
                 <div className="mt-4 border-t border-slate-100 pt-4">
-                  <p className="mb-2 text-xs text-slate-500">Chora saini yako hapa chini kuthibitisha booking:</p>
+                  <p className="mb-2 text-xs text-slate-500">Draw your signature below to confirm the booking:</p>
                   <SignaturePad saving={busy} onSave={(dataUrl) => submitSignature(b.id, dataUrl)} />
                 </div>
               )}

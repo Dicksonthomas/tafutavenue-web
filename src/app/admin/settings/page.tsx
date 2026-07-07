@@ -49,7 +49,7 @@ export default function AdminSettingsPage() {
 
   return (
     <div className="mx-auto max-w-7xl space-y-6">
-      <PageHeader title="Mipangilio ya Mfumo" subtitle="Badilisha rangi kuu (default kwa watumiaji wote) na logo ya App." />
+      <PageHeader title="System Settings" subtitle="Change the main color (default for all users) and the App logo." />
 
       <Card className="p-6">
         {error && <div className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div>}
@@ -57,7 +57,7 @@ export default function AdminSettingsPage() {
 
         <form onSubmit={(e) => { e.preventDefault(); saveColor(color); }} className="space-y-5">
           <div>
-            <label className="mb-1 block text-sm font-medium text-slate-600">Rangi Kuu ya Mfumo (Default)</label>
+            <label className="mb-1 block text-sm font-medium text-slate-600">Main System Color (Default)</label>
             <div className="flex flex-wrap items-center gap-3">
               <input type="color" value={color} onChange={(e) => setColor(e.target.value)} className="h-10 w-14 cursor-pointer rounded border border-slate-300" />
               <input value={color} onChange={(e) => setColor(e.target.value)} className="w-32 rounded-lg border border-slate-300 px-3 py-2 text-sm font-mono focus:border-accent-500 focus:outline-none" />
@@ -66,13 +66,13 @@ export default function AdminSettingsPage() {
                 onClick={() => saveColor(BRAND_DEFAULT_COLOR)}
                 className="flex items-center gap-1 rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50"
               >
-                <RotateCcw size={14} /> Rudisha Default ya Mzumbe
+                <RotateCcw size={14} /> Restore Mzumbe Default
               </button>
             </div>
           </div>
 
           <div>
-            <label className="mb-1 block text-sm font-medium text-slate-600">Logo ya App (hiari - si lazima)</label>
+            <label className="mb-1 block text-sm font-medium text-slate-600">App Logo (optional)</label>
             <div className="flex items-center gap-4">
               {logoPreview ? (
                 <img src={logoPreview} alt="Logo" className="h-14 w-14 rounded-lg border border-slate-200 object-contain" />
@@ -86,7 +86,7 @@ export default function AdminSettingsPage() {
           </div>
 
           <button disabled={submitting} className="w-full rounded-lg bg-accent-600 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50">
-            {submitting ? "Inahifadhi..." : "Hifadhi Mipangilio ya Default"}
+            {submitting ? "Saving..." : "Save Default Settings"}
           </button>
         </form>
       </Card>

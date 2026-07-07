@@ -53,15 +53,15 @@ export default function AdminBookedVenuesPage() {
     <div className="mx-auto max-w-7xl">
       <PageHeader
         title="Booked Venues"
-        subtitle="Angalia bookings za siku husika, au historia kamili ya bookings zote."
+        subtitle="View bookings for a specific day, or the full history of all bookings."
         action={
           <select
             value={view}
             onChange={(e) => { setPage(1); setView(e.target.value as "day" | "history"); }}
             className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium focus:border-accent-500 focus:outline-none"
           >
-            <option value="day">Booked Venues za Siku Husika</option>
-            <option value="history">Booked History (Zote)</option>
+            <option value="day">Booked Venues for a Specific Day</option>
+            <option value="history">Booked History (All)</option>
           </select>
         }
       />
@@ -70,7 +70,7 @@ export default function AdminBookedVenuesPage() {
         <div className="flex flex-wrap items-end gap-3">
           {view === "day" && (
             <div>
-              <label className="mb-1 block text-xs font-medium text-slate-600">Tarehe</label>
+              <label className="mb-1 block text-xs font-medium text-slate-600">Date</label>
               <input
                 type="date"
                 value={date}
@@ -86,7 +86,7 @@ export default function AdminBookedVenuesPage() {
               onChange={(e) => { setPage(1); setStatus(e.target.value); }}
               className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none"
             >
-              <option value="">Zote</option>
+              <option value="">All</option>
               <option value="pending">Pending</option>
               <option value="approved">Approved</option>
               <option value="rejected">Rejected</option>
@@ -103,7 +103,7 @@ export default function AdminBookedVenuesPage() {
       {loading ? (
         <Spinner />
       ) : bookings.length === 0 ? (
-        <EmptyState icon={DoorOpen} title="Hakuna bookings" description="Hakuna booking inayolingana na vigezo hivi." />
+        <EmptyState icon={DoorOpen} title="No bookings" description="No booking matches these criteria." />
       ) : view === "day" ? (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {bookings.map((b) => (
@@ -128,17 +128,17 @@ export default function AdminBookedVenuesPage() {
               <div className="mt-2"><PurposeBadge purpose={b.purpose} /></div>
 
               {b.rejection_reason && (
-                <p className="mt-2 rounded-lg bg-red-50 px-2 py-1 text-xs text-red-700">Kukataliwa: {b.rejection_reason}</p>
+                <p className="mt-2 rounded-lg bg-red-50 px-2 py-1 text-xs text-red-700">Rejected: {b.rejection_reason}</p>
               )}
 
               {b.signature ? (
                 <div className="mt-3">
-                  <p className="mb-1 text-xs text-slate-400">Saini ya CR</p>
+                  <p className="mb-1 text-xs text-slate-400">CR Signature</p>
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={b.signature} alt="Saini" className="h-14 rounded border border-slate-200 bg-white" />
+                  <img src={b.signature} alt="Signature" className="h-14 rounded border border-slate-200 bg-white" />
                 </div>
               ) : (
-                <p className="mt-3 text-xs text-slate-400">Bado hajatia saini</p>
+                <p className="mt-3 text-xs text-slate-400">Not signed yet</p>
               )}
             </Card>
           ))}
@@ -150,12 +150,12 @@ export default function AdminBookedVenuesPage() {
               <tr>
                 <th className="px-4 py-3">#</th>
                 <th className="px-4 py-3">Venue</th>
-                <th className="px-4 py-3">Tarehe</th>
-                <th className="px-4 py-3">Muda</th>
+                <th className="px-4 py-3">Date</th>
+                <th className="px-4 py-3">Time</th>
                 <th className="px-4 py-3">Booked By</th>
                 <th className="px-4 py-3">Purpose</th>
                 <th className="px-4 py-3">Status</th>
-                <th className="px-4 py-3">Saini</th>
+                <th className="px-4 py-3">Signature</th>
               </tr>
             </thead>
             <tbody>
@@ -176,7 +176,7 @@ export default function AdminBookedVenuesPage() {
                   <td className="px-4 py-3">
                     {b.signature ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={b.signature} alt="Saini" className="h-10 rounded border border-slate-200 bg-white" />
+                      <img src={b.signature} alt="Signature" className="h-10 rounded border border-slate-200 bg-white" />
                     ) : (
                       <span className="text-xs text-slate-400">—</span>
                     )}
@@ -195,17 +195,17 @@ export default function AdminBookedVenuesPage() {
             onClick={() => setPage((p) => p - 1)}
             className="flex items-center gap-1 rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-50 disabled:opacity-40"
           >
-            <ChevronLeft size={14} /> Nyuma
+            <ChevronLeft size={14} /> Previous
           </button>
           <span className="text-sm text-slate-500">
-            Ukurasa {result.current_page} kati ya {result.last_page} ({result.total} bookings)
+            Page {result.current_page} of {result.last_page} ({result.total} bookings)
           </span>
           <button
             disabled={page >= result.last_page}
             onClick={() => setPage((p) => p + 1)}
             className="flex items-center gap-1 rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-50 disabled:opacity-40"
           >
-            Mbele <ChevronRight size={14} />
+            Next <ChevronRight size={14} />
           </button>
         </div>
       )}

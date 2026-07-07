@@ -47,7 +47,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       await api.post("/logout");
     } catch {
-      // ignore - tunafuta token ya local hata kama request imeshindwa
+      // ignore - we remove the local token even if the request fails
     }
     localStorage.removeItem("token");
     localStorage.removeItem("user");
@@ -65,6 +65,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 export function useAuth(): AuthContextValue {
   const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error("useAuth lazima itumike ndani ya AuthProvider");
+  if (!ctx) throw new Error("useAuth must be used within AuthProvider");
   return ctx;
 }

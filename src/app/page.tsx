@@ -19,7 +19,7 @@ export default function Home() {
 
   return (
     <div className="flex min-h-[80vh] items-center justify-center text-slate-500">
-      Inapakia...
+      Loading...
     </div>
   );
 }

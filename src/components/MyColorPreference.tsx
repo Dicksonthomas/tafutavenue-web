@@ -32,9 +32,9 @@ export default function MyColorPreference() {
 
   return (
     <Card className="p-6">
-      <h2 className="mb-1 text-sm font-semibold text-slate-800">Rangi Yangu Binafsi</h2>
+      <h2 className="mb-1 text-sm font-semibold text-slate-800">My Personal Color</h2>
       <p className="mb-4 text-xs text-slate-500">
-        Badilisha mwonekano wa rangi kwa akaunti yako tu, bila kuathiri watumiaji wengine.
+        Change the color theme for your account only, without affecting other users.
       </p>
 
       {error && <div className="mb-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div>}
@@ -48,14 +48,14 @@ export default function MyColorPreference() {
           onClick={() => save(color)}
           className="rounded-lg bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50"
         >
-          Hifadhi Rangi Yangu
+          Save My Color
         </button>
         <button
           disabled={submitting}
           onClick={() => save(null)}
           className="flex items-center gap-1 rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50 disabled:opacity-50"
         >
-          <RotateCcw size={14} /> Rudisha ya Kawaida (Default)
+          <RotateCcw size={14} /> Reset to Default
         </button>
       </div>
     </Card>

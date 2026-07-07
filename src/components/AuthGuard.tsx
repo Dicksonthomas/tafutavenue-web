@@ -29,7 +29,7 @@ export default function AuthGuard({
   if (loading || !user || !allow.includes(user.role)) {
     return (
       <div className="flex min-h-[50vh] items-center justify-center text-slate-500">
-        Inapakia...
+        Loading...
       </div>
     );
   }

@@ -51,13 +51,13 @@ export default function BookedVenuesPage() {
     <div className="mx-auto max-w-7xl">
       <PageHeader
         title="Booked Venues"
-        subtitle="Angalia venue zilizoshikwa (mihadhara rasmi na bookings) kwa tarehe fulani - asubuhi hadi jioni."
+        subtitle="View venues that are taken (official lectures and bookings) for a given date - morning to evening."
       />
 
       <Card className="mb-6 p-5">
         <form onSubmit={search} className="flex flex-wrap items-end gap-4">
           <div>
-            <label className="mb-1 block text-xs font-medium text-slate-600">Tarehe</label>
+            <label className="mb-1 block text-xs font-medium text-slate-600">Date</label>
             <input
               type="date"
               value={date}
@@ -66,9 +66,9 @@ export default function BookedVenuesPage() {
             />
           </div>
           <button className="flex items-center gap-2 rounded-lg bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700">
-            <Search size={16} /> Angalia
+            <Search size={16} /> View
           </button>
-          {dayOfWeek && <span className="text-sm text-slate-500">Siku: {dayOfWeek}</span>}
+          {dayOfWeek && <span className="text-sm text-slate-500">Day: {dayOfWeek}</span>}
         </form>
       </Card>
 
@@ -80,7 +80,7 @@ export default function BookedVenuesPage() {
         <div className="space-y-8">
           <section>
             <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-slate-700">
-              <BookOpen size={16} /> Ratiba Rasmi ya Mihadhara na Lecturer (Timetable)
+              <BookOpen size={16} /> Official Lecture Timetable and Lecturer (Timetable)
             </h2>
 
             {timetable.length > 0 && (
@@ -89,16 +89,16 @@ export default function BookedVenuesPage() {
                 <input
                   value={q}
                   onChange={(e) => setQ(e.target.value)}
-                  placeholder="Tafuta kwa venue, course, lecturer au program... (live search)"
+                  placeholder="Search by venue, course, lecturer or program... (live search)"
                   className="w-full rounded-lg border border-slate-300 py-2 pl-9 pr-3 text-sm focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500"
                 />
               </div>
             )}
 
             {timetable.length === 0 ? (
-              <EmptyState icon={BookOpen} title="Hakuna mhadhara rasmi siku hii" />
+              <EmptyState icon={BookOpen} title="No official lecture on this day" />
             ) : filteredTimetable && filteredTimetable.length === 0 ? (
-              <EmptyState icon={Search} title="Hakuna kilicholingana na utafutaji wako" description="Jaribu neno lingine." />
+              <EmptyState icon={Search} title="Nothing matched your search" description="Try another term." />
             ) : (
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 {filteredTimetable?.map((t) => (
@@ -123,10 +123,10 @@ export default function BookedVenuesPage() {
 
           <section>
             <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-slate-700">
-              <CalendarClock size={16} /> Bookings za CR (Study Units / Tests)
+              <CalendarClock size={16} /> CR Bookings (Study Units / Tests)
             </h2>
             {bookings.length === 0 ? (
-              <EmptyState icon={CalendarClock} title="Hakuna booking siku hii" />
+              <EmptyState icon={CalendarClock} title="No booking on this day" />
             ) : (
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 {bookings.map((b) => (

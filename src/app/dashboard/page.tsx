@@ -22,7 +22,7 @@ const PURPOSES: { value: BookingPurpose; label: string }[] = [
   { value: "test", label: "Test" },
   { value: "makeup_class", label: "Makeup Class" },
   { value: "meeting", label: "Meeting" },
-  { value: "other", label: "Nyingine" },
+  { value: "other", label: "Other" },
 ];
 
 export default function DashboardPage() {
@@ -94,13 +94,13 @@ export default function DashboardPage() {
   return (
     <div className="mx-auto max-w-7xl">
       <PageHeader
-        title="Tafuta Available Venue"
-        subtitle={`Chagua semester, tarehe na muda ili kuona venue zinazopatikana. Study Unit/Test za jioni na weekend (Jumamosi/Jumapili) zinaruhusiwa.${campusName ? ` Campus: ${campusName}.` : ""}`}
+        title="Find Available Venue"
+        subtitle={`Choose a semester, date and time to see available venues. Evening Study Unit/Test and weekends (Saturday/Sunday) are allowed.${campusName ? ` Campus: ${campusName}.` : ""}`}
       />
 
       {overview && overview.total_venues === 0 && (
         <div className="mb-6 rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-800 ring-1 ring-inset ring-amber-200">
-          Bado hakuna venues zilizosajiliwa kwa campus yako ({campusName}). Wasiliana na Admin ili aziongeze.
+          No venues have been registered for your campus yet ({campusName}). Contact the Admin to add some.
         </div>
       )}
 
@@ -111,7 +111,7 @@ export default function DashboardPage() {
               <CheckCircle2 size={18} />
             </div>
             <div>
-              <p className="text-xs text-slate-500">Free Leo ({overview.day_of_week})</p>
+              <p className="text-xs text-slate-500">Free Today ({overview.day_of_week})</p>
               <p className="text-lg font-semibold text-slate-900">{overview.free_venues}</p>
             </div>
           </Card>
@@ -120,7 +120,7 @@ export default function DashboardPage() {
               <CalendarClock size={18} />
             </div>
             <div>
-              <p className="text-xs text-slate-500">Booked Leo</p>
+              <p className="text-xs text-slate-500">Booked Today</p>
               <p className="text-lg font-semibold text-slate-900">{overview.busy_venues}</p>
             </div>
           </Card>
@@ -129,7 +129,7 @@ export default function DashboardPage() {
               <DoorOpen size={18} />
             </div>
             <div>
-              <p className="text-xs text-slate-500">Jumla ya Venues</p>
+              <p className="text-xs text-slate-500">Total Venues</p>
               <p className="text-lg font-semibold text-slate-900">{overview.total_venues}</p>
             </div>
           </Card>
@@ -138,7 +138,7 @@ export default function DashboardPage() {
 
       <Card className="mb-6 p-5">
         {loadingSemesters ? (
-          <Spinner label="Inapakia semesters..." />
+          <Spinner label="Loading semesters..." />
         ) : (
           <>
             <div className="mb-4 flex flex-wrap gap-2">
@@ -147,16 +147,16 @@ export default function DashboardPage() {
                 onClick={() => applyPreset("06:00", "18:00")}
                 className="flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-medium text-amber-700 hover:bg-amber-100"
               >
-                <Sun size={14} /> Mchana (06:00–18:00)
+                <Sun size={14} /> Daytime (06:00–18:00)
               </button>
               <button
                 type="button"
                 onClick={() => applyPreset("18:00", "20:00")}
                 className="flex items-center gap-1.5 rounded-full border border-accent-200 bg-accent-50 px-3 py-1.5 text-xs font-medium text-accent-700 hover:bg-accent-100"
               >
-                <Moon size={14} /> Jioni - Study Unit/Test (18:00–20:00)
+                <Moon size={14} /> Evening - Study Unit/Test (18:00–20:00)
               </button>
-              <span className="flex items-center text-xs text-slate-400">au weka muda wako mwenyewe hapa chini (Jumamosi/Jumapili vinaruhusiwa)</span>
+              <span className="flex items-center text-xs text-slate-400">or set your own time below (Saturday/Sunday allowed)</span>
             </div>
 
             <form onSubmit={handleSearch} className="grid grid-cols-2 gap-4 sm:grid-cols-5">
@@ -168,22 +168,22 @@ export default function DashboardPage() {
                   required
                   className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500"
                 >
-                  <option value="" disabled>Chagua...</option>
+                  <option value="" disabled>Choose...</option>
                   {semesters.map((s) => (
                     <option key={s.id} value={s.id}>{s.name}</option>
                   ))}
                 </select>
               </div>
               <div>
-                <label className="mb-1 block text-xs font-medium text-slate-600">Tarehe</label>
+                <label className="mb-1 block text-xs font-medium text-slate-600">Date</label>
                 <input type="date" required value={date} onChange={(e) => setDate(e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500" />
               </div>
               <div>
-                <label className="mb-1 block text-xs font-medium text-slate-600">Kuanzia</label>
+                <label className="mb-1 block text-xs font-medium text-slate-600">From</label>
                 <input type="time" required value={startTime} onChange={(e) => setStartTime(e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500" />
               </div>
               <div>
-                <label className="mb-1 block text-xs font-medium text-slate-600">Mpaka</label>
+                <label className="mb-1 block text-xs font-medium text-slate-600">To</label>
                 <input type="time" required value={endTime} onChange={(e) => setEndTime(e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500" />
               </div>
               <div className="flex items-end">
@@ -192,7 +192,7 @@ export default function DashboardPage() {
                   className="flex w-full items-center justify-center gap-2 rounded-lg bg-accent-600 py-2 text-sm font-medium text-white transition-colors hover:bg-accent-700 disabled:opacity-50"
                 >
                   <Search size={16} />
-                  {searching ? "Inatafuta..." : "Tafuta"}
+                  {searching ? "Searching..." : "Search"}
                 </button>
               </div>
             </form>
@@ -201,7 +201,7 @@ export default function DashboardPage() {
 
         {!loadingSemesters && semesters.length === 0 && (
           <p className="mt-3 text-sm text-amber-600">
-            Hakuna semester iliyowekwa bado. Mwombe Admin aongeze semester kwanza.
+            No semester has been set up yet. Ask the Admin to add one first.
           </p>
         )}
       </Card>
@@ -215,15 +215,15 @@ export default function DashboardPage() {
             venues?.length ? "bg-emerald-50 text-emerald-700 ring-emerald-200" : "bg-amber-50 text-amber-700 ring-amber-200"
           }`}
         >
-          {venues?.length ? `Venues ${venues.length} zinapatikana (Available Free Venues)` : "No Available Venues — hakuna venue inayopatikana kwa muda huu."}
+          {venues?.length ? `${venues.length} venues available (Available Free Venues)` : "No Available Venues — no venue is available for this time."}
         </div>
       )}
 
       {venues && venues.length === 0 && (
         <EmptyState
           icon={CalendarSearch}
-          title="Hakuna venue inayopatikana"
-          description="Jaribu kubadilisha tarehe au muda, au chagua venue nyingine ya jirani."
+          title="No venue available"
+          description="Try changing the date or time, or choose a nearby venue."
         />
       )}
 
@@ -237,7 +237,7 @@ export default function DashboardPage() {
                   <MapPin size={13} /> {v.building || "—"} {v.code ? `· ${v.code}` : ""}
                 </p>
                 <p className="mt-1 flex items-center gap-1 text-xs text-slate-500">
-                  <Users size={13} /> Uwezo wa watu {v.capacity} · {v.type.replace("_", " ")}
+                  <Users size={13} /> Capacity {v.capacity} · {v.type.replace("_", " ")}
                 </p>
                 {v.free_from && v.free_until && (
                   <p className="mt-2 rounded-full bg-emerald-50 px-2.5 py-1 text-center text-xs font-medium text-emerald-700 ring-1 ring-inset ring-emerald-200">
@@ -249,7 +249,7 @@ export default function DashboardPage() {
                 onClick={() => setBookingVenue(v)}
                 className="mt-4 rounded-lg bg-emerald-600 py-2 text-sm font-medium text-white hover:bg-emerald-700"
               >
-                Book Venue Hii
+                Book This Venue
               </button>
             </Card>
           ))}
@@ -259,13 +259,13 @@ export default function DashboardPage() {
       {date && (bookedTimetable.length > 0 || bookedBookings.length > 0) && (
         <div className="space-y-6">
           <h2 className="flex items-center gap-2 text-sm font-semibold text-slate-700">
-            <CalendarClock size={16} /> Booked Venues — tayari zimeshikwa {dayOfWeek ? `(${dayOfWeek})` : ""}
+            <CalendarClock size={16} /> Booked Venues — already taken {dayOfWeek ? `(${dayOfWeek})` : ""}
           </h2>
 
           {bookedTimetable.length > 0 && (
             <div>
               <p className="mb-2 flex items-center gap-1 text-xs font-medium text-slate-500">
-                <BookOpen size={13} /> Ratiba Rasmi ya Mihadhara
+                <BookOpen size={13} /> Official Lecture Timetable
               </p>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 {bookedTimetable.map((t) => (
@@ -284,7 +284,7 @@ export default function DashboardPage() {
 
           {bookedBookings.length > 0 && (
             <div>
-              <p className="mb-2 text-xs font-medium text-slate-500">Bookings za CR</p>
+              <p className="mb-2 text-xs font-medium text-slate-500">CR Bookings</p>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 {bookedBookings.map((b) => (
                   <Card key={b.id} className="p-4">
@@ -377,7 +377,7 @@ function BookingModal({
 
         <div className="space-y-3">
           <div>
-            <label className="mb-1 block text-xs font-medium text-slate-600">Sababu (Purpose)</label>
+            <label className="mb-1 block text-xs font-medium text-slate-600">Purpose</label>
             <select value={purpose} onChange={(e) => setPurpose(e.target.value as BookingPurpose)} className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500">
               {PURPOSES.map((p) => (
                 <option key={p.value} value={p.value}>{p.label}</option>
@@ -385,27 +385,27 @@ function BookingModal({
             </select>
           </div>
           <div>
-            <label className="mb-1 block text-xs font-medium text-slate-600">Kichwa/Somo (hiari)</label>
-            <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="mfano: Data Structures Study Group" className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500" />
+            <label className="mb-1 block text-xs font-medium text-slate-600">Title/Subject (optional)</label>
+            <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Data Structures Study Group" className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500" />
           </div>
 
           <div className="border-t border-slate-100 pt-3">
             <label className="mb-1 block text-xs font-medium text-slate-600">
-              Saini yako (Digital Signature) - inahitajika kuthibitisha booking
+              Your Signature (Digital Signature) - required to confirm the booking
             </label>
             {signature ? (
               <div className="flex items-center justify-between rounded-lg bg-emerald-50 px-3 py-2 text-xs text-emerald-700">
-                Saini imewekwa ✓
-                <button type="button" onClick={() => setSignature(null)} className="underline">Chora Tena</button>
+                Signature captured ✓
+                <button type="button" onClick={() => setSignature(null)} className="underline">Redraw</button>
               </div>
             ) : (
-              <SignaturePad confirmLabel="Tumia Saini Hii" onSave={(dataUrl) => setSignature(dataUrl)} />
+              <SignaturePad confirmLabel="Use This Signature" onSave={(dataUrl) => setSignature(dataUrl)} />
             )}
           </div>
 
           <div className="flex gap-2 pt-2">
             <button type="button" onClick={onClose} className="flex-1 rounded-lg border border-slate-300 py-2 text-sm text-slate-600 hover:bg-slate-50">
-              Ghairi
+              Cancel
             </button>
             <button
               type="button"
@@ -413,7 +413,7 @@ function BookingModal({
               disabled={submitting || !signature}
               className="flex-1 rounded-lg bg-accent-600 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50"
             >
-              {submitting ? "Inatuma..." : "Thibitisha Booking"}
+              {submitting ? "Submitting..." : "Confirm Booking"}
             </button>
           </div>
         </div>

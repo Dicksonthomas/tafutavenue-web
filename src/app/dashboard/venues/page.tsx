@@ -29,8 +29,8 @@ export default function AllVenuesPage() {
   return (
     <div className="mx-auto max-w-7xl">
       <PageHeader
-        title="Venues Zote"
-        subtitle={`Tafuta venue yoyote kwa jina au namba (mfano: Ntare 108).${campusName ? ` Campus: ${campusName}.` : ""}`}
+        title="All Venues"
+        subtitle={`Search for any venue by name or number (e.g. Ntare 108).${campusName ? ` Campus: ${campusName}.` : ""}`}
       />
 
       <div className="relative mb-6">
@@ -38,7 +38,7 @@ export default function AllVenuesPage() {
         <input
           value={q}
           onChange={(e) => setQ(e.target.value)}
-          placeholder="Andika jina au namba ya venue... (mfano: Ntare 108)"
+          placeholder="Type a venue name or number... (e.g. Ntare 108)"
           className="w-full rounded-lg border border-slate-300 py-2.5 pl-9 pr-3 text-sm focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500"
         />
       </div>
@@ -46,7 +46,7 @@ export default function AllVenuesPage() {
       {loading ? (
         <Spinner />
       ) : venues.length === 0 ? (
-        <EmptyState icon={DoorOpen} title="Hakuna venue iliyopatikana" description="Jaribu jina lingine au namba nyingine." />
+        <EmptyState icon={DoorOpen} title="No venue found" description="Try another name or number." />
       ) : (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {venues.map((v) => (
@@ -58,7 +58,7 @@ export default function AllVenuesPage() {
                     <MapPin size={13} /> {v.building || "—"} {v.code ? `· ${v.code}` : ""}
                   </p>
                   <p className="mt-1 flex items-center gap-1 text-xs text-slate-500">
-                    <Users size={13} /> Uwezo wa watu {v.capacity} · {v.type.replace("_", " ")}
+                    <Users size={13} /> Capacity {v.capacity} · {v.type.replace("_", " ")}
                   </p>
                 </div>
                 <VenueStatusBadge status={v.status} />
@@ -67,13 +67,13 @@ export default function AllVenuesPage() {
               {(v.blocked_purposes?.length || v.restricted_levels?.length || v.restricted_department) ? (
                 <div className="mt-2 flex flex-wrap gap-1">
                   {v.blocked_purposes?.map((p) => (
-                    <span key={p} className="rounded-full bg-red-50 px-2 py-0.5 text-[11px] text-red-600">Hakuna {p.replace("_", " ")}</span>
+                    <span key={p} className="rounded-full bg-red-50 px-2 py-0.5 text-[11px] text-red-600">No {p.replace("_", " ")}</span>
                   ))}
                   {v.restricted_levels?.length ? (
-                    <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[11px] text-amber-700">{v.restricted_levels.join("/")} pekee</span>
+                    <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[11px] text-amber-700">{v.restricted_levels.join("/")} only</span>
                   ) : null}
                   {v.restricted_department && (
-                    <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[11px] text-amber-700">{v.restricted_department} pekee</span>
+                    <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[11px] text-amber-700">{v.restricted_department} only</span>
                   )}
                 </div>
               ) : null}

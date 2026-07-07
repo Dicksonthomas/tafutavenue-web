@@ -36,7 +36,7 @@ export default function ChangePasswordForm() {
 
   return (
     <div className="mx-auto max-w-4xl">
-      <PageHeader title="Badilisha Password" subtitle="Hakikisha unatumia password imara na usiishirikishe na mtu yeyote." />
+      <PageHeader title="Change Password" subtitle="Make sure you use a strong password and don't share it with anyone." />
 
       <Card className="mx-auto max-w-md p-6">
         {error && <div className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 ring-1 ring-inset ring-red-200">{error}</div>}
@@ -44,7 +44,7 @@ export default function ChangePasswordForm() {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="mb-1 block text-sm font-medium text-slate-600">Password ya Sasa</label>
+            <label className="mb-1 block text-sm font-medium text-slate-600">Current Password</label>
             <input
               type="password"
               required
@@ -54,7 +54,7 @@ export default function ChangePasswordForm() {
             />
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-slate-600">Password Mpya</label>
+            <label className="mb-1 block text-sm font-medium text-slate-600">New Password</label>
             <input
               type="password"
               required
@@ -65,7 +65,7 @@ export default function ChangePasswordForm() {
             />
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium text-slate-600">Rudia Password Mpya</label>
+            <label className="mb-1 block text-sm font-medium text-slate-600">Confirm New Password</label>
             <input
               type="password"
               required
@@ -80,7 +80,7 @@ export default function ChangePasswordForm() {
             disabled={submitting}
             className="w-full rounded-lg bg-accent-600 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50"
           >
-            {submitting ? "Inabadilisha..." : "Badilisha Password"}
+            {submitting ? "Changing..." : "Change Password"}
           </button>
         </form>
       </Card>

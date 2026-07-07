@@ -6,12 +6,12 @@ import AuthGuard from "@/components/AuthGuard";
 import DashboardShell, { NavItem } from "@/components/DashboardShell";
 
 const navItems: NavItem[] = [
-  { href: "/dashboard", label: "Tafuta Venue", icon: Search },
-  { href: "/dashboard/venues", label: "Venues Zote", icon: DoorOpen },
+  { href: "/dashboard", label: "Find Venue", icon: Search },
+  { href: "/dashboard/venues", label: "All Venues", icon: DoorOpen },
   { href: "/dashboard/booked", label: "Booked Venues", icon: CalendarClock },
-  { href: "/dashboard/lecturer", label: "Ratiba ya Lecturer", icon: User2 },
-  { href: "/dashboard/bookings", label: "Bookings Zangu", icon: ClipboardList },
-  { href: "/dashboard/settings", label: "Mipangilio", icon: Settings },
+  { href: "/dashboard/lecturer", label: "Lecturer Timetable", icon: User2 },
+  { href: "/dashboard/bookings", label: "My Bookings", icon: ClipboardList },
+  { href: "/dashboard/settings", label: "Settings", icon: Settings },
 ];
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {

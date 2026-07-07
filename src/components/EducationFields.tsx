@@ -42,7 +42,7 @@ export default function EducationFields({
           value={value.faculty}
           onChange={(v) => update("faculty", v)}
           options={faculties.map((f) => f.value)}
-          placeholder="Chagua au andika faculty..."
+          placeholder="Choose or type your faculty..."
         />
       </div>
 
@@ -52,7 +52,7 @@ export default function EducationFields({
           value={value.department}
           onChange={(v) => update("department", v)}
           options={departmentOptions}
-          placeholder="Chagua au andika department..."
+          placeholder="Choose or type your department..."
         />
       </div>
 
@@ -62,7 +62,7 @@ export default function EducationFields({
           value={value.program}
           onChange={(v) => update("program", v)}
           options={programs}
-          placeholder="Andika kutafuta program (kutoka timetable ya chuo)..."
+          placeholder="Type to search for your program (from the college timetable)..."
         />
       </div>
 
@@ -83,14 +83,14 @@ export default function EducationFields({
       </div>
 
       <div>
-        <label className="mb-1 block text-sm font-medium text-slate-600">Mwaka wa Masomo</label>
+        <label className="mb-1 block text-sm font-medium text-slate-600">Year of Study</label>
         <select
           value={value.year_of_study}
           onChange={(e) => update("year_of_study", Number(e.target.value))}
           className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500"
         >
           {yearOptions.map((y) => (
-            <option key={y} value={y}>Mwaka wa {y}</option>
+            <option key={y} value={y}>Year {y}</option>
           ))}
         </select>
       </div>

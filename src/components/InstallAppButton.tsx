@@ -65,12 +65,12 @@ export default function InstallAppButton() {
       {showIosHint && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 px-4" onClick={() => setShowIosHint(false)}>
           <div className="max-w-xs rounded-xl bg-white p-5 text-center shadow-xl" onClick={(e) => e.stopPropagation()}>
-            <p className="mb-2 font-medium text-slate-900">Weka App kwenye Home Screen</p>
+            <p className="mb-2 font-medium text-slate-900">Add App to Home Screen</p>
             <p className="text-sm text-slate-600">
-              Bonyeza kitufe cha <strong>Share</strong> chini ya Safari, kisha chagua <strong>&quot;Add to Home Screen&quot;</strong>.
+              Tap the <strong>Share</strong> button at the bottom of Safari, then choose <strong>&quot;Add to Home Screen&quot;</strong>.
             </p>
             <button onClick={() => setShowIosHint(false)} className="mt-4 rounded-lg bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700">
-              Nimeelewa
+              Got it
             </button>
           </div>
         </div>

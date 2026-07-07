@@ -51,7 +51,7 @@ export default function TopBar({
 
       <div className="flex items-center gap-3">
         <span className="hidden text-sm text-slate-500 md:block">
-          Habari, <span className="font-medium text-slate-800">{user.name.split(" ")[0]}</span>
+          Hello, <span className="font-medium text-slate-800">{user.name.split(" ")[0]}</span>
         </span>
         {campusName(user.campus) && (
           <span className="flex items-center gap-1 rounded-full bg-brand-50 px-2.5 py-1 text-xs font-medium text-brand-700">
@@ -90,7 +90,7 @@ export default function TopBar({
                 onClick={() => setOpen(false)}
                 className="flex items-center gap-2 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50"
               >
-                <UserRound size={16} /> Profile Yangu
+                <UserRound size={16} /> My Profile
               </Link>
             )}
 
@@ -99,14 +99,14 @@ export default function TopBar({
               onClick={() => setOpen(false)}
               className="flex items-center gap-2 px-4 py-2 text-sm text-slate-600 hover:bg-slate-50"
             >
-              <KeyRound size={16} /> Badilisha Password
+              <KeyRound size={16} /> Change Password
             </Link>
 
             <button
               onClick={() => logout()}
               className="flex w-full items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50"
             >
-              <LogOut size={16} /> Toka
+              <LogOut size={16} /> Log Out
             </button>
           </div>
         )}

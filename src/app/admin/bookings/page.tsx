@@ -64,10 +64,10 @@ export default function AdminBookingsPage() {
     <div className="mx-auto max-w-7xl">
       <PageHeader
         title="Bookings"
-        subtitle="Idhinisha au kataa maombi ya booking kutoka kwa CR."
+        subtitle="Approve or reject booking requests from CRs."
         action={
           <select value={status} onChange={(e) => setStatus(e.target.value)} className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none">
-            <option value="">Zote</option>
+            <option value="">All</option>
             <option value="pending">Pending</option>
             <option value="approved">Approved</option>
             <option value="rejected">Rejected</option>
@@ -96,7 +96,7 @@ export default function AdminBookingsPage() {
       {loading ? (
         <Spinner />
       ) : bookings.length === 0 ? (
-        <EmptyState icon={ClipboardCheck} title="Hakuna bookings" description="Hakuna maombi ya aina hii kwa sasa." />
+        <EmptyState icon={ClipboardCheck} title="No bookings" description="There are no requests of this kind at the moment." />
       ) : (
         <div className="space-y-3">
           {bookings.map((b) => (
@@ -124,9 +124,9 @@ export default function AdminBookingsPage() {
                   </div>
                   {b.signature && (
                     <div className="mt-2">
-                      <p className="mb-1 text-xs text-slate-400">Saini ya CR</p>
+                      <p className="mb-1 text-xs text-slate-400">CR Signature</p>
                       {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img src={b.signature} alt="Saini" className="h-14 rounded border border-slate-200 bg-white" />
+                      <img src={b.signature} alt="Signature" className="h-14 rounded border border-slate-200 bg-white" />
                     </div>
                   )}
                 </div>
@@ -136,10 +136,10 @@ export default function AdminBookingsPage() {
               {b.status === "pending" && (
                 <div className="mt-4 flex gap-2 border-t border-slate-100 pt-4">
                   <button onClick={() => approve(b.id)} className="flex items-center gap-1 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-emerald-700">
-                    <Check size={14} /> Idhinisha
+                    <Check size={14} /> Approve
                   </button>
                   <button onClick={() => setRejectingId(rejectingId === b.id ? null : b.id)} className="flex items-center gap-1 rounded-lg bg-red-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-red-700">
-                    <X size={14} /> Kataa
+                    <X size={14} /> Reject
                   </button>
                 </div>
               )}
@@ -148,13 +148,13 @@ export default function AdminBookingsPage() {
                 <div className="mt-3 flex gap-2">
                   <input
                     autoFocus
-                    placeholder="Sababu ya kukataa..."
+                    placeholder="Reason for rejection..."
                     value={reason}
                     onChange={(e) => setReason(e.target.value)}
                     className="flex-1 rounded-lg border border-slate-300 px-3 py-1.5 text-sm focus:border-accent-500 focus:outline-none"
                   />
                   <button onClick={() => reject(b.id)} disabled={!reason} className="rounded-lg bg-red-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-red-700 disabled:opacity-50">
-                    Thibitisha
+                    Confirm
                   </button>
                 </div>
               )}

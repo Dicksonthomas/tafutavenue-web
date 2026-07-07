@@ -37,11 +37,11 @@ function previewEmail(name: string, regNo: string): { email: string | null; erro
 
   const year = 2000 + parseInt(match[1], 10);
   if (year < MIN_INTAKE_YEAR) {
-    return { email: null, error: `Reg No hii ina mwaka wa nyuma sana (${year}). Tumia "Weka Email Mwenyewe".` };
+    return { email: null, error: `This Reg No has too old an intake year (${year}). Use "Enter Email Manually".` };
   }
   const max = maxIntakeYear();
   if (year > max) {
-    return { email: null, error: `Reg No ya mwaka ${year} bado haijaruhusiwa (inafunguliwa Oktoba ${year}).` };
+    return { email: null, error: `Reg No for year ${year} is not yet allowed (opens in October ${year}).` };
   }
 
   const parts = name.trim().split(/\s+/).filter(Boolean);
@@ -106,14 +106,14 @@ export default function AdminStudentsPage() {
 
   async function deleteUser(u: User) {
     const ok = await confirmAction(
-      `Taarifa zake binafsi (jina, email, simu) zitafutwa, lakini historia ya bookings zake itabaki kwa rekodi.`,
-      { title: `Futa CR "${u.name}"?`, confirmText: "Ndiyo, futa" }
+      `Their personal information (name, email, phone) will be deleted, but their booking history will remain on record.`,
+      { title: `Remove CR "${u.name}"?`, confirmText: "Yes, remove" }
     );
     if (!ok) return;
     setError(null);
     try {
       await api.delete(`/admin/users/${u.id}`);
-      setSuccessMsg(`CR "${u.name}" amefutwa. Historia yake imehifadhiwa.`);
+      setSuccessMsg(`CR "${u.name}" has been removed. Their history has been preserved.`);
       load(debouncedQ, page);
     } catch (err) {
       setError(apiErrorMessage(err));
@@ -155,22 +155,22 @@ export default function AdminStudentsPage() {
   const users = result?.data ?? [];
 
   return (
-    <div className="mx-auto max-w-6xl">
+    <div className="mx-auto max-w-7xl">
       <PageHeader
-        title="Wanafunzi (CR)"
-        subtitle="Sajili CR mmoja mmoja au ingiza wengi kwa mkupuo kupitia CSV/Excel. Email na password hutengenezwa kiotomatiki na kutumwa kwa CR husika."
+        title="Students (CR)"
+        subtitle="Register CRs one by one or import many at once via CSV/Excel. Email and password are generated automatically and sent to the CR."
         action={
           <div className="flex flex-wrap gap-2">
             <button onClick={downloadTemplate} className="flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50">
-              <Download size={16} /> Pakua Template
+              <Download size={16} /> Download Template
             </button>
             <button onClick={() => fileInputRef.current?.click()} disabled={importing} className="flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-50">
-              <Upload size={16} /> {importing ? "Inaingiza..." : "Import CSV"}
+              <Upload size={16} /> {importing ? "Importing..." : "Import CSV"}
             </button>
             <input ref={fileInputRef} type="file" accept=".csv,.txt" onChange={handleImport} className="hidden" />
             <button onClick={() => setShowForm((v) => !v)} className="flex items-center gap-2 rounded-lg bg-accent-600 px-3 py-2 text-sm font-medium text-white hover:bg-accent-700">
               {showForm ? <X size={16} /> : <Plus size={16} />}
-              {showForm ? "Funga" : "Ongeza CR"}
+              {showForm ? "Close" : "Add CR"}
             </button>
           </div>
         }
@@ -181,7 +181,7 @@ export default function AdminStudentsPage() {
       {successMsg && (
         <div className="mb-4 rounded-lg bg-emerald-50 px-4 py-3 text-sm text-emerald-800 ring-1 ring-inset ring-emerald-200">
           {successMsg}
-          <button onClick={() => setSuccessMsg(null)} className="ml-2 text-xs underline">Funga</button>
+          <button onClick={() => setSuccessMsg(null)} className="ml-2 text-xs underline">Close</button>
         </div>
       )}
 
@@ -193,9 +193,9 @@ export default function AdminStudentsPage() {
               <table className="w-full text-left text-xs">
                 <thead>
                   <tr className="text-slate-500">
-                    <th className="pb-1 pr-4">Jina</th>
+                    <th className="pb-1 pr-4">Name</th>
                     <th className="pb-1 pr-4">Reg No</th>
-                    <th className="pb-1">Email (Password imetumwa huko)</th>
+                    <th className="pb-1">Email (Password sent there)</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -211,9 +211,9 @@ export default function AdminStudentsPage() {
             </div>
           )}
           {importResult.skipped.length > 0 && (
-            <p className="mt-2 text-xs text-amber-600">Zilizorukwa: {importResult.skipped.join(", ")}</p>
+            <p className="mt-2 text-xs text-amber-600">Skipped: {importResult.skipped.join(", ")}</p>
           )}
-          <button onClick={() => setImportResult(null)} className="mt-2 text-xs text-slate-400 underline">Funga</button>
+          <button onClick={() => setImportResult(null)} className="mt-2 text-xs text-slate-400 underline">Close</button>
         </Card>
       )}
 
@@ -245,7 +245,7 @@ export default function AdminStudentsPage() {
           <input
             value={q}
             onChange={(e) => setQ(e.target.value)}
-            placeholder="Tafuta kwa jina, email, reg no au program... (live search)"
+            placeholder="Search by name, email, reg no or program... (live search)"
             className="w-full rounded-lg border border-slate-300 py-2 pl-9 pr-3 text-sm focus:border-accent-500 focus:outline-none"
           />
           {loading && q && (
@@ -258,7 +258,7 @@ export default function AdminStudentsPage() {
       {loading ? (
         <Spinner />
       ) : users.length === 0 ? (
-        <EmptyState icon={GraduationCap} title="Hakuna CR bado" description="Ongeza CR mmoja au import CSV kuanza." />
+        <EmptyState icon={GraduationCap} title="No CR yet" description="Add a CR or import CSV to get started." />
       ) : (
         <>
           <Card className="overflow-x-auto">
@@ -266,15 +266,15 @@ export default function AdminStudentsPage() {
               <thead className="border-b border-slate-200 bg-slate-50 text-xs uppercase tracking-wide text-slate-500">
                 <tr>
                   <th className="px-4 py-3">#</th>
-                  <th className="px-4 py-3">Jina / Reg No</th>
-                  <th className="px-4 py-3">Email / Simu</th>
+                  <th className="px-4 py-3">Name / Reg No</th>
+                  <th className="px-4 py-3">Email / Phone</th>
                   <th className="px-4 py-3">Campus</th>
                   <th className="px-4 py-3">Faculty / Department</th>
                   <th className="px-4 py-3">Program</th>
                   <th className="px-4 py-3">Level</th>
-                  <th className="px-4 py-3">Jinsia</th>
+                  <th className="px-4 py-3">Sex</th>
                   <th className="px-4 py-3">Status</th>
-                  <th className="px-4 py-3 text-right">Vitendo</th>
+                  <th className="px-4 py-3 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -300,7 +300,7 @@ export default function AdminStudentsPage() {
                     <td className="px-4 py-3 text-slate-600">{u.program}</td>
                     <td className="px-4 py-3">
                       <span className="rounded-full bg-accent-50 px-2 py-0.5 text-xs font-medium text-accent-700">
-                        {u.level} - Mwaka {u.year_of_study ?? "?"}
+                        {u.level} - Year {u.year_of_study ?? "?"}
                       </span>
                     </td>
                     <td className="px-4 py-3 text-slate-600">{u.sex === "male" ? "Male" : u.sex === "female" ? "Female" : "—"}</td>
@@ -308,7 +308,7 @@ export default function AdminStudentsPage() {
                       {u.is_active ? (
                         <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">Active</span>
                       ) : (
-                        <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-500">Amesimamishwa</span>
+                        <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-500">Suspended</span>
                       )}
                     </td>
                     <td className="px-4 py-3">
@@ -317,13 +317,13 @@ export default function AdminStudentsPage() {
                           onClick={() => setEditingUser(u)}
                           className="flex items-center gap-1 rounded-lg border border-slate-200 px-2 py-1 text-xs text-slate-500 hover:bg-slate-50"
                         >
-                          <Pencil size={12} /> Hariri
+                          <Pencil size={12} /> Edit
                         </button>
                         <button
                           onClick={() => deleteUser(u)}
                           className="flex items-center gap-1 rounded-lg border border-red-200 px-2 py-1 text-xs text-red-600 hover:bg-red-50"
                         >
-                          <Trash2 size={12} /> Futa
+                          <Trash2 size={12} /> Remove
                         </button>
                       </div>
                     </td>
@@ -340,17 +340,17 @@ export default function AdminStudentsPage() {
                 onClick={() => setPage((p) => p - 1)}
                 className="flex items-center gap-1 rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-50 disabled:opacity-40"
               >
-                <ChevronLeft size={14} /> Nyuma
+                <ChevronLeft size={14} /> Previous
               </button>
               <span className="text-sm text-slate-500">
-                Ukurasa {result.current_page} kati ya {result.last_page} ({result.total} CR)
+                Page {result.current_page} of {result.last_page} ({result.total} CR)
               </span>
               <button
                 disabled={page >= result.last_page}
                 onClick={() => setPage((p) => p + 1)}
                 className="flex items-center gap-1 rounded-lg border border-slate-300 px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-50 disabled:opacity-40"
               >
-                Mbele <ChevronRight size={14} />
+                Next <ChevronRight size={14} />
               </button>
             </div>
           )}
@@ -403,13 +403,13 @@ function StudentForm({ onCreated }: { onCreated: (message: string) => void }) {
       <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         {error && <div className="col-span-full rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div>}
 
-        <input required placeholder="Jina Kamili" value={name} onChange={(e) => setName(e.target.value)} className="col-span-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none sm:col-span-1" />
+        <input required placeholder="Full Name" value={name} onChange={(e) => setName(e.target.value)} className="col-span-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none sm:col-span-1" />
 
         {useManualEmail ? (
-          <input required type="email" placeholder="Email (mwenyewe)" value={email} onChange={(e) => setEmail(e.target.value)} className="col-span-2 rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none" />
+          <input required type="email" placeholder="Email (manual)" value={email} onChange={(e) => setEmail(e.target.value)} className="col-span-2 rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none" />
         ) : (
           <div className="col-span-2">
-            <input required placeholder="Reg No (mfano: 14322055/T.25)" value={regNo} onChange={(e) => setRegNo(e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none" />
+            <input required placeholder="Reg No (e.g. 14322055/T.25)" value={regNo} onChange={(e) => setRegNo(e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none" />
             {preview.error && <p className="mt-1 text-xs text-red-600">{preview.error}</p>}
             {preview.email && <p className="mt-1 text-xs text-slate-500">Email: <span className="font-medium text-accent-700">{preview.email}</span></p>}
           </div>
@@ -420,18 +420,18 @@ function StudentForm({ onCreated }: { onCreated: (message: string) => void }) {
           onClick={() => setUseManualEmail((v) => !v)}
           className="col-span-full -mt-1 text-left text-xs text-slate-400 underline"
         >
-          {useManualEmail ? "Tumia Reg No badala yake" : "Reg No ina tatizo? Weka Email Mwenyewe"}
+          {useManualEmail ? "Use Reg No instead" : "Problem with Reg No? Enter Email Manually"}
         </button>
 
-        <input required placeholder="Namba ya Simu" value={phone} onChange={(e) => setPhone(e.target.value)} className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none" />
+        <input required placeholder="Phone Number" value={phone} onChange={(e) => setPhone(e.target.value)} className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none" />
 
         <select required value={campus} onChange={(e) => setCampus(e.target.value)} className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none">
-          <option value="" disabled>Chagua Campus...</option>
+          <option value="" disabled>Choose Campus...</option>
           {campuses.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
         </select>
 
         <select required value={sex} onChange={(e) => setSex(e.target.value)} className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none">
-          <option value="" disabled>Jinsia...</option>
+          <option value="" disabled>Sex...</option>
           <option value="male">Male</option>
           <option value="female">Female</option>
         </select>
@@ -439,7 +439,7 @@ function StudentForm({ onCreated }: { onCreated: (message: string) => void }) {
         <EducationFields value={edu} onChange={setEdu} campus={campus} />
 
         <button disabled={submitting} className="col-span-full rounded-lg bg-accent-600 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50">
-          {submitting ? "Inasajili..." : "Sajili CR"}
+          {submitting ? "Registering..." : "Register CR"}
         </button>
       </form>
     </Card>
@@ -492,24 +492,24 @@ function EditStudentModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/40 px-4 py-8">
       <div className="w-full max-w-lg rounded-xl bg-white p-5 shadow-xl">
         <div className="mb-3 flex items-center justify-between">
-          <h2 className="font-semibold text-slate-900">Hariri CR: {user.name}</h2>
+          <h2 className="font-semibold text-slate-900">Edit CR: {user.name}</h2>
           <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X size={18} /></button>
         </div>
 
         {error && <div className="mb-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div>}
 
         <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-          <input required placeholder="Jina Kamili" value={name} onChange={(e) => setName(e.target.value)} className="col-span-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none sm:col-span-1" />
-          <input required placeholder="Namba ya Simu" value={phone} onChange={(e) => setPhone(e.target.value)} className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none" />
-          <input type="password" placeholder="Password Mpya (hiari)" value={password} onChange={(e) => setPassword(e.target.value)} className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none" />
+          <input required placeholder="Full Name" value={name} onChange={(e) => setName(e.target.value)} className="col-span-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none sm:col-span-1" />
+          <input required placeholder="Phone Number" value={phone} onChange={(e) => setPhone(e.target.value)} className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none" />
+          <input type="password" placeholder="New Password (optional)" value={password} onChange={(e) => setPassword(e.target.value)} className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none" />
 
           <select required value={campus} onChange={(e) => setCampus(e.target.value)} className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none">
-            <option value="" disabled>Chagua Campus...</option>
+            <option value="" disabled>Choose Campus...</option>
             {campuses.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
           </select>
 
           <select required value={sex} onChange={(e) => setSex(e.target.value)} className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none">
-            <option value="" disabled>Jinsia...</option>
+            <option value="" disabled>Sex...</option>
             <option value="male">Male</option>
             <option value="female">Female</option>
           </select>
@@ -518,17 +518,17 @@ function EditStudentModal({
 
           <label className="col-span-full flex items-center gap-2 text-sm text-slate-600">
             <input type="checkbox" checked={isActive} onChange={(e) => setIsActive(e.target.checked)} />
-            Akaunti Active (mzima)
+            Account Active
           </label>
 
           <p className="col-span-full text-xs text-slate-400">
-            Jina likibadilika, email mpya itatengenezwa kiotomatiki (kama ana Reg No) na kutumwa kwake.
+            If the name is changed, a new email will be generated automatically (if they have a Reg No) and sent to them.
           </p>
 
           <div className="col-span-full flex gap-2 pt-2">
-            <button type="button" onClick={onClose} className="flex-1 rounded-lg border border-slate-300 py-2 text-sm text-slate-600 hover:bg-slate-50">Ghairi</button>
+            <button type="button" onClick={onClose} className="flex-1 rounded-lg border border-slate-300 py-2 text-sm text-slate-600 hover:bg-slate-50">Cancel</button>
             <button disabled={submitting} className="flex-1 rounded-lg bg-accent-600 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50">
-              {submitting ? "Inahifadhi..." : "Hifadhi Mabadiliko"}
+              {submitting ? "Saving..." : "Save Changes"}
             </button>
           </div>
         </form>

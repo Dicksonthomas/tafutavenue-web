@@ -5,7 +5,7 @@ import { useRef, useState } from "react";
 export default function SignaturePad({
   onSave,
   saving,
-  confirmLabel = "Tia Saini na Thibitisha",
+  confirmLabel = "Sign and Confirm",
 }: {
   onSave: (dataUrl: string) => void;
   saving?: boolean;
@@ -73,7 +73,7 @@ export default function SignaturePad({
       />
       <div className="mt-2 flex gap-2">
         <button type="button" onClick={clear} className="rounded border border-slate-300 px-3 py-1 text-xs text-slate-600 hover:bg-slate-50">
-          Futa
+          Clear
         </button>
         <button
           type="button"
@@ -81,7 +81,7 @@ export default function SignaturePad({
           disabled={!hasDrawn || saving}
           className="rounded bg-slate-800 px-3 py-1 text-xs font-medium text-white hover:bg-slate-700 disabled:opacity-50"
         >
-          {saving ? "Inatuma..." : confirmLabel}
+          {saving ? "Submitting..." : confirmLabel}
         </button>
       </div>
     </div>

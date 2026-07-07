@@ -31,8 +31,8 @@ export default function LecturerTimetablePage() {
   return (
     <div className="mx-auto max-w-7xl">
       <PageHeader
-        title="Ratiba ya Lecturer"
-        subtitle="Andika jina la Lecturer wako ili uone ratiba yake yote ya wiki - bila kuhangaika."
+        title="Lecturer Timetable"
+        subtitle="Type your Lecturer's name to see their entire weekly schedule - no hassle."
       />
 
       <Card className="mb-6 p-5">
@@ -41,7 +41,7 @@ export default function LecturerTimetablePage() {
           <input
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="mfano: Dr. Siyao (live search - andika tu)"
+            placeholder="e.g. Dr. Siyao (live search - just type)"
             className="w-full rounded-lg border border-slate-300 py-2.5 pl-9 pr-3 text-sm focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500"
           />
         </div>
@@ -52,7 +52,7 @@ export default function LecturerTimetablePage() {
       {loading && <Spinner />}
 
       {!loading && slots && slots.length === 0 && (
-        <EmptyState icon={User2} title="Hakuna Lecturer aliyepatikana" description="Hakikisha umeandika jina sahihi (au sehemu ya jina)." />
+        <EmptyState icon={User2} title="No Lecturer found" description="Make sure you typed the correct name (or part of the name)." />
       )}
 
       {!loading && slots && slots.length > 0 && (

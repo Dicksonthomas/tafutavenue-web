@@ -17,11 +17,11 @@ interface Summary {
 }
 
 const RANGES: { value: string; label: string }[] = [
-  { value: "all", label: "Muda Wote" },
-  { value: "today", label: "Leo" },
-  { value: "yesterday", label: "Jana" },
-  { value: "this_week", label: "Wiki Hii" },
-  { value: "this_month", label: "Mwezi Huu" },
+  { value: "all", label: "All Time" },
+  { value: "today", label: "Today" },
+  { value: "yesterday", label: "Yesterday" },
+  { value: "this_week", label: "This Week" },
+  { value: "this_month", label: "This Month" },
 ];
 
 export default function AdminHomePage() {
@@ -37,8 +37,8 @@ export default function AdminHomePage() {
   return (
     <div className="mx-auto max-w-7xl">
       <PageHeader
-        title="Muhtasari"
-        subtitle="Hali ya jumla ya mfumo wa Venue Booking."
+        title="Overview"
+        subtitle="Overall status of the Venue Booking system."
         action={
           <select
             value={range}
@@ -53,24 +53,24 @@ export default function AdminHomePage() {
       />
 
       <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <StatCard icon={ClipboardList} label="Jumla ya Bookings" value={summary.total_bookings} />
+        <StatCard icon={ClipboardList} label="Total Bookings" value={summary.total_bookings} />
         <StatCard icon={DoorOpen} label="Venues" value={summary.total_venues} />
         {Object.entries(summary.by_status).map(([status, count]) => (
           <StatCard key={status} icon={TrendingUp} label={status} value={count} />
         ))}
       </div>
 
-      <h2 className="mb-3 text-sm font-semibold text-slate-700">CRs Waliosajiliwa</h2>
+      <h2 className="mb-3 text-sm font-semibold text-slate-700">Registered CRs</h2>
       <div className="mb-8 grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <StatCard icon={GraduationCap} label="Jumla ya CRs" value={summary.total_crs} />
+        <StatCard icon={GraduationCap} label="Total CRs" value={summary.total_crs} />
         <StatCard icon={UserRound} label="Male CRs" value={summary.male_crs} color="blue" />
         <StatCard icon={UserRound} label="Female CRs" value={summary.female_crs} color="pink" />
       </div>
 
-      <h2 className="mb-3 text-sm font-semibold text-slate-700">Venues Zinazobookiwa Zaidi</h2>
+      <h2 className="mb-3 text-sm font-semibold text-slate-700">Most Booked Venues</h2>
       <Card>
         {summary.most_booked_venues.length === 0 ? (
-          <p className="p-4 text-sm text-slate-500">Hakuna data bado.</p>
+          <p className="p-4 text-sm text-slate-500">No data yet.</p>
         ) : (
           summary.most_booked_venues.map((v) => (
             <div key={v.venue_id} className="flex items-center justify-between border-b border-slate-100 px-5 py-3 last:border-0">

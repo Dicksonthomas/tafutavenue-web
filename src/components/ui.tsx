@@ -50,7 +50,7 @@ export function EmptyState({
   );
 }
 
-export function Spinner({ label = "Inapakia..." }: { label?: string }) {
+export function Spinner({ label = "Loading..." }: { label?: string }) {
   return (
     <div className="flex items-center justify-center gap-2 py-16 text-sm text-slate-500">
       <span className="h-4 w-4 animate-spin rounded-full border-2 border-slate-300 border-t-slate-600" />
@@ -67,10 +67,10 @@ const BOOKING_STATUS_STYLES: Record<BookingStatus, string> = {
 };
 
 const BOOKING_STATUS_LABELS: Record<BookingStatus, string> = {
-  pending: "Inasubiri",
-  approved: "Imeidhinishwa",
-  rejected: "Imekataliwa",
-  cancelled: "Imeghairiwa",
+  pending: "Pending",
+  approved: "Approved",
+  rejected: "Rejected",
+  cancelled: "Cancelled",
 };
 
 export function StatusBadge({ status }: { status: BookingStatus }) {
@@ -107,7 +107,7 @@ export function PurposeBadge({ purpose }: { purpose: string }) {
     test: "Test",
     makeup_class: "Makeup Class",
     meeting: "Meeting",
-    other: "Nyingine",
+    other: "Other",
   };
   return (
     <span className="inline-flex items-center rounded-full bg-accent-50 px-2.5 py-1 text-xs font-medium text-accent-700 ring-1 ring-inset ring-accent-200">

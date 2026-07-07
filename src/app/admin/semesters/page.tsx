@@ -38,14 +38,14 @@ export default function AdminSemestersPage() {
     <div className="mx-auto max-w-7xl">
       <PageHeader
         title="Semesters"
-        subtitle="Semester inayotumika (active) ndiyo huonekana kwa CR wakati wa kutafuta venue."
+        subtitle="The active semester is the one shown to CRs when searching for a venue."
         action={
           <button
             onClick={() => setShowForm((v) => !v)}
             className="flex items-center gap-2 rounded-lg bg-accent-600 px-3 py-2 text-sm font-medium text-white hover:bg-accent-700"
           >
             {showForm ? <X size={16} /> : <Plus size={16} />}
-            {showForm ? "Funga" : "Ongeza Semester"}
+            {showForm ? "Close" : "Add Semester"}
           </button>
         }
       />
@@ -75,7 +75,7 @@ export default function AdminSemestersPage() {
       {loading ? (
         <Spinner />
       ) : semesters.length === 0 ? (
-        <EmptyState icon={CalendarRange} title="Hakuna semester bado" description="Ongeza semester ya kwanza kuanza kupokea bookings." />
+        <EmptyState icon={CalendarRange} title="No semesters yet" description="Add the first semester to start receiving bookings." />
       ) : (
         <div className="space-y-3">
           {semesters.map((s) => (
@@ -83,7 +83,7 @@ export default function AdminSemestersPage() {
               <div>
                 <h3 className="font-semibold text-slate-900">{s.name}</h3>
                 <p className="mt-0.5 text-xs text-slate-500">
-                  {s.academic_year} · Semester {s.semester_number} · {s.start_date?.slice(0, 10)} hadi {s.end_date?.slice(0, 10)}
+                  {s.academic_year} · Semester {s.semester_number} · {s.start_date?.slice(0, 10)} to {s.end_date?.slice(0, 10)}
                 </p>
               </div>
               <div className="flex items-center gap-2">
@@ -93,11 +93,11 @@ export default function AdminSemestersPage() {
                   </span>
                 ) : (
                   <button onClick={() => activate(s.id)} className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50">
-                    Fanya Active
+                    Make Active
                   </button>
                 )}
                 <button onClick={() => setEditingSemester(s)} className="flex items-center gap-1 rounded-lg border border-slate-200 px-2 py-1.5 text-xs text-slate-600 hover:bg-slate-50">
-                  <Pencil size={13} /> Hariri
+                  <Pencil size={13} /> Edit
                 </button>
               </div>
             </Card>
@@ -154,7 +154,7 @@ function SemesterForm({
       <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-3 sm:grid-cols-3">
         {error && <div className="col-span-full rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div>}
 
-        <input required placeholder="Jina (mfano: Semester I 2025/2026)" value={form.name} onChange={(e) => update("name", e.target.value)} className="col-span-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none" />
+        <input required placeholder="Name (e.g. Semester I 2025/2026)" value={form.name} onChange={(e) => update("name", e.target.value)} className="col-span-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none" />
         <input required placeholder="Academic Year (2025/2026)" value={form.academic_year} onChange={(e) => update("academic_year", e.target.value)} className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none" />
         <select value={form.semester_number} onChange={(e) => update("semester_number", Number(e.target.value))} className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none">
           <option value={1}>Semester 1</option>
@@ -163,22 +163,22 @@ function SemesterForm({
         </select>
         <div />
         <div>
-          <label className="mb-1 block text-xs text-slate-500">Tarehe ya Kuanza</label>
+          <label className="mb-1 block text-xs text-slate-500">Start Date</label>
           <input required type="date" value={form.start_date} onChange={(e) => update("start_date", e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none" />
         </div>
         <div>
-          <label className="mb-1 block text-xs text-slate-500">Tarehe ya Mwisho</label>
+          <label className="mb-1 block text-xs text-slate-500">End Date</label>
           <input required type="date" value={form.end_date} onChange={(e) => update("end_date", e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none" />
         </div>
 
         <div className="col-span-full flex gap-2">
           {onCancel && (
             <button type="button" onClick={onCancel} className="flex-1 rounded-lg border border-slate-300 py-2 text-sm text-slate-600 hover:bg-slate-50">
-              Ghairi
+              Cancel
             </button>
           )}
           <button disabled={submitting} className="flex-1 rounded-lg bg-accent-600 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50">
-            {submitting ? "Inahifadhi..." : semester ? "Hifadhi Mabadiliko" : "Hifadhi Semester"}
+            {submitting ? "Saving..." : semester ? "Save Changes" : "Save Semester"}
           </button>
         </div>
       </form>

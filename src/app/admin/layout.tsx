@@ -6,14 +6,14 @@ import AuthGuard from "@/components/AuthGuard";
 import DashboardShell, { NavItem } from "@/components/DashboardShell";
 
 const navItems: NavItem[] = [
-  { href: "/admin", label: "Muhtasari", icon: LayoutDashboard },
+  { href: "/admin", label: "Overview", icon: LayoutDashboard },
   { href: "/admin/venues", label: "Venues", icon: DoorOpen },
   { href: "/admin/bookings", label: "Bookings", icon: ClipboardCheck },
   { href: "/admin/booked-venues", label: "Booked Venues", icon: CalendarClock },
   { href: "/admin/semesters", label: "Semesters", icon: CalendarRange },
-  { href: "/admin/students", label: "Wanafunzi (CR)", icon: GraduationCap },
+  { href: "/admin/students", label: "Students (CR)", icon: GraduationCap },
   { href: "/admin/admins", label: "Admins", icon: ShieldCheck },
-  { href: "/admin/settings", label: "Mipangilio", icon: Settings },
+  { href: "/admin/settings", label: "Settings", icon: Settings },
 ];
 
 export default function AdminLayout({ children }: { children: ReactNode }) {
