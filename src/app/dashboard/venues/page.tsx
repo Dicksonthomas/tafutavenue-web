@@ -148,6 +148,9 @@ export default function AllVenuesPage() {
           onClose={() => setBookingVenue(null)}
           onSuccess={() => {
             setSuccessMsg(`Booking for "${bookingVenue.name}" was successful and approved automatically!`);
+            if (freeMode) {
+              setVenues((prev) => prev.filter((v) => v.id !== bookingVenue.id));
+            }
             setBookingVenue(null);
           }}
         />

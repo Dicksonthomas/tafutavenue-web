@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { api, apiErrorMessage } from "@/lib/api";
 import { BookingPurpose, Semester, Venue } from "@/lib/types";
+import { useSettings } from "@/lib/settings";
 import SignaturePad from "@/components/SignaturePad";
 
 const PURPOSES: { value: BookingPurpose; label: string }[] = [
@@ -13,14 +14,16 @@ const PURPOSES: { value: BookingPurpose; label: string }[] = [
   { value: "other", label: "Other" },
 ];
 
-const STUDY_UNIT_START = "19:00";
-
 function todayIso() {
   return new Date().toISOString().slice(0, 10);
 }
 
-function isWithinStudyUnitWindow(start: string, end: string): boolean {
-  return start >= STUDY_UNIT_START && (end === "00:00" || end > start);
+function dayOfWeekFromDate(dateStr: string): string {
+  return new Date(`${dateStr}T00:00:00`).toLocaleDateString("en-US", { weekday: "long" });
+}
+
+function isWithinStudyUnitWindow(start: string, end: string, windowStart: string): boolean {
+  return start >= windowStart && (end === "00:00" || end > start);
 }
 
 export default function BookingModal({
@@ -40,6 +43,7 @@ export default function BookingModal({
   onClose: () => void;
   onSuccess: () => void;
 }) {
+  const { study_unit_hours } = useSettings();
   const [semesters, setSemesters] = useState<Semester[]>([]);
   const [internalSemesterId, setInternalSemesterId] = useState(semesterId ?? "");
   const [internalDate, setInternalDate] = useState(date ?? todayIso());
@@ -67,12 +71,14 @@ export default function BookingModal({
 
   const effectiveStart = startTime ?? internalStart;
   const effectiveEnd = endTime ?? internalEnd;
-  const studyUnitViolation = purpose === "study_unit" && !isWithinStudyUnitWindow(effectiveStart, effectiveEnd);
+  const effectiveDate = date ?? internalDate;
+  const dayHours = study_unit_hours?.[dayOfWeekFromDate(effectiveDate)] ?? { start: "19:00", end: "00:00" };
+  const studyUnitViolation = purpose === "study_unit" && !isWithinStudyUnitWindow(effectiveStart, effectiveEnd, dayHours.start);
 
   async function handleSubmit() {
     if (!signature) return;
     if (studyUnitViolation) {
-      setError("Study Unit bookings are only allowed between 19:00 and 00:00 (7 PM - midnight).");
+      setError(`Study Unit bookings are only allowed from ${dayHours.start} until ${dayHours.end === "00:00" ? "midnight" : dayHours.end}.`);
       return;
     }
     setError(null);
@@ -153,7 +159,7 @@ export default function BookingModal({
             </select>
             {purpose === "study_unit" && (
               <p className={`mt-1 text-xs ${studyUnitViolation ? "text-red-600" : "text-slate-400"}`}>
-                Study Unit bookings are only allowed between 19:00 and 00:00 (evening).
+                Study Unit bookings are only allowed from {dayHours.start} until {dayHours.end === "00:00" ? "midnight" : dayHours.end}.
               </p>
             )}
           </div>

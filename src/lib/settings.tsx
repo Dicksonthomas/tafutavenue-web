@@ -3,6 +3,10 @@
 import { createContext, useCallback, useContext, useEffect, useState, ReactNode } from "react";
 import { api } from "./api";
 
+export interface StudyUnitHours {
+  [day: string]: { start: string; end: string };
+}
+
 interface AppSettings {
   primary_color: string | null;
   default_color: string | null;
@@ -12,6 +16,7 @@ interface AppSettings {
   footer_text: string | null;
   footer_link: string | null;
   login_background_color: string | null;
+  study_unit_hours: StudyUnitHours | null;
 }
 
 interface SettingsContextValue extends AppSettings {
@@ -27,6 +32,7 @@ const SettingsContext = createContext<SettingsContextValue>({
   footer_text: null,
   footer_link: null,
   login_background_color: null,
+  study_unit_hours: null,
   refresh: () => {},
 });
 
@@ -39,6 +45,12 @@ function shadeHex(hex: string, percent: number): string {
 }
 
 export const DEFAULT_LOGIN_BACKGROUND_COLOR = "#002f3a";
+
+export const WEEK_DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+
+export function defaultStudyUnitHours(): StudyUnitHours {
+  return Object.fromEntries(WEEK_DAYS.map((day) => [day, { start: "19:00", end: "00:00" }]));
+}
 
 /** Chagua rangi ya maandishi (nyeupe au nyeusi) inayosomeka vizuri juu ya background ya hex uliyopewa. */
 export function getReadableTextColor(hex: string): string {
@@ -68,6 +80,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     footer_text: null,
     footer_link: null,
     login_background_color: null,
+    study_unit_hours: null,
   });
 
   const load = useCallback(() => {

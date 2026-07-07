@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { ClipboardList, DoorOpen, TrendingUp, GraduationCap, UserRound } from "lucide-react";
+import Link from "next/link";
+import { ClipboardList, DoorOpen, TrendingUp, GraduationCap, UserRound, MapPin } from "lucide-react";
 import { api } from "@/lib/api";
+import { useReferenceData } from "@/lib/referenceData";
 import { Card, PageHeader, Spinner } from "@/components/ui";
 
 interface Summary {
@@ -11,6 +13,7 @@ interface Summary {
   by_purpose: Record<string, number>;
   most_booked_venues: { venue_id: number; total: number; venue: { name: string; building: string | null } }[];
   total_venues: number;
+  venues_by_campus: Record<string, number>;
   total_crs: number;
   male_crs: number;
   female_crs: number;
@@ -25,6 +28,7 @@ const RANGES: { value: string; label: string }[] = [
 ];
 
 export default function AdminHomePage() {
+  const { campuses } = useReferenceData();
   const [summary, setSummary] = useState<Summary | null>(null);
   const [range, setRange] = useState("all");
 
@@ -53,16 +57,29 @@ export default function AdminHomePage() {
       />
 
       <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <StatCard icon={ClipboardList} label="Total Bookings" value={summary.total_bookings} />
-        <StatCard icon={DoorOpen} label="Venues" value={summary.total_venues} />
+        <StatCard icon={ClipboardList} label="Total Bookings" value={summary.total_bookings} href="/admin/bookings" />
+        <StatCard icon={DoorOpen} label="Venues" value={summary.total_venues} href="/admin/venues" />
         {Object.entries(summary.by_status).map(([status, count]) => (
-          <StatCard key={status} icon={TrendingUp} label={status} value={count} />
+          <StatCard key={status} icon={TrendingUp} label={status} value={count} href={`/admin/bookings?status=${status}`} />
+        ))}
+      </div>
+
+      <h2 className="mb-3 text-sm font-semibold text-slate-700">Venues by Campus</h2>
+      <div className="mb-8 grid grid-cols-2 gap-4 sm:grid-cols-4">
+        {campuses.map((c) => (
+          <StatCard
+            key={c.value}
+            icon={MapPin}
+            label={c.label}
+            value={summary.venues_by_campus[c.value] ?? 0}
+            href={`/admin/venues?campus=${c.value}`}
+          />
         ))}
       </div>
 
       <h2 className="mb-3 text-sm font-semibold text-slate-700">Registered CRs</h2>
       <div className="mb-8 grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <StatCard icon={GraduationCap} label="Total CRs" value={summary.total_crs} />
+        <StatCard icon={GraduationCap} label="Total CRs" value={summary.total_crs} href="/admin/students" />
         <StatCard icon={UserRound} label="Male CRs" value={summary.male_crs} color="blue" />
         <StatCard icon={UserRound} label="Female CRs" value={summary.female_crs} color="pink" />
       </div>
@@ -109,14 +126,16 @@ function StatCard({
   label,
   value,
   color = "accent",
+  href,
 }: {
   icon: typeof ClipboardList;
   label: string;
   value: number;
   color?: "accent" | "blue" | "pink";
+  href?: string;
 }) {
-  return (
-    <Card className="p-4">
+  const content = (
+    <Card className={`p-4 ${href ? "cursor-pointer transition hover:border-accent-300 hover:shadow-md" : ""}`}>
       <div className={`mb-2 flex h-8 w-8 items-center justify-center rounded-lg ${COLOR_CLASSES[color]}`}>
         <Icon size={16} />
       </div>
@@ -124,4 +143,6 @@ function StatCard({
       <p className="mt-0.5 text-2xl font-semibold text-slate-900">{value}</p>
     </Card>
   );
+
+  return href ? <Link href={href}>{content}</Link> : content;
 }

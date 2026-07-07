@@ -32,7 +32,7 @@ export default function AdminLogsPage() {
 
   async function load() {
     setLoading(true);
-    const { data } = await api.get("/logs", { params: { page, per_page: perPage } });
+    const { data } = await api.get("/admin/logs", { params: { page, per_page: perPage } });
     setResult(data);
     setLoading(false);
   }

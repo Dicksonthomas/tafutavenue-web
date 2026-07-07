@@ -42,6 +42,10 @@ export default function DashboardPage() {
 
   const [overview, setOverview] = useState<{ free_venues: number; busy_venues: number; total_venues: number; day_of_week: string } | null>(null);
 
+  function refreshOverview() {
+    api.get("/venues/today-overview").then(({ data }) => setOverview(data));
+  }
+
   useEffect(() => {
     api.get("/semesters").then(({ data }) => {
       setSemesters(data);
@@ -49,7 +53,7 @@ export default function DashboardPage() {
       if (active) setSemesterId(String(active.id));
       setLoadingSemesters(false);
     });
-    api.get("/venues/today-overview").then(({ data }) => setOverview(data));
+    refreshOverview();
   }, []);
 
   function applyPreset(start: string, end: string) {
@@ -309,6 +313,8 @@ export default function DashboardPage() {
           onSuccess={() => {
             setBookingVenue(null);
             setVenues((prev) => prev?.filter((v) => v.id !== bookingVenue.id) ?? null);
+            setOverview((prev) => prev ? { ...prev, free_venues: Math.max(0, prev.free_venues - 1), busy_venues: prev.busy_venues + 1 } : prev);
+            refreshOverview();
             setSuccessMsg(`Booking for "${bookingVenue.name}" was successful and approved automatically!`);
           }}
         />

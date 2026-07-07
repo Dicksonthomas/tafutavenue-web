@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { Check, X, ClipboardCheck, Download } from "lucide-react";
 import { api, apiErrorMessage } from "@/lib/api";
 import { Booking } from "@/lib/types";
@@ -17,8 +18,9 @@ interface PaginatedBookings {
 }
 
 export default function AdminBookingsPage() {
+  const searchParams = useSearchParams();
   const [result, setResult] = useState<PaginatedBookings | null>(null);
-  const [status, setStatus] = useState<string>("pending");
+  const [status, setStatus] = useState<string>(searchParams.get("status") ?? "pending");
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState("30");
   const [counts, setCounts] = useState<Record<string, number>>({});

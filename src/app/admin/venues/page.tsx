@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { Plus, Trash2, X, DoorOpen, UploadCloud, Link2, Pencil, Search } from "lucide-react";
 import { api, apiErrorMessage } from "@/lib/api";
 import { BookingPurpose, Level, Semester, Venue, VenueStatus, VenueType } from "@/lib/types";
@@ -27,9 +28,10 @@ interface VenueRestrictions {
 }
 
 export default function AdminVenuesPage() {
+  const searchParams = useSearchParams();
   const [venues, setVenues] = useState<Venue[]>([]);
   const [q, setQ] = useState("");
-  const [campusFilter, setCampusFilter] = useState("");
+  const [campusFilter, setCampusFilter] = useState(searchParams.get("campus") ?? "");
   const { campuses } = useReferenceData();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
