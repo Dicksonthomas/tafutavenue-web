@@ -8,45 +8,35 @@ export default function Combobox({
   onChange,
   options,
   placeholder,
-  allowCustom = true,
 }: {
   value: string;
   onChange: (value: string) => void;
   options: string[];
   placeholder?: string;
-  allowCustom?: boolean;
 }) {
-  const [query, setQuery] = useState(value);
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    setQuery(value);
-  }, [value]);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
       if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
         setOpen(false);
-        if (allowCustom) onChange(query);
       }
     }
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [query]);
+  }, []);
 
-  const filtered = options.filter((o) => o.toLowerCase().includes(query.toLowerCase())).slice(0, 50);
+  const filtered = options.filter((o) => o.toLowerCase().includes(value.toLowerCase())).slice(0, 50);
 
   return (
     <div className="relative" ref={containerRef}>
       <div className="relative">
         <input
-          value={query}
+          value={value}
           onChange={(e) => {
-            setQuery(e.target.value);
+            onChange(e.target.value);
             setOpen(true);
-            if (allowCustom) onChange(e.target.value);
           }}
           onFocus={() => setOpen(true)}
           placeholder={placeholder}
@@ -62,7 +52,6 @@ export default function Combobox({
               key={opt}
               type="button"
               onClick={() => {
-                setQuery(opt);
                 onChange(opt);
                 setOpen(false);
               }}
