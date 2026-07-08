@@ -20,8 +20,12 @@
 }
 
 /*
- * Mzumbe University brand colors (taken from mzumbe.ac.tz):
- * dark navy/teal (#002f3a) and green (#3db166).
+ * Mzumbe University brand colors: dark navy/teal (#002f3a, unchanged) for
+ * the sidebar/shell, and the university's coral-orange "Apply To MU"
+ * button color (#e8573d) as the default accent for buttons/active states.
+ * These 4 (-50/-500/-600/-700) are also what Settings -> Main System Color
+ * overrides live via applyColor()/deriveAccentShades() - kept in sync here
+ * so the very first paint (before that JS runs) already matches.
  */
 @theme {
   --color-brand-50: #e9eef0;
@@ -35,14 +39,14 @@
   --color-brand-800: #002f3a;
   --color-brand-900: #001f27;
 
-  --color-accent-50: #eafbf1;
+  --color-accent-50: #f9edeb;
   --color-accent-100: #d1f4dd;
   --color-accent-200: #a3e9bf;
   --color-accent-300: #71dc9e;
   --color-accent-400: #4fc884;
-  --color-accent-500: #3db166;
-  --color-accent-600: #359e5a;
-  --color-accent-700: #2a7d47;
+  --color-accent-500: #ea6952;
+  --color-accent-600: #e8573d;
+  --color-accent-700: #cd3418;
   --color-accent-800: #205f37;
 }
 

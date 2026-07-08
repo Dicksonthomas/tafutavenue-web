@@ -11,7 +11,7 @@ export async function confirmAction(
     showCancelButton: true,
     confirmButtonText: options.confirmText ?? "Yes, continue",
     cancelButtonText: "Cancel",
-    confirmButtonColor: options.danger === false ? "#3db166" : "#dc2626",
+    confirmButtonColor: options.danger === false ? "#e8573d" : "#dc2626",
     cancelButtonColor: "#64748b",
     reverseButtons: true,
   });
