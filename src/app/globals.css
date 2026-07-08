@@ -22,12 +22,15 @@
 /*
  * Official Mzumbe University brand colors:
  * - Deep Blue #002D62 (brand-800) for the sidebar, header, and footer.
- * - Main Orange #F05A28 (accent-600) for buttons and key indicators.
+ * - Main Orange, gently muted to #da4e1f (accent-600) for buttons and key
+ *   indicators - the raw official #F05A28 read as too glaring/neon when
+ *   used as a large button fill, so saturation/lightness are toned down
+ *   slightly here while staying in the same hue family.
  * The other shades in each scale are derived (muted tints/deeper tones)
- * from those two exact colors. These are also what Settings -> Main
- * System Color overrides live via applyColor()/deriveAccentShades() for
- * -50/-500/-600/-700 - kept in sync here so the very first paint (before
- * that JS runs) already matches.
+ * from those two base colors. -50/-500/-600/-700 are also what Settings
+ * -> Main System Color overrides live via applyColor()/deriveAccentShades()
+ * - kept in sync here so the very first paint (before that JS runs)
+ * already matches.
  */
 @theme {
   --color-brand-50: #eaedf0;
@@ -41,15 +44,15 @@
   --color-brand-800: #002d62;
   --color-brand-900: #001c3d;
 
-  --color-accent-50: #f9efeb;
-  --color-accent-100: #fbd3c6;
-  --color-accent-200: #f8af96;
-  --color-accent-300: #f48a66;
-  --color-accent-400: #f26d40;
-  --color-accent-500: #f2744a;
-  --color-accent-600: #f05a28;
-  --color-accent-700: #d6410f;
-  --color-accent-800: #a6320c;
+  --color-accent-50: #f9efec;
+  --color-accent-100: #f7d1c5;
+  --color-accent-200: #f0ab94;
+  --color-accent-300: #e98463;
+  --color-accent-400: #e3653b;
+  --color-accent-500: #e26136;
+  --color-accent-600: #da4e1f;
+  --color-accent-700: #ae3e19;
+  --color-accent-800: #812e12;
 }
 
 @media (prefers-color-scheme: dark) {

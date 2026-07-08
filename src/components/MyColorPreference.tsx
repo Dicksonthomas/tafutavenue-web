@@ -8,7 +8,7 @@ import { Card } from "@/components/ui";
 
 export default function MyColorPreference() {
   const { primary_color, default_color, refresh } = useSettings();
-  const [color, setColor] = useState(primary_color ?? default_color ?? "#f05a28");
+  const [color, setColor] = useState(primary_color ?? default_color ?? "#da4e1f");
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);

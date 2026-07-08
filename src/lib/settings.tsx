@@ -99,9 +99,9 @@ function clamp(n: number, min: number, max: number): number {
 export function deriveAccentShades(hex: string): { 500: string; 700: string; 50: string } {
   const [h, s, l] = hexToHsl(hex);
   return {
-    700: hslToHex(h, s, clamp(l - 10, 8, 45)),
-    500: hslToHex(h, s, clamp(l + 8, 20, 62)),
-    50: hslToHex(h, Math.min(s, 55), 95),
+    700: hslToHex(h, s, clamp(l - 10, 8, 42)),
+    500: hslToHex(h, s, clamp(l + 6, 20, 58)),
+    50: hslToHex(h, Math.min(s, 50), 95),
   };
 }
 
