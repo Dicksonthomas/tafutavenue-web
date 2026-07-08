@@ -41,11 +41,12 @@ export default function BottomNav({
             href={item.href}
             title={item.label}
             aria-label={item.label}
-            className={`flex flex-1 items-center justify-center py-3 ${
+            className={`flex flex-1 flex-col items-center justify-center gap-0.5 py-2 ${
               active ? "text-accent-600" : "text-slate-400"
             }`}
           >
             <Icon size={20} strokeWidth={active ? 2.4 : 2} />
+            <span className="max-w-full truncate px-0.5 text-[10px] leading-none font-medium">{item.label}</span>
           </Link>
         );
       })}
@@ -55,11 +56,12 @@ export default function BottomNav({
           onClick={onMoreClick}
           title="More"
           aria-label="More"
-          className={`flex flex-1 items-center justify-center py-3 ${
+          className={`flex flex-1 flex-col items-center justify-center gap-0.5 py-2 ${
             isOnHiddenItem ? "text-accent-600" : "text-slate-400"
           }`}
         >
           <MoreHorizontal size={20} strokeWidth={isOnHiddenItem ? 2.4 : 2} />
+          <span className="max-w-full truncate px-0.5 text-[10px] leading-none font-medium">More</span>
         </button>
       )}
     </nav>
