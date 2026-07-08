@@ -8,7 +8,7 @@ import { useSettings, getReadableTextColor, DEFAULT_LOGIN_BACKGROUND_COLOR } fro
 
 export default function LoginPage() {
   const { login } = useAuth();
-  const { logo_url, app_name, support_phone, footer_text, footer_link, login_background_color } = useSettings();
+  const { logo_url, app_name, support_phone, footer_text, footer_link, login_background_color, loading: settingsLoading } = useSettings();
   const loginBg = login_background_color || DEFAULT_LOGIN_BACKGROUND_COLOR;
   const loginText = getReadableTextColor(loginBg);
   const [email, setEmail] = useState("");
@@ -45,6 +45,13 @@ export default function LoginPage() {
     } finally {
       setSubmitting(false);
     }
+  }
+
+  if (settingsLoading) {
+    // Wait for the logo/app name/background color to arrive before painting
+    // anything branded, instead of flashing the fallback icon/text first and
+    // then swapping to the real ones once /settings resolves.
+    return <div className="min-h-screen bg-slate-50" />;
   }
 
   return (

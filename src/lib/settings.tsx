@@ -20,6 +20,11 @@ interface AppSettings {
 }
 
 interface SettingsContextValue extends AppSettings {
+  /** True until the first /settings fetch resolves (success or failure) -
+   * check this before treating a null field (e.g. logo_url) as "genuinely
+   * not set", so the UI can show a neutral placeholder instead of flashing
+   * a fallback that then gets replaced once the real value arrives. */
+  loading: boolean;
   refresh: () => Promise<void>;
 }
 
@@ -33,6 +38,7 @@ const SettingsContext = createContext<SettingsContextValue>({
   footer_link: null,
   login_background_color: null,
   study_unit_hours: null,
+  loading: true,
   refresh: () => Promise.resolve(),
 });
 
@@ -144,19 +150,23 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     login_background_color: null,
     study_unit_hours: null,
   });
+  const [loading, setLoading] = useState(true);
 
   const load = useCallback(() => {
-    return api.get("/settings").then(({ data }) => {
-      setSettings(data);
-      if (data.primary_color) applyColor(data.primary_color);
-    });
+    return api
+      .get("/settings")
+      .then(({ data }) => {
+        setSettings(data);
+        if (data.primary_color) applyColor(data.primary_color);
+      })
+      .finally(() => setLoading(false));
   }, []);
 
   useEffect(() => {
     load();
   }, [load]);
 
-  return <SettingsContext.Provider value={{ ...settings, refresh: load }}>{children}</SettingsContext.Provider>;
+  return <SettingsContext.Provider value={{ ...settings, loading, refresh: load }}>{children}</SettingsContext.Provider>;
 }
 
 export function useSettings() {

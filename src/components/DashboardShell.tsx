@@ -36,12 +36,17 @@ export default function DashboardShell({
 }) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const { logo_url } = useSettings();
+  const { logo_url, loading: settingsLoading } = useSettings();
 
   const sidebarContent = (
     <div className="flex h-full flex-col">
       <div className="flex items-center gap-2 px-5 py-5">
-        {logo_url ? (
+        {settingsLoading ? (
+          // Neutral placeholder while /settings loads, so this never shows
+          // the "no logo" fallback icon first and then swaps to the real
+          // logo once it arrives.
+          <div className="h-9 w-9 rounded-lg bg-white/10" />
+        ) : logo_url ? (
           <img src={logo_url} alt="Logo" className="h-9 w-9 rounded-lg object-contain" />
         ) : (
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent-500 text-white">
