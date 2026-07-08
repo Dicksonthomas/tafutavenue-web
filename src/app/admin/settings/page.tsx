@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { RotateCcw, UploadCloud } from "lucide-react";
+import { DatabaseZap, RotateCcw, UploadCloud } from "lucide-react";
 import { api, apiErrorMessage } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { useSettings, DEFAULT_LOGIN_BACKGROUND_COLOR, WEEK_DAYS, defaultStudyUnitHours, StudyUnitHours } from "@/lib/settings";
@@ -83,6 +83,24 @@ export default function AdminSettingsPage() {
 
   function resetHours() {
     setStudyUnitHours(defaultStudyUnitHours());
+  }
+
+  const [migrateOutput, setMigrateOutput] = useState<string | null>(null);
+  const [migrateError, setMigrateError] = useState<string | null>(null);
+  const [runningMigrate, setRunningMigrate] = useState(false);
+
+  async function runMigrations() {
+    setMigrateError(null);
+    setMigrateOutput(null);
+    setRunningMigrate(true);
+    try {
+      const { data } = await api.post("/admin/system/migrate");
+      setMigrateOutput(data.output || "Done - no pending migrations.");
+    } catch (err) {
+      setMigrateError(apiErrorMessage(err));
+    } finally {
+      setRunningMigrate(false);
+    }
   }
 
   function handleLogoChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -284,6 +302,32 @@ export default function AdminSettingsPage() {
               {savingBranding ? "Saving..." : "Save Branding"}
             </button>
           </form>
+        </Card>
+      )}
+
+      {user?.is_super_admin && (
+        <Card className="p-6">
+          <h2 className="mb-1 text-sm font-semibold text-slate-700">Database Maintenance (Super Admin only)</h2>
+          <p className="mb-4 text-xs text-slate-500">
+            Applies any pending database changes from the latest deployment. Use this if a feature was just
+            updated and you see unexpected server errors right after a new release.
+          </p>
+
+          {migrateError && <div className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{migrateError}</div>}
+          {migrateOutput && (
+            <pre className="mb-4 max-h-64 overflow-auto whitespace-pre-wrap rounded-lg bg-slate-900 px-3 py-2 text-xs text-slate-100">
+              {migrateOutput}
+            </pre>
+          )}
+
+          <button
+            onClick={runMigrations}
+            disabled={runningMigrate}
+            className="flex items-center gap-2 rounded-lg bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50"
+          >
+            <DatabaseZap size={16} />
+            {runningMigrate ? "Running..." : "Run Database Migrations"}
+          </button>
         </Card>
       )}
 
