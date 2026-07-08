@@ -20,7 +20,12 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (typeof window !== "undefined" && error.response?.status === 401) {
+    // "/login" ikitoa 401 (password/email si sahihi), hiyo SIYO session
+    // iliyokwisha - ni sehemu ya kawaida ya majibu ya login form, isisababishe
+    // redirect (ambayo ingefuta ujumbe wa error mara moja kwa page reload).
+    const isLoginRequest = error.config?.url?.includes("/login");
+
+    if (typeof window !== "undefined" && error.response?.status === 401 && !isLoginRequest) {
       localStorage.removeItem("token");
       localStorage.removeItem("user");
       window.location.href = "/login";
