@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import axios from "axios";
 import { api, apiErrorMessage } from "@/lib/api";
 import { BookingPurpose, Semester, Venue } from "@/lib/types";
 import { useSettings } from "@/lib/settings";
@@ -53,6 +54,8 @@ export default function BookingModal({
   const [purpose, setPurpose] = useState<BookingPurpose>("study_unit");
   const [title, setTitle] = useState("");
   const [signature, setSignature] = useState<string | null>(null);
+  const [reason, setReason] = useState("");
+  const [needsReason, setNeedsReason] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -93,10 +96,19 @@ export default function BookingModal({
         purpose,
         title,
         signature,
+        ...(needsReason ? { reason } : {}),
       });
       onSuccess();
     } catch (err) {
-      setError(apiErrorMessage(err));
+      const reasonError = axios.isAxiosError(err) && err.response?.status === 422
+        ? (err.response.data?.errors?.reason?.[0] as string | undefined)
+        : undefined;
+      if (reasonError) {
+        setNeedsReason(true);
+        setError(reasonError);
+      } else {
+        setError(apiErrorMessage(err));
+      }
     } finally {
       setSubmitting(false);
     }
@@ -168,6 +180,22 @@ export default function BookingModal({
             <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="e.g. Data Structures Study Group" className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500" />
           </div>
 
+          {needsReason && (
+            <div>
+              <label className="mb-1 block text-xs font-medium text-slate-600">
+                Reason for booking more than 2 venues today - your campus Admin will review this
+              </label>
+              <textarea
+                required
+                rows={3}
+                value={reason}
+                onChange={(e) => setReason(e.target.value)}
+                placeholder="Explain why you need another venue today..."
+                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500"
+              />
+            </div>
+          )}
+
           <div className="border-t border-slate-100 pt-3">
             <label className="mb-1 block text-xs font-medium text-slate-600">
               Your Signature (Digital Signature) - required to confirm the booking
@@ -189,7 +217,7 @@ export default function BookingModal({
             <button
               type="button"
               onClick={handleSubmit}
-              disabled={submitting || !signature}
+              disabled={submitting || !signature || (needsReason && !reason.trim())}
               className="flex-1 rounded-lg bg-accent-600 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50"
             >
               {submitting ? "Submitting..." : "Confirm Booking"}

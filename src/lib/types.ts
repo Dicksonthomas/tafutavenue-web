@@ -80,6 +80,7 @@ export interface Booking {
   end_time: string;
   purpose: BookingPurpose;
   title: string | null;
+  reason: string | null;
   status: BookingStatus;
   signature: string | null;
   signed_at: string | null;
@@ -88,4 +89,5 @@ export interface Booking {
   venue?: Venue;
   user?: User;
   semester?: Semester;
+  approver?: User | null;
 }

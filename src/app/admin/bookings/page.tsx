@@ -210,6 +210,11 @@ export default function AdminBookingsPage() {
                   <td className="px-4 py-3">
                     <p className="font-medium text-slate-800">{b.venue?.name ?? `Venue #${b.venue_id}`}</p>
                     {b.title && <p className="text-xs text-slate-500">{b.title}</p>}
+                    {b.reason && (
+                      <p className="mt-1 max-w-xs rounded bg-amber-50 px-2 py-1 text-xs text-amber-700">
+                        Beyond daily limit: {b.reason}
+                      </p>
+                    )}
                   </td>
                   <td className="px-4 py-3 text-slate-600">
                     {b.booking_date?.slice(0, 10)}
@@ -221,7 +226,12 @@ export default function AdminBookingsPage() {
                     <p className="text-xs text-slate-400">{b.user?.program} ({b.user?.level})</p>
                   </td>
                   <td className="px-4 py-3"><PurposeBadge purpose={b.purpose} /></td>
-                  <td className="px-4 py-3"><StatusBadge status={b.status} /></td>
+                  <td className="px-4 py-3">
+                    <StatusBadge status={b.status} />
+                    {b.status === "approved" && b.approver && (
+                      <p className="mt-1 text-xs text-slate-400">by {b.approver.name}</p>
+                    )}
+                  </td>
                   <td className="px-4 py-3">
                     <div className="flex flex-col items-end gap-2">
                       <div className="flex justify-end gap-2">

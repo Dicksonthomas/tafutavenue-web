@@ -22,7 +22,15 @@ export default function BottomNav({
   return (
     <nav
       className="fixed inset-x-0 bottom-0 z-30 flex border-t border-slate-200 bg-white md:hidden"
-      style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+      style={{
+        paddingBottom: "env(safe-area-inset-bottom)",
+        // Forces its own compositing layer so it stays pinned to the
+        // viewport instead of visually slipping down during scroll/momentum
+        // scrolling - a known issue on Android WebViews when the page also
+        // has a nested horizontally-scrollable element (e.g. a wide table).
+        transform: "translateZ(0)",
+        willChange: "transform",
+      }}
     >
       {navItems.map((item) => {
         const active = pathname === item.href;

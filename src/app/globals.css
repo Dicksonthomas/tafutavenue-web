@@ -12,6 +12,13 @@
   --font-mono: var(--font-geist-mono);
 }
 
+/* Smoother native momentum scrolling on iOS/Android for wide tables (e.g.
+   the CR/Bookings admin lists), reducing the fixed bottom nav's tendency
+   to visually judder during that nested scroll. */
+.overflow-x-auto {
+  -webkit-overflow-scrolling: touch;
+}
+
 /*
  * Mzumbe University brand colors (taken from mzumbe.ac.tz):
  * dark navy/teal (#002f3a) and green (#3db166).

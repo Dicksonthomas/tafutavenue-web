@@ -82,6 +82,14 @@ export default function MyBookingsPage() {
                       </span>
                     )}
                   </div>
+                  {b.reason && (
+                    <p className="mt-2 rounded-lg bg-amber-50 px-3 py-2 text-xs text-amber-700">
+                      Your reason (beyond daily limit): {b.reason}
+                    </p>
+                  )}
+                  {b.status === "approved" && b.approver && (
+                    <p className="mt-2 text-xs text-slate-400">Approved by {b.approver.name}</p>
+                  )}
                   {b.rejection_reason && (
                     <p className="mt-2 rounded-lg bg-red-50 px-3 py-2 text-xs text-red-700">
                       Rejection reason: {b.rejection_reason}
