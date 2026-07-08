@@ -3,9 +3,9 @@
 import { useEffect } from "react";
 
 /**
- * Inaita `callback` mara moja kila siku inapofika usiku wa manane (00:00) wakati
- * ukurasa umefunguliwa, ili "leo/today" isibaki tarehe ya jana kama mtumiaji
- * ameacha tab wazi ikivuka usiku wa manane bila kupakia upya (refresh).
+ * Calls `callback` once each day when it reaches midnight (00:00) while the
+ * page is open, so "today" doesn't stay stuck on yesterday's date if the
+ * user leaves the tab open across midnight without reloading (refresh).
  */
 export function useMidnightRefresh(callback: () => void) {
   useEffect(() => {

@@ -22,9 +22,9 @@ function maxIntakeYear(): number {
 }
 
 /**
- * Onyesho la awali la email itakayotengenezwa (preview tu - uthibitisho halisi
- * unafanyika server-side). Mfano: "Dickson Musa Thomas" + "14322055/T.25"
- * -> dickson.thomas25@mustudent.ac.tz
+ * Preview of the email that will be generated (preview only - actual
+ * validation happens server-side). Example: "Dickson Musa Thomas" +
+ * "14322055/T.25" -> dickson.thomas25@mustudent.ac.tz
  */
 function previewEmail(name: string, regNo: string): { email: string | null; error: string | null } {
   const match = regNo.trim().match(/\.(\d{2})$/);

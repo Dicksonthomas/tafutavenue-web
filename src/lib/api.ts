@@ -20,9 +20,9 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    // "/login" ikitoa 401 (password/email si sahihi), hiyo SIYO session
-    // iliyokwisha - ni sehemu ya kawaida ya majibu ya login form, isisababishe
-    // redirect (ambayo ingefuta ujumbe wa error mara moja kwa page reload).
+    // If "/login" returns 401 (wrong password/email), that is NOT an expired
+    // session - it's a normal login form response, and should not trigger a
+    // redirect (which would wipe the error message via a page reload).
     const isLoginRequest = error.config?.url?.includes("/login");
 
     if (typeof window !== "undefined" && error.response?.status === 401 && !isLoginRequest) {
@@ -42,13 +42,13 @@ export function apiErrorMessage(error: unknown): string {
     }
     if (data?.message) return data.message;
   }
-  return "Hitilafu isiyotarajiwa imetokea. Jaribu tena.";
+  return "An unexpected error occurred. Please try again.";
 }
 
 /**
- * Kama request ilifanywa na responseType:"blob" (mfano kupakua CSV/PDF), error
- * response yenyewe pia inarudi ikiwa Blob - hii inaisoma kama JSON ili kupata
- * ujumbe halisi wa error badala ya ujumbe wa jumla tu.
+ * If the request was made with responseType:"blob" (e.g. downloading a
+ * CSV/PDF), the error response itself also comes back as a Blob - this reads
+ * it as JSON to get the real error message instead of just a generic one.
  */
 export async function blobErrorMessage(error: unknown): Promise<string> {
   if (axios.isAxiosError(error) && error.response?.data instanceof Blob) {

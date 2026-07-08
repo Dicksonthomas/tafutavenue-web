@@ -52,7 +52,7 @@ export function defaultStudyUnitHours(): StudyUnitHours {
   return Object.fromEntries(WEEK_DAYS.map((day) => [day, { start: "19:00", end: "00:00" }]));
 }
 
-/** Chagua rangi ya maandishi (nyeupe au nyeusi) inayosomeka vizuri juu ya background ya hex uliyopewa. */
+/** Pick a text color (white or black) that reads well against the given hex background. */
 export function getReadableTextColor(hex: string): string {
   const num = parseInt(hex.replace("#", ""), 16);
   const r = (num >> 16) & 0xff;

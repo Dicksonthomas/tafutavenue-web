@@ -1,8 +1,8 @@
 /**
- * Rangi tofauti kwa kila campus, ili ziweze kutofautishwa kwa haraka machoni.
- * Msingi wa rangi: teal/kijani tayari ni "brand" ya Mzumbe kwenye mfumo huu
- * (angalia brand-800 #002f3a na BRAND_DEFAULT_COLOR #3db166 kwenye Settings),
- * na dhahabu (gold/amber) inayoonekana kwenye www.mu.ac.tz kama rangi ya pili.
+ * Distinct colors for each campus, so they can be told apart at a glance.
+ * Color basis: teal/green is already the Mzumbe "brand" in this system
+ * (see brand-800 #002f3a and BRAND_DEFAULT_COLOR #3db166 in Settings), and
+ * gold/amber as seen on www.mu.ac.tz as a secondary color.
  */
 export const CAMPUS_BADGE_CLASSES: Record<string, string> = {
   morogoro_main: "bg-teal-50 text-teal-700 ring-teal-200",

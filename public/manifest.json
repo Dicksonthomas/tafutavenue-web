@@ -1,7 +1,7 @@
 {
   "name": "TafutaVenue - University Venue Booking",
   "short_name": "TafutaVenue",
-  "description": "Mfumo wa kubookinga venue za chuo - Mzumbe University",
+  "description": "University venue booking system - Mzumbe University",
   "start_url": "/login",
   "scope": "/",
   "display": "standalone",

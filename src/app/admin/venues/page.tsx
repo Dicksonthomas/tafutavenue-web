@@ -15,7 +15,7 @@ const STATUSES: VenueStatus[] = ["available", "maintenance", "disabled"];
 const PURPOSES: BookingPurpose[] = ["study_unit", "test", "makeup_class", "meeting", "other"];
 const LEVELS: Level[] = ["Certificate", "Diploma", "Degree", "Masters", "PhD"];
 
-/** Mfano wa link ya timetable kwa kila campus - Admin bado anaweza kuibadilisha. */
+/** Example timetable link for each campus - the Admin can still change it. */
 const CAMPUS_EXAMPLE_URLS: Record<string, string> = {
   morogoro_main: "https://mutimetable.mzumbe.ac.tz/timetables/teaching/semestertwo_2025_2026_all_programmes/",
   dar_es_salaam: "https://dcctimetable.mzumbe.ac.tz/dcctimetables/teaching/drft_25_26/",

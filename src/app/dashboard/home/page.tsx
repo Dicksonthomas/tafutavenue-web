@@ -29,8 +29,8 @@ export default function DashboardHomePage() {
 
   useEffect(load, []);
 
-  // Tarehe ikibadilika (usiku wa manane) wakati ukurasa umefunguliwa, "Upcoming"
-  // isasishwe kulingana na tarehe mpya badala ya kubaki ikitumia ile ya jana.
+  // If the date changes (midnight) while the page is open, "Upcoming"
+  // should refresh against the new date instead of still using yesterday's.
   useMidnightRefresh(load);
 
   if (loading) return <Spinner />;

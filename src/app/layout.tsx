@@ -17,7 +17,7 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
   title: "University Venue Booking System",
-  description: "Mfumo wa kubookinga venue za chuo",
+  description: "University venue booking system",
   manifest: "/manifest.json",
   appleWebApp: {
     capable: true,
@@ -41,7 +41,7 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang="sw"
+      lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-slate-50">

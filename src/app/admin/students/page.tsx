@@ -164,8 +164,8 @@ export default function AdminStudentsPage() {
     }
   }
 
-  // Faculty ikibadilika, Department iliyochaguliwa huenda isiwe sehemu ya
-  // faculty mpya - isafishwe ili isiendelee kuchuja kimakosa.
+  // When Faculty changes, the selected Department might not belong to the
+  // new faculty - clear it so it doesn't keep filtering incorrectly.
   useEffect(() => {
     if (facultyFilter && departmentFilter && !(departmentsByFaculty[facultyFilter] ?? []).includes(departmentFilter)) {
       setDepartmentFilter("");

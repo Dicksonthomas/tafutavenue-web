@@ -57,8 +57,8 @@ export default function DashboardPage() {
     refreshOverview();
   }, []);
 
-  // Ukurasa ukiachwa wazi kuvuka usiku wa manane, "Free Today" isibaki ikionyesha
-  // tarehe/hesabu za jana - isasishwe kiotomatiki mara siku inapobadilika.
+  // If the page is left open across midnight, "Free Today" shouldn't keep
+  // showing yesterday's date/counts - refresh it automatically once the day changes.
   useMidnightRefresh(refreshOverview);
 
   function applyPreset(start: string, end: string) {
