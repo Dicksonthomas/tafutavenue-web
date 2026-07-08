@@ -2,9 +2,9 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { Download, GraduationCap, Pencil, Plus, Search, Trash2, Upload, X } from "lucide-react";
+import { Download, GraduationCap, Pencil, Plus, Printer, Search, Trash2, Upload, X } from "lucide-react";
 import Pagination from "@/components/Pagination";
-import { api, apiErrorMessage } from "@/lib/api";
+import { api, apiErrorMessage, blobErrorMessage } from "@/lib/api";
 import { Level, User } from "@/lib/types";
 import { Card, EmptyState, PageHeader, Spinner } from "@/components/ui";
 import { useDebouncedValue } from "@/lib/useDebounce";
@@ -95,6 +95,7 @@ export default function AdminStudentsPage() {
   const [importResult, setImportResult] = useState<ImportResult | null>(null);
   const [importing, setImporting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [printing, setPrinting] = useState(false);
 
   const debouncedQ = useDebouncedValue(q, 350);
 
@@ -138,6 +139,30 @@ export default function AdminStudentsPage() {
     load(debouncedQ, 1, perPage);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debouncedQ, campusFilter, facultyFilter, departmentFilter, programFilter, levelFilter, yearFilter, sexFilter]);
+
+  async function printList() {
+    setError(null);
+    setPrinting(true);
+    try {
+      const res = await api.get("/admin/users/export-pdf", {
+        params: {
+          ...(debouncedQ ? { q: debouncedQ } : {}),
+          ...Object.fromEntries(Object.entries(filters).filter(([, v]) => v)),
+        },
+        responseType: "blob",
+      });
+      const url = window.URL.createObjectURL(new Blob([res.data], { type: "application/pdf" }));
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "cr_list.pdf";
+      link.click();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      setError(await blobErrorMessage(err));
+    } finally {
+      setPrinting(false);
+    }
+  }
 
   // Faculty ikibadilika, Department iliyochaguliwa huenda isiwe sehemu ya
   // faculty mpya - isafishwe ili isiendelee kuchuja kimakosa.
@@ -223,6 +248,9 @@ export default function AdminStudentsPage() {
               <Upload size={16} /> {importing ? "Importing..." : "Import CSV"}
             </button>
             <input ref={fileInputRef} type="file" accept=".csv,.txt" onChange={handleImport} className="hidden" />
+            <button onClick={printList} disabled={printing} className="flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-50">
+              <Printer size={16} /> {printing ? "Preparing..." : "Print List"}
+            </button>
             <button onClick={() => setShowForm((v) => !v)} className="flex items-center gap-2 rounded-lg bg-accent-600 px-3 py-2 text-sm font-medium text-white hover:bg-accent-700">
               {showForm ? <X size={16} /> : <Plus size={16} />}
               {showForm ? "Close" : "Add CR"}
