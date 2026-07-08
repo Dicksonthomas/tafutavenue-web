@@ -110,7 +110,13 @@ export default function DashboardShell({
                 <Icon size={18} strokeWidth={active ? 2.4 : 2} />
                 {!isCollapsed && item.label}
                 {isCollapsed && (
-                  <span className="pointer-events-none absolute left-full top-1/2 z-50 ml-2 -translate-y-1/2 whitespace-nowrap rounded-md bg-slate-900 px-2 py-1 text-xs font-medium text-white opacity-0 shadow-lg transition-opacity duration-150 group-hover:opacity-100">
+                  <span
+                    className="pointer-events-none absolute left-full top-1/2 z-50 ml-3 -translate-y-1/2 translate-x-1 whitespace-nowrap rounded-lg bg-slate-900 px-3 py-1.5 text-sm font-medium text-white opacity-0 shadow-lg ring-1 ring-black/5 transition-all duration-150 group-hover:translate-x-0 group-hover:opacity-100"
+                  >
+                    <span
+                      className="absolute right-full top-1/2 -translate-y-1/2 border-[5px] border-transparent border-r-slate-900"
+                      aria-hidden="true"
+                    />
                     {item.label}
                   </span>
                 )}
