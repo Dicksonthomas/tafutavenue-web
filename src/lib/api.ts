@@ -44,3 +44,21 @@ export function apiErrorMessage(error: unknown): string {
   }
   return "Hitilafu isiyotarajiwa imetokea. Jaribu tena.";
 }
+
+/**
+ * Kama request ilifanywa na responseType:"blob" (mfano kupakua CSV/PDF), error
+ * response yenyewe pia inarudi ikiwa Blob - hii inaisoma kama JSON ili kupata
+ * ujumbe halisi wa error badala ya ujumbe wa jumla tu.
+ */
+export async function blobErrorMessage(error: unknown): Promise<string> {
+  if (axios.isAxiosError(error) && error.response?.data instanceof Blob) {
+    try {
+      const text = await error.response.data.text();
+      const data = JSON.parse(text) as { message?: string };
+      if (data?.message) return data.message;
+    } catch {
+      // ignore - falls through to generic message below
+    }
+  }
+  return apiErrorMessage(error);
+}

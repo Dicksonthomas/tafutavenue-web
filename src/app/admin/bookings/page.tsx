@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { Check, X, ClipboardCheck, Download, Trash2 } from "lucide-react";
-import { api, apiErrorMessage } from "@/lib/api";
+import { api, apiErrorMessage, blobErrorMessage } from "@/lib/api";
 import { Booking } from "@/lib/types";
 import { Card, EmptyState, PageHeader, PurposeBadge, Spinner, StatusBadge } from "@/components/ui";
 import PageSizeSelect from "@/components/PageSizeSelect";
@@ -112,6 +112,7 @@ export default function AdminBookingsPage() {
   }
 
   async function downloadReport() {
+    setError(null);
     setDownloading(true);
     try {
       const res = await api.get("/admin/reports/bookings/export-pdf", {
@@ -124,6 +125,8 @@ export default function AdminBookingsPage() {
       link.download = "bookings_report.pdf";
       link.click();
       window.URL.revokeObjectURL(url);
+    } catch (err) {
+      setError(await blobErrorMessage(err));
     } finally {
       setDownloading(false);
     }
