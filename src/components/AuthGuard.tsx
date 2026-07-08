@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth";
+import { useSettings } from "@/lib/settings";
 import { Role } from "@/lib/types";
 
 export default function AuthGuard({
@@ -13,6 +14,7 @@ export default function AuthGuard({
   allow: Role[];
 }) {
   const { user, loading } = useAuth();
+  const { loading: settingsLoading } = useSettings();
   const router = useRouter();
 
   useEffect(() => {
@@ -26,7 +28,10 @@ export default function AuthGuard({
     }
   }, [user, loading, allow, router]);
 
-  if (loading || !user || !allow.includes(user.role)) {
+  // Also wait for settings (logo/color) so a hard refresh on any dashboard
+  // page never briefly shows the default color/logo before the real one
+  // (or the user's personal color) loads in.
+  if (loading || settingsLoading || !user || !allow.includes(user.role)) {
     return (
       <div className="flex min-h-[50vh] items-center justify-center text-slate-500">
         Loading...

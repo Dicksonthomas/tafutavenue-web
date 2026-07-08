@@ -55,7 +55,7 @@ function previewEmail(name: string, regNo: string): { email: string | null; erro
 export default function RegisterPage() {
   const router = useRouter();
   const { setUser } = useAuth();
-  const { logo_url, refresh: refreshSettings } = useSettings();
+  const { logo_url, loading: settingsLoading, refresh: refreshSettings } = useSettings();
   const [name, setName] = useState("");
   const [regNo, setRegNo] = useState("");
   const [phone, setPhone] = useState("");
@@ -95,7 +95,9 @@ export default function RegisterPage() {
     <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4 py-10">
       <div className="w-full max-w-lg">
         <div className="mb-6 flex flex-col items-center text-center">
-          {logo_url ? (
+          {settingsLoading ? (
+            <div className="mb-3 h-11 w-11 rounded-xl bg-slate-100" />
+          ) : logo_url ? (
             <img src={logo_url} alt="Logo" className="mb-3 h-11 w-11 rounded-xl object-contain" />
           ) : (
             <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-brand-800 text-white">

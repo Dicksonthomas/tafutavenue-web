@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { DatabaseZap, RotateCcw, UploadCloud } from "lucide-react";
 import { api, apiErrorMessage } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
@@ -72,6 +72,24 @@ export default function AdminSettingsPage() {
   const [hoursError, setHoursError] = useState<string | null>(null);
   const [hoursSuccess, setHoursSuccess] = useState<string | null>(null);
   const [savingHours, setSavingHours] = useState(false);
+
+  // Every field above is seeded from `settings` via useState's initial value,
+  // which only runs once - if this page mounts before the /settings fetch
+  // resolves, they'd be stuck on the hardcoded fallbacks forever. Sync them
+  // once real values arrive.
+  useEffect(() => {
+    if (!settings.loading) {
+      setColor(settings.default_color ?? BRAND_DEFAULT_COLOR);
+      setLogoPreview(settings.logo_url);
+      setAppName(settings.app_name ?? "");
+      setSupportPhone(settings.support_phone ?? "");
+      setFooterText(settings.footer_text ?? "");
+      setFooterLink(settings.footer_link ?? "");
+      setLoginBg(settings.login_background_color ?? DEFAULT_LOGIN_BACKGROUND_COLOR);
+      setStudyUnitHours(settings.study_unit_hours ?? defaultStudyUnitHours());
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [settings.loading]);
 
   function updateDayHours(day: string, field: "start" | "end", value: string) {
     setStudyUnitHours((prev) => ({ ...prev, [day]: { ...prev[day], [field]: value } }));

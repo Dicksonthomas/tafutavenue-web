@@ -1,14 +1,24 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { RotateCcw } from "lucide-react";
 import { api, apiErrorMessage } from "@/lib/api";
 import { useSettings } from "@/lib/settings";
 import { Card } from "@/components/ui";
 
 export default function MyColorPreference() {
-  const { primary_color, default_color, refresh } = useSettings();
+  const { primary_color, default_color, loading: settingsLoading, refresh } = useSettings();
   const [color, setColor] = useState(primary_color ?? default_color ?? "#da4e1f");
+
+  // useState's initial value only runs once, but settings.tsx's fetch may
+  // still be in flight at that point - sync once real values arrive instead
+  // of permanently showing the hardcoded fallback color.
+  useEffect(() => {
+    if (!settingsLoading) {
+      setColor(primary_color ?? default_color ?? "#da4e1f");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [settingsLoading]);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
