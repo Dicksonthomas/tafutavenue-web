@@ -1,12 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { CalendarClock, DoorOpen } from "lucide-react";
+import { CalendarClock, DoorOpen, Search } from "lucide-react";
 import { api } from "@/lib/api";
 import { Booking } from "@/lib/types";
 import { Card, EmptyState, PageHeader, PurposeBadge, Spinner, StatusBadge } from "@/components/ui";
 import PageSizeSelect from "@/components/PageSizeSelect";
 import Pagination from "@/components/Pagination";
+import { useDebouncedValue } from "@/lib/useDebounce";
 
 function todayIso() {
   return new Date().toISOString().slice(0, 10);
@@ -28,6 +29,8 @@ export default function AdminBookedVenuesPage() {
   const [perPage, setPerPage] = useState("30");
   const [result, setResult] = useState<PaginatedBookings | null>(null);
   const [loading, setLoading] = useState(true);
+  const [q, setQ] = useState("");
+  const debouncedQ = useDebouncedValue(q, 350);
 
   async function load() {
     setLoading(true);
@@ -35,6 +38,7 @@ export default function AdminBookedVenuesPage() {
       params: {
         ...(view === "day" && date ? { date } : {}),
         ...(status ? { status } : {}),
+        ...(debouncedQ ? { q: debouncedQ } : {}),
         page,
         per_page: perPage,
       },
@@ -46,7 +50,12 @@ export default function AdminBookedVenuesPage() {
   useEffect(() => {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [view, date, status, page, perPage]);
+  }, [view, date, status, debouncedQ, page, perPage]);
+
+  useEffect(() => {
+    setPage(1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedQ]);
 
   const bookings = result?.data ?? [];
 
@@ -69,6 +78,18 @@ export default function AdminBookedVenuesPage() {
 
       <Card className="mb-6 p-5">
         <div className="flex flex-wrap items-end gap-3">
+          <div className="min-w-[220px] flex-1">
+            <label className="mb-1 block text-xs font-medium text-slate-600">Search</label>
+            <div className="relative">
+              <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                placeholder="Venue, CR name, time, purpose, reason... (live search)"
+                className="w-full rounded-lg border border-slate-300 py-2 pl-9 pr-3 text-sm focus:border-accent-500 focus:outline-none"
+              />
+            </div>
+          </div>
           {view === "day" && (
             <div>
               <label className="mb-1 block text-xs font-medium text-slate-600">Date</label>

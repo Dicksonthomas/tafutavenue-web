@@ -1,4 +1,4 @@
-const CACHE_VERSION = "v2";
+const CACHE_VERSION = "v3";
 const SHELL_CACHE = `tafutavenue-shell-${CACHE_VERSION}`;
 const API_CACHE = `tafutavenue-api-${CACHE_VERSION}`;
 const CURRENT_CACHES = [SHELL_CACHE, API_CACHE];
@@ -7,7 +7,7 @@ const CURRENT_CACHES = [SHELL_CACHE, API_CACHE];
 // (from the home-screen icon or a reopened tab) with no network at all.
 // Everything else gets cached as the user visits it (see the fetch handler).
 const SHELL_ROUTES = ["/login", "/dashboard/home", "/dashboard", "/admin"];
-const STATIC_ASSETS = ["/icon-192.png", "/icon-512.png", "/manifest.json"];
+const STATIC_ASSETS = ["/icon-192.png", "/icon-512.png", "/manifest.json", "/offline.html"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(
@@ -33,7 +33,9 @@ self.addEventListener("activate", (event) => {
 
 // Offline strategy:
 // - Page navigations: network-first (fresh when online), falling back to the
-//   cached copy of that page, or the cached login shell as a last resort.
+//   cached copy of that page, or a neutral "you're offline" page as a last
+//   resort - NEVER the login page, since that would look like the user got
+//   logged out when they're really just offline (their session is untouched).
 // - API GET requests (any origin - the backend is a separate host from the
 //   frontend): network-first, falling back to the last cached response so
 //   previously loaded venues/bookings/settings are still viewable offline.
@@ -61,7 +63,16 @@ self.addEventListener("fetch", (event) => {
           }
           return response;
         })
-        .catch(() => caches.match(request))
+        .catch(() =>
+          caches.match(request).then((cached) => {
+            // Resolving with `undefined` here would make the browser treat
+            // this as an invalid response instead of a clean network error -
+            // re-throw so the page's own fetch/axios call fails normally and
+            // can show a proper "you're offline" message instead of a weird one.
+            if (cached) return cached;
+            throw new Error("Offline and not cached");
+          })
+        )
     );
     return;
   }
@@ -74,7 +85,7 @@ self.addEventListener("fetch", (event) => {
           caches.open(SHELL_CACHE).then((cache) => cache.put(request, clone));
           return response;
         })
-        .catch(() => caches.match(request).then((cached) => cached || caches.match("/login")))
+        .catch(() => caches.match(request).then((cached) => cached || caches.match("/offline.html")))
     );
     return;
   }

@@ -2,13 +2,14 @@
 
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { Check, X, ClipboardCheck, Download, Info, Trash2 } from "lucide-react";
+import { Check, X, ClipboardCheck, Download, Info, Search, Trash2 } from "lucide-react";
 import { api, apiErrorMessage, blobErrorMessage } from "@/lib/api";
 import { Booking } from "@/lib/types";
 import { Card, EmptyState, PageHeader, PurposeBadge, Spinner, StatusBadge } from "@/components/ui";
 import PageSizeSelect from "@/components/PageSizeSelect";
 import Pagination from "@/components/Pagination";
 import { confirmAction } from "@/lib/confirm";
+import { useDebouncedValue } from "@/lib/useDebounce";
 
 interface PaginatedBookings {
   data: Booking[];
@@ -33,11 +34,13 @@ export default function AdminBookingsPage() {
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [deletingAll, setDeletingAll] = useState(false);
   const [viewingReason, setViewingReason] = useState<Booking | null>(null);
+  const [q, setQ] = useState("");
+  const debouncedQ = useDebouncedValue(q, 350);
 
   async function load() {
     setLoading(true);
     const { data } = await api.get("/admin/bookings", {
-      params: { ...(status ? { status } : {}), page, per_page: perPage },
+      params: { ...(status ? { status } : {}), ...(debouncedQ ? { q: debouncedQ } : {}), page, per_page: perPage },
     });
     setResult(data);
     setLoading(false);
@@ -46,7 +49,12 @@ export default function AdminBookingsPage() {
   useEffect(() => {
     load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status, page, perPage]);
+  }, [status, debouncedQ, page, perPage]);
+
+  useEffect(() => {
+    setPage(1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedQ]);
 
   useEffect(() => {
     api.get("/admin/reports/summary", { params: { range: "all" } }).then(({ data }) => setCounts(data.by_status ?? {}));
@@ -178,7 +186,19 @@ export default function AdminBookingsPage() {
         ))}
       </div>
 
-      <div className="mb-4 flex justify-end">
+      <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div className="relative flex-1 sm:max-w-sm">
+          <Search size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <input
+            value={q}
+            onChange={(e) => setQ(e.target.value)}
+            placeholder="Search by venue, CR name, time, purpose, reason... (live search)"
+            className="w-full rounded-lg border border-slate-300 py-2 pl-9 pr-3 text-sm focus:border-accent-500 focus:outline-none"
+          />
+          {loading && q && (
+            <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400">...</span>
+          )}
+        </div>
         <PageSizeSelect value={perPage} onChange={(v) => { setPage(1); setPerPage(v); }} />
       </div>
 
