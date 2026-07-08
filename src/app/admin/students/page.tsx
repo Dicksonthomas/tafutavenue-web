@@ -275,6 +275,7 @@ export default function AdminStudentsPage() {
                   <th className="px-4 py-3">Level</th>
                   <th className="px-4 py-3">Sex</th>
                   <th className="px-4 py-3">Status</th>
+                  <th className="px-4 py-3">Registered</th>
                   <th className="px-4 py-3 text-right">Actions</th>
                 </tr>
               </thead>
@@ -311,6 +312,9 @@ export default function AdminStudentsPage() {
                       ) : (
                         <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-500">Suspended</span>
                       )}
+                    </td>
+                    <td className="px-4 py-3 whitespace-nowrap text-xs text-slate-500">
+                      {u.created_at ? new Date(u.created_at).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" }) : "—"}
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex justify-end gap-1">

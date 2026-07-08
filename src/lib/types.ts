@@ -18,6 +18,7 @@ export interface User {
   level?: Level;
   year_of_study?: number | null;
   is_active: boolean;
+  created_at?: string;
 }
 
 export interface Semester {
