@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { Check, X, ClipboardCheck, Download, Trash2 } from "lucide-react";
+import { Check, X, ClipboardCheck, Download, Info, Trash2 } from "lucide-react";
 import { api, apiErrorMessage, blobErrorMessage } from "@/lib/api";
 import { Booking } from "@/lib/types";
 import { Card, EmptyState, PageHeader, PurposeBadge, Spinner, StatusBadge } from "@/components/ui";
@@ -32,6 +32,7 @@ export default function AdminBookingsPage() {
   const [downloading, setDownloading] = useState(false);
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [deletingAll, setDeletingAll] = useState(false);
+  const [viewingReason, setViewingReason] = useState<Booking | null>(null);
 
   async function load() {
     setLoading(true);
@@ -211,9 +212,12 @@ export default function AdminBookingsPage() {
                     <p className="font-medium text-slate-800">{b.venue?.name ?? `Venue #${b.venue_id}`}</p>
                     {b.title && <p className="text-xs text-slate-500">{b.title}</p>}
                     {b.reason && (
-                      <p className="mt-1 max-w-xs rounded bg-amber-50 px-2 py-1 text-xs text-amber-700">
-                        Beyond daily limit: {b.reason}
-                      </p>
+                      <button
+                        onClick={() => setViewingReason(b)}
+                        className="mt-1 flex items-center gap-1 rounded bg-amber-50 px-2 py-1 text-xs font-medium text-amber-700 hover:bg-amber-100"
+                      >
+                        <Info size={12} /> View Reason
+                      </button>
                     )}
                   </td>
                   <td className="px-4 py-3 text-slate-600">
@@ -278,6 +282,39 @@ export default function AdminBookingsPage() {
 
       {result && (
         <Pagination page={result.current_page} lastPage={result.last_page} total={result.total} itemLabel="bookings" onPageChange={setPage} />
+      )}
+
+      {viewingReason && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/40 px-4 py-8">
+          <div className="w-full max-w-md rounded-xl bg-white p-5 shadow-xl">
+            <div className="mb-3 flex items-center justify-between">
+              <h2 className="font-semibold text-slate-900">Reason for Extra Booking</h2>
+              <button onClick={() => setViewingReason(null)} className="text-slate-400 hover:text-slate-600">
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="space-y-1.5 text-sm text-slate-600">
+              <p><span className="font-medium text-slate-700">Venue:</span> {viewingReason.venue?.name ?? `Venue #${viewingReason.venue_id}`}</p>
+              <p><span className="font-medium text-slate-700">Booked by:</span> {viewingReason.user?.name}</p>
+              <p>
+                <span className="font-medium text-slate-700">Date:</span>{" "}
+                {viewingReason.booking_date?.slice(0, 10)} · {viewingReason.start_time}–{viewingReason.end_time}
+              </p>
+            </div>
+
+            <div className="mt-3 whitespace-pre-wrap rounded-lg bg-amber-50 p-3 text-sm text-amber-800 ring-1 ring-inset ring-amber-200">
+              {viewingReason.reason}
+            </div>
+
+            <button
+              onClick={() => setViewingReason(null)}
+              className="mt-4 w-full rounded-lg border border-slate-300 py-2 text-sm text-slate-600 hover:bg-slate-50"
+            >
+              Close
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );
