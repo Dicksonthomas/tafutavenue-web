@@ -1,10 +1,17 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { DatabaseZap, RotateCcw, UploadCloud } from "lucide-react";
 import { api, apiErrorMessage } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
-import { useSettings, DEFAULT_LOGIN_BACKGROUND_COLOR, WEEK_DAYS, defaultStudyUnitHours, StudyUnitHours } from "@/lib/settings";
+import {
+  useSettings,
+  deriveAccentShades,
+  DEFAULT_LOGIN_BACKGROUND_COLOR,
+  WEEK_DAYS,
+  defaultStudyUnitHours,
+  StudyUnitHours,
+} from "@/lib/settings";
 import { Card, PageHeader } from "@/components/ui";
 import MyColorPreference from "@/components/MyColorPreference";
 
@@ -14,6 +21,11 @@ export default function AdminSettingsPage() {
   const { user } = useAuth();
   const settings = useSettings();
   const [color, setColor] = useState(settings.default_color ?? BRAND_DEFAULT_COLOR);
+  const isValidHex = /^#[0-9a-fA-F]{6}$/.test(color);
+  const previewShades = useMemo(
+    () => (isValidHex ? deriveAccentShades(color) : null),
+    [color, isValidHex]
+  );
   const [logoPreview, setLogoPreview] = useState<string | null>(settings.logo_url);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -154,7 +166,61 @@ export default function AdminSettingsPage() {
                 <RotateCcw size={14} /> Restore Mzumbe Default
               </button>
             </div>
+            {!isValidHex && (
+              <p className="mt-1 text-xs text-red-600">Enter a full 6-digit hex color (e.g. #3db166) to see the preview.</p>
+            )}
           </div>
+
+          {previewShades && (
+            <div>
+              <label className="mb-2 block text-sm font-medium text-slate-600">
+                Preview - how this color looks before you save
+              </label>
+              <div className="flex flex-wrap items-start gap-4 rounded-lg border border-slate-200 bg-slate-50 p-4">
+                <div className="flex flex-col items-center gap-1.5">
+                  <div
+                    className="flex h-10 w-36 items-center gap-2 rounded-lg px-3 text-sm font-medium text-white"
+                    style={{ backgroundColor: previewShades[500] }}
+                  >
+                    <span className="h-2 w-2 rounded-full bg-white/70" /> Sidebar (active)
+                  </div>
+                  <span className="text-[11px] text-slate-400">Selected nav item</span>
+                </div>
+
+                <div className="flex flex-col items-center gap-1.5">
+                  <button
+                    type="button"
+                    className="h-10 w-32 rounded-lg text-sm font-medium text-white"
+                    style={{ backgroundColor: color }}
+                  >
+                    Save / Add
+                  </button>
+                  <span className="text-[11px] text-slate-400">Filled button</span>
+                </div>
+
+                <div className="flex flex-col items-center gap-1.5">
+                  <button
+                    type="button"
+                    className="h-10 w-32 rounded-lg text-sm font-medium text-white"
+                    style={{ backgroundColor: previewShades[700] }}
+                  >
+                    Save / Add
+                  </button>
+                  <span className="text-[11px] text-slate-400">Filled button (hover)</span>
+                </div>
+
+                <div className="flex flex-col items-center gap-1.5">
+                  <span
+                    className="flex h-10 items-center rounded-full px-3 text-xs font-medium"
+                    style={{ backgroundColor: previewShades[50], color: previewShades[700] }}
+                  >
+                    Approved
+                  </span>
+                  <span className="text-[11px] text-slate-400">Badge / tag</span>
+                </div>
+              </div>
+            </div>
+          )}
 
           <div>
             <label className="mb-1 block text-sm font-medium text-slate-600">App Logo (optional)</label>
