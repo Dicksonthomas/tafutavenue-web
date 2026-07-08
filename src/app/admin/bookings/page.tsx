@@ -2,12 +2,13 @@
 
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { Check, X, ClipboardCheck, Download } from "lucide-react";
+import { Check, X, ClipboardCheck, Download, Trash2 } from "lucide-react";
 import { api, apiErrorMessage } from "@/lib/api";
 import { Booking } from "@/lib/types";
 import { Card, EmptyState, PageHeader, PurposeBadge, Spinner, StatusBadge } from "@/components/ui";
 import PageSizeSelect from "@/components/PageSizeSelect";
 import Pagination from "@/components/Pagination";
+import { confirmAction } from "@/lib/confirm";
 
 interface PaginatedBookings {
   data: Booking[];
@@ -29,6 +30,8 @@ export default function AdminBookingsPage() {
   const [rejectingId, setRejectingId] = useState<number | null>(null);
   const [reason, setReason] = useState("");
   const [downloading, setDownloading] = useState(false);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [deletingAll, setDeletingAll] = useState(false);
 
   async function load() {
     setLoading(true);
@@ -70,6 +73,44 @@ export default function AdminBookingsPage() {
     }
   }
 
+  async function deleteBooking(b: Booking) {
+    const ok = await confirmAction(
+      `This ${b.status} booking of "${b.venue?.name ?? "this venue"}" by ${b.user?.name ?? "this CR"} will be permanently deleted.`,
+      { title: "Delete this booking?", confirmText: "Yes, delete" }
+    );
+    if (!ok) return;
+    setError(null);
+    setDeletingId(b.id);
+    try {
+      await api.delete(`/admin/bookings/${b.id}`);
+      await load();
+    } catch (err) {
+      setError(apiErrorMessage(err));
+    } finally {
+      setDeletingId(null);
+    }
+  }
+
+  async function deleteAllBookings() {
+    const scopeLabel = status ? `all "${status}" bookings` : "ALL bookings";
+    const ok = await confirmAction(
+      `This will permanently delete ${scopeLabel} matching the current filter. This cannot be undone.`,
+      { title: `Delete ${scopeLabel}?`, confirmText: "Yes, delete them all" }
+    );
+    if (!ok) return;
+    setError(null);
+    setDeletingAll(true);
+    try {
+      await api.delete("/admin/bookings", { params: status ? { status } : {} });
+      setPage(1);
+      await load();
+    } catch (err) {
+      setError(apiErrorMessage(err));
+    } finally {
+      setDeletingAll(false);
+    }
+  }
+
   async function downloadReport() {
     setDownloading(true);
     try {
@@ -106,6 +147,13 @@ export default function AdminBookingsPage() {
             </select>
             <button onClick={downloadReport} disabled={downloading} className="flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-50">
               <Download size={16} /> {downloading ? "Preparing..." : "Download Report"}
+            </button>
+            <button
+              onClick={deleteAllBookings}
+              disabled={deletingAll || bookings.length === 0}
+              className="flex items-center gap-2 rounded-lg border border-red-200 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 disabled:opacity-50"
+            >
+              <Trash2 size={16} /> {deletingAll ? "Deleting..." : "Delete All"}
             </button>
           </div>
         }
@@ -172,34 +220,41 @@ export default function AdminBookingsPage() {
                   <td className="px-4 py-3"><PurposeBadge purpose={b.purpose} /></td>
                   <td className="px-4 py-3"><StatusBadge status={b.status} /></td>
                   <td className="px-4 py-3">
-                    {b.status === "pending" ? (
-                      <div className="flex flex-col items-end gap-2">
-                        <div className="flex justify-end gap-2">
-                          <button onClick={() => approve(b.id)} className="flex items-center gap-1 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-emerald-700">
-                            <Check size={14} /> Approve
-                          </button>
-                          <button onClick={() => setRejectingId(rejectingId === b.id ? null : b.id)} className="flex items-center gap-1 rounded-lg bg-red-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-red-700">
-                            <X size={14} /> Reject
+                    <div className="flex flex-col items-end gap-2">
+                      <div className="flex justify-end gap-2">
+                        {b.status === "pending" && (
+                          <>
+                            <button onClick={() => approve(b.id)} className="flex items-center gap-1 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-emerald-700">
+                              <Check size={14} /> Approve
+                            </button>
+                            <button onClick={() => setRejectingId(rejectingId === b.id ? null : b.id)} className="flex items-center gap-1 rounded-lg bg-red-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-red-700">
+                              <X size={14} /> Reject
+                            </button>
+                          </>
+                        )}
+                        <button
+                          onClick={() => deleteBooking(b)}
+                          disabled={deletingId === b.id}
+                          className="flex items-center gap-1 rounded-lg border border-red-200 px-2 py-1.5 text-xs text-red-600 hover:bg-red-50 disabled:opacity-50"
+                        >
+                          <Trash2 size={12} /> Delete
+                        </button>
+                      </div>
+                      {rejectingId === b.id && (
+                        <div className="flex w-56 gap-2">
+                          <input
+                            autoFocus
+                            placeholder="Reason for rejection..."
+                            value={reason}
+                            onChange={(e) => setReason(e.target.value)}
+                            className="flex-1 rounded-lg border border-slate-300 px-2 py-1.5 text-xs focus:border-accent-500 focus:outline-none"
+                          />
+                          <button onClick={() => reject(b.id)} disabled={!reason} className="rounded-lg bg-red-600 px-2 py-1.5 text-xs font-medium text-white hover:bg-red-700 disabled:opacity-50">
+                            OK
                           </button>
                         </div>
-                        {rejectingId === b.id && (
-                          <div className="flex w-56 gap-2">
-                            <input
-                              autoFocus
-                              placeholder="Reason for rejection..."
-                              value={reason}
-                              onChange={(e) => setReason(e.target.value)}
-                              className="flex-1 rounded-lg border border-slate-300 px-2 py-1.5 text-xs focus:border-accent-500 focus:outline-none"
-                            />
-                            <button onClick={() => reject(b.id)} disabled={!reason} className="rounded-lg bg-red-600 px-2 py-1.5 text-xs font-medium text-white hover:bg-red-700 disabled:opacity-50">
-                              OK
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    ) : (
-                      <span className="text-xs text-slate-400">—</span>
-                    )}
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}

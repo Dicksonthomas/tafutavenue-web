@@ -65,7 +65,21 @@ interface PaginatedUsers {
 }
 
 export default function AdminStudentsPage() {
-  const { campuses } = useReferenceData();
+  const [campusFilter, setCampusFilter] = useState("");
+  const [facultyFilter, setFacultyFilter] = useState("");
+  const [departmentFilter, setDepartmentFilter] = useState("");
+  const [programFilter, setProgramFilter] = useState("");
+  const [levelFilter, setLevelFilter] = useState("");
+  const [yearFilter, setYearFilter] = useState("");
+  const [sexFilter, setSexFilter] = useState("");
+
+  const { campuses, faculties, departmentsByFaculty, programs, levelYears } = useReferenceData(campusFilter || undefined);
+  const departmentOptions = facultyFilter
+    ? (departmentsByFaculty[facultyFilter] ?? [])
+    : Array.from(new Set(Object.values(departmentsByFaculty).flat())).sort();
+  const maxYearOption = Object.values(levelYears).length > 0 ? Math.max(...Object.values(levelYears)) : 4;
+  const yearOptions = Array.from({ length: maxYearOption }, (_, i) => i + 1);
+
   const [result, setResult] = useState<PaginatedUsers | null>(null);
   const [page, setPage] = useState(1);
   const [perPage, setPerPage] = useState("20");
@@ -81,9 +95,37 @@ export default function AdminStudentsPage() {
 
   const debouncedQ = useDebouncedValue(q, 350);
 
+  const filters = {
+    campus: campusFilter,
+    faculty: facultyFilter,
+    department: departmentFilter,
+    program: programFilter,
+    level: levelFilter,
+    year_of_study: yearFilter,
+    sex: sexFilter,
+  };
+  const hasActiveFilters = Object.values(filters).some(Boolean);
+
+  function clearFilters() {
+    setCampusFilter("");
+    setFacultyFilter("");
+    setDepartmentFilter("");
+    setProgramFilter("");
+    setLevelFilter("");
+    setYearFilter("");
+    setSexFilter("");
+  }
+
   async function load(query = debouncedQ, pageNum = page, perPageVal = perPage) {
     setLoading(true);
-    const { data } = await api.get("/admin/users", { params: { ...(query ? { q: query } : {}), page: pageNum, per_page: perPageVal } });
+    const { data } = await api.get("/admin/users", {
+      params: {
+        ...(query ? { q: query } : {}),
+        ...Object.fromEntries(Object.entries(filters).filter(([, v]) => v)),
+        page: pageNum,
+        per_page: perPageVal,
+      },
+    });
     setResult(data);
     setLoading(false);
   }
@@ -92,7 +134,16 @@ export default function AdminStudentsPage() {
     setPage(1);
     load(debouncedQ, 1, perPage);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [debouncedQ]);
+  }, [debouncedQ, campusFilter, facultyFilter, departmentFilter, programFilter, levelFilter, yearFilter, sexFilter]);
+
+  // Faculty ikibadilika, Department iliyochaguliwa huenda isiwe sehemu ya
+  // faculty mpya - isafishwe ili isiendelee kuchuja kimakosa.
+  useEffect(() => {
+    if (facultyFilter && departmentFilter && !(departmentsByFaculty[facultyFilter] ?? []).includes(departmentFilter)) {
+      setDepartmentFilter("");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [facultyFilter]);
 
   useEffect(() => {
     load(debouncedQ, page);
@@ -254,6 +305,43 @@ export default function AdminStudentsPage() {
           )}
         </div>
         <PageSizeSelect value={perPage} onChange={setPerPage} />
+      </div>
+
+      <div className="mb-4 flex flex-wrap items-center gap-2">
+        <select value={campusFilter} onChange={(e) => setCampusFilter(e.target.value)} className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none">
+          <option value="">All Campuses</option>
+          {campuses.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
+        </select>
+        <select value={facultyFilter} onChange={(e) => setFacultyFilter(e.target.value)} className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none">
+          <option value="">All Faculties</option>
+          {faculties.map((f) => <option key={f.value} value={f.value}>{f.label}</option>)}
+        </select>
+        <select value={departmentFilter} onChange={(e) => setDepartmentFilter(e.target.value)} className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none">
+          <option value="">All Departments</option>
+          {departmentOptions.map((d) => <option key={d} value={d}>{d}</option>)}
+        </select>
+        <select value={programFilter} onChange={(e) => setProgramFilter(e.target.value)} className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none">
+          <option value="">All Programs</option>
+          {programs.map((p) => <option key={p} value={p}>{p}</option>)}
+        </select>
+        <select value={levelFilter} onChange={(e) => setLevelFilter(e.target.value)} className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none">
+          <option value="">All Levels</option>
+          {Object.keys(levelYears).map((l) => <option key={l} value={l}>{l}</option>)}
+        </select>
+        <select value={yearFilter} onChange={(e) => setYearFilter(e.target.value)} className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none">
+          <option value="">All Years</option>
+          {yearOptions.map((y) => <option key={y} value={y}>Year {y}</option>)}
+        </select>
+        <select value={sexFilter} onChange={(e) => setSexFilter(e.target.value)} className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none">
+          <option value="">All Sexes</option>
+          <option value="male">Male</option>
+          <option value="female">Female</option>
+        </select>
+        {hasActiveFilters && (
+          <button onClick={clearFilters} className="flex items-center gap-1 rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50">
+            <X size={14} /> Clear Filters
+          </button>
+        )}
       </div>
 
       {loading ? (
