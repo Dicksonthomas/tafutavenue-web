@@ -22,7 +22,7 @@ export default function AuthGuard({
       return;
     }
     if (!allow.includes(user.role)) {
-      router.replace(user.role === "admin" ? "/admin" : "/dashboard");
+      router.replace(user.role === "admin" ? "/admin" : "/dashboard/home");
     }
   }, [user, loading, allow, router]);
 

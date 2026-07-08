@@ -13,7 +13,7 @@ export default function Home() {
     if (!user) {
       router.replace("/login");
     } else {
-      router.replace(user.role === "admin" ? "/admin" : "/dashboard");
+      router.replace(user.role === "admin" ? "/admin" : "/dashboard/home");
     }
   }, [user, loading, router]);
 

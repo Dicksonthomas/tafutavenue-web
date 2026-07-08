@@ -8,6 +8,7 @@ import { Card, EmptyState, PageHeader, PurposeBadge, Spinner, StatusBadge } from
 import BookingModal from "@/components/BookingModal";
 import { useAuth } from "@/lib/auth";
 import { useReferenceData } from "@/lib/referenceData";
+import { useMidnightRefresh } from "@/lib/useMidnightRefresh";
 
 function to12h(time: string): string {
   const [hStr, m] = time.split(":");
@@ -55,6 +56,10 @@ export default function DashboardPage() {
     });
     refreshOverview();
   }, []);
+
+  // Ukurasa ukiachwa wazi kuvuka usiku wa manane, "Free Today" isibaki ikionyesha
+  // tarehe/hesabu za jana - isasishwe kiotomatiki mara siku inapobadilika.
+  useMidnightRefresh(refreshOverview);
 
   function applyPreset(start: string, end: string) {
     setStartTime(start);

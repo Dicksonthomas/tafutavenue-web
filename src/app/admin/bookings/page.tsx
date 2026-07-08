@@ -73,14 +73,14 @@ export default function AdminBookingsPage() {
   async function downloadReport() {
     setDownloading(true);
     try {
-      const res = await api.get("/admin/reports/bookings/export", {
+      const res = await api.get("/admin/reports/bookings/export-pdf", {
         params: status ? { status } : {},
         responseType: "blob",
       });
-      const url = window.URL.createObjectURL(new Blob([res.data]));
+      const url = window.URL.createObjectURL(new Blob([res.data], { type: "application/pdf" }));
       const link = document.createElement("a");
       link.href = url;
-      link.download = "bookings_report.csv";
+      link.download = "bookings_report.pdf";
       link.click();
       window.URL.revokeObjectURL(url);
     } finally {

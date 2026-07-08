@@ -5,6 +5,7 @@ import { CalendarClock, CheckCircle2, ClipboardList } from "lucide-react";
 import { api } from "@/lib/api";
 import { Booking } from "@/lib/types";
 import { Card, EmptyState, PageHeader, PurposeBadge, Spinner, StatusBadge } from "@/components/ui";
+import { useMidnightRefresh } from "@/lib/useMidnightRefresh";
 
 function todayIso() {
   return new Date().toISOString().slice(0, 10);
@@ -16,7 +17,7 @@ export default function DashboardHomePage() {
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
+  function load() {
     api.get("/bookings").then(({ data }) => {
       const allBookings: Booking[] = data.data ?? data;
       setBookings(allBookings.slice(0, 5));
@@ -24,7 +25,13 @@ export default function DashboardHomePage() {
       setTotal(data.total ?? allBookings.length);
       setLoading(false);
     });
-  }, []);
+  }
+
+  useEffect(load, []);
+
+  // Tarehe ikibadilika (usiku wa manane) wakati ukurasa umefunguliwa, "Upcoming"
+  // isasishwe kulingana na tarehe mpya badala ya kubaki ikitumia ile ya jana.
+  useMidnightRefresh(load);
 
   if (loading) return <Spinner />;
 

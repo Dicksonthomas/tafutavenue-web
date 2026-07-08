@@ -1,7 +1,7 @@
 "use client";
 
-import { useState } from "react";
-import { Building2 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Building2, X } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { apiErrorMessage } from "@/lib/api";
 import { useSettings, getReadableTextColor, DEFAULT_LOGIN_BACKGROUND_COLOR } from "@/lib/settings";
@@ -15,15 +15,33 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const errorTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (errorTimerRef.current) clearTimeout(errorTimerRef.current);
+    };
+  }, []);
+
+  function showError(message: string) {
+    if (errorTimerRef.current) clearTimeout(errorTimerRef.current);
+    setError(message);
+    errorTimerRef.current = setTimeout(() => setError(null), 60000);
+  }
+
+  function dismissError() {
+    if (errorTimerRef.current) clearTimeout(errorTimerRef.current);
+    setError(null);
+  }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    setError(null);
+    dismissError();
     setSubmitting(true);
     try {
       await login(email, password);
     } catch (err) {
-      setError(apiErrorMessage(err));
+      showError(apiErrorMessage(err));
     } finally {
       setSubmitting(false);
     }
@@ -47,7 +65,12 @@ export default function LoginPage() {
           </div>
 
           {error && (
-            <div className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 ring-1 ring-inset ring-red-200">{error}</div>
+            <div className="mb-4 flex items-start justify-between gap-2 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 ring-1 ring-inset ring-red-200">
+              <span>{error}</span>
+              <button type="button" onClick={dismissError} className="shrink-0 text-red-400 hover:text-red-600">
+                <X size={14} />
+              </button>
+            </div>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
