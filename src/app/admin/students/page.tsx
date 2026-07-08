@@ -569,6 +569,7 @@ function EditStudentModal({
 }) {
   const { campuses } = useReferenceData();
   const [name, setName] = useState(user.name);
+  const [regNo, setRegNo] = useState(user.reg_no ?? "");
   const [phone, setPhone] = useState(user.phone ?? "");
   const [password, setPassword] = useState("");
   const [campus, setCampus] = useState(user.campus ?? "");
@@ -589,7 +590,7 @@ function EditStudentModal({
     setError(null);
     setSubmitting(true);
     try {
-      const payload: Record<string, unknown> = { name, phone, campus, sex, is_active: isActive, ...edu };
+      const payload: Record<string, unknown> = { name, reg_no: regNo || null, phone, campus, sex, is_active: isActive, ...edu };
       if (password) payload.password = password;
       const { data } = await api.put(`/admin/users/${user.id}`, payload);
       onSaved(data.message);
@@ -612,6 +613,7 @@ function EditStudentModal({
 
         <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-3 sm:grid-cols-3">
           <input required placeholder="Full Name" value={name} onChange={(e) => setName(e.target.value)} className="col-span-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none sm:col-span-1" />
+          <input placeholder="Reg No (e.g. 14322055/T.25)" value={regNo} onChange={(e) => setRegNo(e.target.value)} className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none" />
           <input required placeholder="Phone Number" value={phone} onChange={(e) => setPhone(e.target.value)} className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none" />
           <input type="password" placeholder="New Password (optional)" value={password} onChange={(e) => setPassword(e.target.value)} className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none" />
 
@@ -634,7 +636,7 @@ function EditStudentModal({
           </label>
 
           <p className="col-span-full text-xs text-slate-400">
-            If the name is changed, a new email will be generated automatically (if they have a Reg No) and sent to them.
+            If the name or Reg No is changed, a new email will be generated automatically (as long as a Reg No is set) and sent to them.
           </p>
 
           <div className="col-span-full flex gap-2 pt-2">

@@ -20,7 +20,7 @@ interface AppSettings {
 }
 
 interface SettingsContextValue extends AppSettings {
-  refresh: () => void;
+  refresh: () => Promise<void>;
 }
 
 const SettingsContext = createContext<SettingsContextValue>({
@@ -33,7 +33,7 @@ const SettingsContext = createContext<SettingsContextValue>({
   footer_link: null,
   login_background_color: null,
   study_unit_hours: null,
-  refresh: () => {},
+  refresh: () => Promise.resolve(),
 });
 
 function shadeHex(hex: string, percent: number): string {
@@ -84,7 +84,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
   });
 
   const load = useCallback(() => {
-    api.get("/settings").then(({ data }) => {
+    return api.get("/settings").then(({ data }) => {
       setSettings(data);
       if (data.primary_color) applyColor(data.primary_color);
     });

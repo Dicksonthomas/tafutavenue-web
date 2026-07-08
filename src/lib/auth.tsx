@@ -39,7 +39,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { data } = await api.post("/login", { email, password });
     localStorage.setItem("token", data.token);
     setUser(data.user);
-    refreshSettings();
+    // Wait for the user's personal color to load before navigating, so the
+    // dashboard never briefly flashes the system default color first.
+    await refreshSettings();
     router.push(data.user.role === "admin" ? "/admin" : "/dashboard/home");
   }
 
