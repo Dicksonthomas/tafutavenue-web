@@ -36,6 +36,7 @@ export default function AdminBookingsPage() {
   const [viewingReason, setViewingReason] = useState<Booking | null>(null);
   const [q, setQ] = useState("");
   const debouncedQ = useDebouncedValue(q, 350);
+  const [reportDate, setReportDate] = useState("");
 
   async function load() {
     setLoading(true);
@@ -125,13 +126,13 @@ export default function AdminBookingsPage() {
     setDownloading(true);
     try {
       const res = await api.get("/admin/reports/bookings/export-pdf", {
-        params: status ? { status } : {},
+        params: { ...(status ? { status } : {}), ...(reportDate ? { date: reportDate } : {}) },
         responseType: "blob",
       });
       const url = window.URL.createObjectURL(new Blob([res.data], { type: "application/pdf" }));
       const link = document.createElement("a");
       link.href = url;
-      link.download = "bookings_report.pdf";
+      link.download = reportDate ? `bookings_report_${reportDate}.pdf` : "bookings_report.pdf";
       link.click();
       window.URL.revokeObjectURL(url);
     } catch (err) {
@@ -157,8 +158,15 @@ export default function AdminBookingsPage() {
               <option value="rejected">Rejected</option>
               <option value="cancelled">Cancelled</option>
             </select>
+            <input
+              type="date"
+              value={reportDate}
+              onChange={(e) => setReportDate(e.target.value)}
+              title="Report date (leave empty for all dates)"
+              className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none"
+            />
             <button onClick={downloadReport} disabled={downloading} className="flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50 disabled:opacity-50">
-              <Download size={16} /> {downloading ? "Preparing..." : "Download Report"}
+              <Download size={16} /> {downloading ? "Preparing..." : reportDate ? `Report for ${reportDate}` : "Download Report"}
             </button>
             <button
               onClick={deleteAllBookings}
