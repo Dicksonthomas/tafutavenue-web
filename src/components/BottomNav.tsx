@@ -2,10 +2,22 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { MoreHorizontal } from "lucide-react";
 import { NavItem } from "./DashboardShell";
 
-export default function BottomNav({ navItems }: { navItems: NavItem[] }) {
+export default function BottomNav({
+  navItems,
+  allNavItems,
+  onMoreClick,
+}: {
+  navItems: NavItem[];
+  allNavItems: NavItem[];
+  onMoreClick: () => void;
+}) {
   const pathname = usePathname();
+  const hasMore = allNavItems.length > navItems.length;
+  const isOnHiddenItem = hasMore && !navItems.some((item) => item.href === pathname)
+    && allNavItems.some((item) => item.href === pathname);
 
   return (
     <nav
@@ -29,6 +41,19 @@ export default function BottomNav({ navItems }: { navItems: NavItem[] }) {
           </Link>
         );
       })}
+
+      {hasMore && (
+        <button
+          onClick={onMoreClick}
+          title="More"
+          aria-label="More"
+          className={`flex flex-1 items-center justify-center py-3 ${
+            isOnHiddenItem ? "text-accent-600" : "text-slate-400"
+          }`}
+        >
+          <MoreHorizontal size={20} strokeWidth={isOnHiddenItem ? 2.4 : 2} />
+        </button>
+      )}
     </nav>
   );
 }

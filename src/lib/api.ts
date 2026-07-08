@@ -41,6 +41,12 @@ export function apiErrorMessage(error: unknown): string {
       return Object.values(data.errors).flat().join(" ");
     }
     if (data?.message) return data.message;
+
+    // No response at all reached the server (as opposed to a 4xx/5xx) -
+    // most commonly means the device has no internet connection right now.
+    if (!error.response && typeof navigator !== "undefined" && !navigator.onLine) {
+      return "You're offline. This action needs an internet connection.";
+    }
   }
   return "An unexpected error occurred. Please try again.";
 }

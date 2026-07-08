@@ -7,6 +7,7 @@ import { LucideIcon, X, Building2 } from "lucide-react";
 import TopBar from "./TopBar";
 import Footer from "./Footer";
 import BottomNav from "./BottomNav";
+import OfflineBanner from "./OfflineBanner";
 import { useSettings } from "@/lib/settings";
 
 export interface NavItem {
@@ -17,12 +18,17 @@ export interface NavItem {
 
 export default function DashboardShell({
   navItems,
+  mobileNavItems,
   roleLabel,
   profileHref,
   changePasswordHref,
   children,
 }: {
   navItems: NavItem[];
+  /** Curated subset (max 4) shown directly in the bottom nav on mobile - the
+   * rest stay reachable via the "More" tab, which opens the same drawer as
+   * the hamburger menu. Falls back to the first 4 of `navItems` if omitted. */
+  mobileNavItems?: NavItem[];
   roleLabel: string;
   profileHref?: string;
   changePasswordHref: string;
@@ -96,10 +102,15 @@ export default function DashboardShell({
           profileHref={profileHref}
           changePasswordHref={changePasswordHref}
         />
+        <OfflineBanner />
 
         <main className="flex-1 px-4 py-6 pb-20 sm:px-6 lg:px-8 md:pb-6">{children}</main>
         <div className="hidden md:block"><Footer /></div>
-        <BottomNav navItems={navItems} />
+        <BottomNav
+          navItems={mobileNavItems ?? navItems.slice(0, 4)}
+          allNavItems={navItems}
+          onMoreClick={() => setMobileOpen(true)}
+        />
       </div>
     </div>
   );
