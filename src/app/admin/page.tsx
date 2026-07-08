@@ -15,6 +15,7 @@ interface Summary {
   total_venues: number;
   venues_by_campus: Record<string, number>;
   total_crs: number;
+  crs_by_campus: Record<string, number>;
   male_crs: number;
   female_crs: number;
 }
@@ -82,6 +83,19 @@ export default function AdminHomePage() {
         <StatCard icon={GraduationCap} label="Total CRs" value={summary.total_crs} href="/admin/students" />
         <StatCard icon={UserRound} label="Male CRs" value={summary.male_crs} color="blue" />
         <StatCard icon={UserRound} label="Female CRs" value={summary.female_crs} color="pink" />
+      </div>
+
+      <h2 className="mb-3 text-sm font-semibold text-slate-700">CRs by Campus</h2>
+      <div className="mb-8 grid grid-cols-2 gap-4 sm:grid-cols-4">
+        {campuses.map((c) => (
+          <StatCard
+            key={c.value}
+            icon={GraduationCap}
+            label={c.label}
+            value={summary.crs_by_campus[c.value] ?? 0}
+            href={`/admin/students?campus=${c.value}`}
+          />
+        ))}
       </div>
 
       <h2 className="mb-3 text-sm font-semibold text-slate-700">Most Booked Venues</h2>

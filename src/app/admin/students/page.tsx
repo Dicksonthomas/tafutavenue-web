@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { Download, GraduationCap, Pencil, Plus, Search, Trash2, Upload, X } from "lucide-react";
 import Pagination from "@/components/Pagination";
 import { api, apiErrorMessage } from "@/lib/api";
@@ -11,6 +12,7 @@ import EducationFields, { EducationValue } from "@/components/EducationFields";
 import { useReferenceData } from "@/lib/referenceData";
 import { confirmAction } from "@/lib/confirm";
 import PageSizeSelect from "@/components/PageSizeSelect";
+import { campusBadgeClasses } from "@/lib/campusColors";
 
 function campusLabel(value: string | undefined, campuses: { value: string; label: string }[]): string {
   if (!value) return "—";
@@ -65,7 +67,8 @@ interface PaginatedUsers {
 }
 
 export default function AdminStudentsPage() {
-  const [campusFilter, setCampusFilter] = useState("");
+  const searchParams = useSearchParams();
+  const [campusFilter, setCampusFilter] = useState(searchParams.get("campus") ?? "");
   const [facultyFilter, setFacultyFilter] = useState("");
   const [departmentFilter, setDepartmentFilter] = useState("");
   const [programFilter, setProgramFilter] = useState("");
@@ -344,6 +347,12 @@ export default function AdminStudentsPage() {
         )}
       </div>
 
+      {!loading && result && (
+        <p className="mb-4 text-sm font-medium text-slate-600">
+          {result.total} CR{result.total === 1 ? "" : "s"} found{hasActiveFilters || q ? " matching your search/filters" : ""}.
+        </p>
+      )}
+
       {loading ? (
         <Spinner />
       ) : users.length === 0 ? (
@@ -382,7 +391,7 @@ export default function AdminStudentsPage() {
                       <p className="text-xs text-slate-400">{u.phone}</p>
                     </td>
                     <td className="px-4 py-3">
-                      <span className="rounded-full bg-brand-50 px-2 py-0.5 text-xs font-medium text-brand-700">
+                      <span className={`rounded-full px-2 py-0.5 text-xs font-medium ring-1 ring-inset ${campusBadgeClasses(u.campus)}`}>
                         {campusLabel(u.campus, campuses)}
                       </span>
                     </td>
