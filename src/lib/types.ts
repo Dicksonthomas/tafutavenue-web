@@ -9,6 +9,7 @@ export interface User {
   email: string;
   role: Role;
   is_super_admin?: boolean;
+  is_main_super_admin?: boolean;
   phone?: string;
   campus?: string;
   sex?: "male" | "female" | null;
