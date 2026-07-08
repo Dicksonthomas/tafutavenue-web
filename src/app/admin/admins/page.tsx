@@ -157,12 +157,14 @@ export default function AdminAdminsPage() {
                             <Pencil size={12} /> Edit
                           </button>
                         )}
-                        <button
-                          onClick={() => removeAdmin(a)}
-                          className="flex items-center gap-1 rounded-lg border border-red-200 px-2 py-1 text-xs text-red-600 hover:bg-red-50"
-                        >
-                          <Trash2 size={12} /> Remove
-                        </button>
+                        {a.id !== user?.id && (
+                          <button
+                            onClick={() => removeAdmin(a)}
+                            className="flex items-center gap-1 rounded-lg border border-red-200 px-2 py-1 text-xs text-red-600 hover:bg-red-50"
+                          >
+                            <Trash2 size={12} /> Remove
+                          </button>
+                        )}
                       </div>
                     )}
                   </td>
