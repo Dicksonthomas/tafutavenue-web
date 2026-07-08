@@ -1,9 +1,9 @@
 "use client";
 
-import { ReactNode, useState } from "react";
+import { ReactNode, useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LucideIcon, X, Building2 } from "lucide-react";
+import { LucideIcon, Menu, X, Building2 } from "lucide-react";
 import TopBar from "./TopBar";
 import Footer from "./Footer";
 import BottomNav from "./BottomNav";
@@ -15,6 +15,8 @@ export interface NavItem {
   label: string;
   icon: LucideIcon;
 }
+
+const SIDEBAR_COLLAPSED_KEY = "sidebar_collapsed";
 
 export default function DashboardShell({
   navItems,
@@ -36,68 +38,102 @@ export default function DashboardShell({
 }) {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [collapsed, setCollapsed] = useState(false);
   const { logo_url, loading: settingsLoading } = useSettings();
 
-  const sidebarContent = (
-    <div className="flex h-full flex-col">
-      <div className="flex items-center gap-2 px-5 py-5">
-        {settingsLoading ? (
-          // Neutral placeholder while /settings loads, so this never shows
-          // the "no logo" fallback icon first and then swaps to the real
-          // logo once it arrives.
-          <div className="h-9 w-9 rounded-lg bg-white/10" />
-        ) : logo_url ? (
-          <img src={logo_url} alt="Logo" className="h-9 w-9 rounded-lg object-contain" />
-        ) : (
-          <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-accent-500 text-white">
-            <Building2 size={18} />
+  // Remember the collapsed/expanded choice per browser, for every user.
+  useEffect(() => {
+    setCollapsed(localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === "1");
+  }, []);
+
+  function toggleCollapsed() {
+    setCollapsed((prev) => {
+      const next = !prev;
+      localStorage.setItem(SIDEBAR_COLLAPSED_KEY, next ? "1" : "0");
+      return next;
+    });
+  }
+
+  function renderSidebar(isCollapsible: boolean) {
+    const isCollapsed = isCollapsible && collapsed;
+
+    return (
+      <div className="flex h-full flex-col">
+        <div className={`flex gap-2 px-5 py-5 ${isCollapsed ? "flex-col items-center px-2" : "items-center"}`}>
+          <div className={`flex items-center gap-2 ${isCollapsed ? "flex-col" : "min-w-0"}`}>
+            {settingsLoading ? (
+              // Neutral placeholder while /settings loads, so this never
+              // shows the "no logo" fallback icon first and then swaps to
+              // the real logo once it arrives.
+              <div className="h-9 w-9 shrink-0 rounded-lg bg-white/10" />
+            ) : logo_url ? (
+              <img src={logo_url} alt="Logo" className="h-9 w-9 shrink-0 rounded-lg object-contain" />
+            ) : (
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent-500 text-white">
+                <Building2 size={18} />
+              </div>
+            )}
+            {!isCollapsed && (
+              <div className="min-w-0">
+                <p className="truncate text-sm font-semibold text-white leading-tight">Venue Booking</p>
+                <p className="truncate text-xs text-brand-200 leading-tight">{roleLabel}</p>
+              </div>
+            )}
           </div>
-        )}
-        <div>
-          <p className="text-sm font-semibold text-white leading-tight">Venue Booking</p>
-          <p className="text-xs text-brand-200 leading-tight">{roleLabel}</p>
-        </div>
-        <button onClick={() => setMobileOpen(false)} className="ml-auto text-brand-200 md:hidden">
-          <X size={20} />
-        </button>
-      </div>
-
-      <nav className="flex-1 space-y-1 px-3 py-2">
-        {navItems.map((item) => {
-          const active = pathname === item.href;
-          const Icon = item.icon;
-          return (
-            <Link
-              key={item.href}
-              href={item.href}
-              onClick={() => setMobileOpen(false)}
-              className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
-                active
-                  ? "bg-accent-500 text-white"
-                  : "text-brand-100 hover:bg-brand-700 hover:text-white"
-              }`}
+          <button onClick={() => setMobileOpen(false)} className="ml-auto text-brand-200 md:hidden">
+            <X size={20} />
+          </button>
+          {isCollapsible && (
+            <button
+              onClick={toggleCollapsed}
+              title={isCollapsed ? "Expand menu" : "Collapse menu"}
+              className={`hidden text-brand-200 hover:text-white md:block ${isCollapsed ? "" : "ml-auto"}`}
             >
-              <Icon size={18} strokeWidth={active ? 2.4 : 2} />
-              {item.label}
-            </Link>
-          );
-        })}
-      </nav>
+              <Menu size={18} />
+            </button>
+          )}
+        </div>
 
-      <p className="px-5 py-4 text-xs text-brand-300">University Venue Booking System</p>
-    </div>
-  );
+        <nav className="flex-1 space-y-1 px-3 py-2">
+          {navItems.map((item) => {
+            const active = pathname === item.href;
+            const Icon = item.icon;
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={() => setMobileOpen(false)}
+                title={isCollapsed ? item.label : undefined}
+                className={`flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-colors ${
+                  isCollapsed ? "justify-center px-0" : ""
+                } ${active ? "bg-accent-500 text-white" : "text-brand-100 hover:bg-brand-700 hover:text-white"}`}
+              >
+                <Icon size={18} strokeWidth={active ? 2.4 : 2} />
+                {!isCollapsed && item.label}
+              </Link>
+            );
+          })}
+        </nav>
+
+        {!isCollapsed && <p className="px-5 py-4 text-xs text-brand-300">University Venue Booking System</p>}
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen bg-slate-50">
       {/* Desktop sidebar */}
-      <aside className="hidden w-64 shrink-0 bg-brand-800 md:block">{sidebarContent}</aside>
+      <aside className={`hidden shrink-0 bg-brand-800 transition-all duration-200 md:block ${collapsed ? "w-16" : "w-64"}`}>
+        {renderSidebar(true)}
+      </aside>
 
-      {/* Mobile drawer */}
+      {/* Mobile drawer - always shows the full (uncollapsed) sidebar, since
+          it's an overlay the user explicitly opened and closes with the X
+          above, independent of the desktop collapse preference. */}
       {mobileOpen && (
         <div className="fixed inset-0 z-40 md:hidden">
           <div className="absolute inset-0 bg-black/40" onClick={() => setMobileOpen(false)} />
-          <aside className="absolute left-0 top-0 h-full w-64 bg-brand-800 shadow-xl">{sidebarContent}</aside>
+          <aside className="absolute left-0 top-0 h-full w-64 bg-brand-800 shadow-xl">{renderSidebar(false)}</aside>
         </div>
       )}
 
