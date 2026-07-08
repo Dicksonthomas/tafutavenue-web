@@ -15,7 +15,7 @@ import {
 import { Card, PageHeader } from "@/components/ui";
 import MyColorPreference from "@/components/MyColorPreference";
 
-const BRAND_DEFAULT_COLOR = "#e8573d";
+const BRAND_DEFAULT_COLOR = "#f05a28";
 
 export default function AdminSettingsPage() {
   const { user } = useAuth();

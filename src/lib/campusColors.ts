@@ -1,8 +1,8 @@
 /**
  * Distinct colors for each campus, so they can be told apart at a glance.
- * Color basis: teal/green is already the Mzumbe "brand" in this system
- * (see brand-800 #002f3a and BRAND_DEFAULT_COLOR #3db166 in Settings), and
- * gold/amber as seen on www.mu.ac.tz as a secondary color.
+ * Kept as its own fixed palette (not derived from the official Deep Blue
+ * #002D62 / Main Orange #F05A28 brand colors in Settings) since campuses
+ * need 4 clearly different hues, not shades of the same one.
  */
 export const CAMPUS_BADGE_CLASSES: Record<string, string> = {
   morogoro_main: "bg-teal-50 text-teal-700 ring-teal-200",

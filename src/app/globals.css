@@ -20,34 +20,36 @@
 }
 
 /*
- * Mzumbe University brand colors: dark navy/teal (#002f3a, unchanged) for
- * the sidebar/shell, and the university's coral-orange "Apply To MU"
- * button color (#e8573d) as the default accent for buttons/active states.
- * These 4 (-50/-500/-600/-700) are also what Settings -> Main System Color
- * overrides live via applyColor()/deriveAccentShades() - kept in sync here
- * so the very first paint (before that JS runs) already matches.
+ * Official Mzumbe University brand colors:
+ * - Deep Blue #002D62 (brand-800) for the sidebar, header, and footer.
+ * - Main Orange #F05A28 (accent-600) for buttons and key indicators.
+ * The other shades in each scale are derived (muted tints/deeper tones)
+ * from those two exact colors. These are also what Settings -> Main
+ * System Color overrides live via applyColor()/deriveAccentShades() for
+ * -50/-500/-600/-700 - kept in sync here so the very first paint (before
+ * that JS runs) already matches.
  */
 @theme {
-  --color-brand-50: #e9eef0;
-  --color-brand-100: #cfdadd;
-  --color-brand-200: #9fb5bb;
-  --color-brand-300: #6f9099;
-  --color-brand-400: #446b77;
-  --color-brand-500: #245562;
-  --color-brand-600: #0f424e;
-  --color-brand-700: #0a3841;
-  --color-brand-800: #002f3a;
-  --color-brand-900: #001f27;
+  --color-brand-50: #eaedf0;
+  --color-brand-100: #d0d8e1;
+  --color-brand-200: #a5b6ca;
+  --color-brand-300: #7291b6;
+  --color-brand-400: #3e6ca3;
+  --color-brand-500: #225087;
+  --color-brand-600: #0d3e77;
+  --color-brand-700: #06346b;
+  --color-brand-800: #002d62;
+  --color-brand-900: #001c3d;
 
-  --color-accent-50: #f9edeb;
-  --color-accent-100: #d1f4dd;
-  --color-accent-200: #a3e9bf;
-  --color-accent-300: #71dc9e;
-  --color-accent-400: #4fc884;
-  --color-accent-500: #ea6952;
-  --color-accent-600: #e8573d;
-  --color-accent-700: #cd3418;
-  --color-accent-800: #205f37;
+  --color-accent-50: #f9efeb;
+  --color-accent-100: #fbd3c6;
+  --color-accent-200: #f8af96;
+  --color-accent-300: #f48a66;
+  --color-accent-400: #f26d40;
+  --color-accent-500: #f2744a;
+  --color-accent-600: #f05a28;
+  --color-accent-700: #d6410f;
+  --color-accent-800: #a6320c;
 }
 
 @media (prefers-color-scheme: dark) {

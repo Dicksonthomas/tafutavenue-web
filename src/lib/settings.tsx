@@ -105,7 +105,7 @@ export function deriveAccentShades(hex: string): { 500: string; 700: string; 50:
   };
 }
 
-export const DEFAULT_LOGIN_BACKGROUND_COLOR = "#002f3a";
+export const DEFAULT_LOGIN_BACKGROUND_COLOR = "#002d62";
 
 export const WEEK_DAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
