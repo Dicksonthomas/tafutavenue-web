@@ -125,7 +125,10 @@ export default function LoginPage() {
         <p className="mt-6 hidden text-sm font-medium text-accent-300 lg:block">Simple • Secure • Efficient</p>
       </div>
 
-      <div className="relative w-full max-w-sm">
+      {/* Shifted right (only once the welcome panel is visible, from `sm` up)
+          so the card doesn't sit dead-center and crowd/overlap the left
+          welcome text - on phones (no margin) it stays perfectly centered. */}
+      <div className="relative w-full max-w-sm sm:ml-16 lg:ml-28 xl:ml-40">
         <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xl">
           <div className="mb-6 flex flex-col items-center text-center">
             {/* Logo size: change h-36 w-36 below (both the <img> and the fallback box) to make it bigger/smaller. Each Tailwind step is 0.25rem (4px), e.g. h-40 = 160px, h-44 = 176px.
