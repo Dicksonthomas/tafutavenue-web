@@ -139,6 +139,10 @@ export default function NotificationsTable() {
               className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none"
             />
           </div>
+          <div>
+            <label className="mb-1 block text-xs font-medium text-slate-600">Show</label>
+            <PageSizeSelect value={perPage} onChange={setPerPage} />
+          </div>
           <button
             onClick={markAllRead}
             disabled={!hasUnread}
@@ -222,10 +226,7 @@ export default function NotificationsTable() {
             </table>
           </Card>
 
-          <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
-            <PageSizeSelect value={perPage} onChange={setPerPage} />
-            {result && <Pagination page={result.current_page} lastPage={result.last_page} total={result.total} itemLabel="notifications" onPageChange={setPage} />}
-          </div>
+          {result && <Pagination page={result.current_page} lastPage={result.last_page} total={result.total} itemLabel="notifications" onPageChange={setPage} />}
         </>
       )}
     </div>
