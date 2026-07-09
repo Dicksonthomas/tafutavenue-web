@@ -14,9 +14,14 @@
 
 /* Smoother native momentum scrolling on iOS/Android for wide tables (e.g.
    the CR/Bookings admin lists), reducing the fixed bottom nav's tendency
-   to visually judder during that nested scroll. */
+   to visually judder during that nested scroll. overscroll-behavior-x
+   stops the horizontal swipe on the table from "leaking" into the page's
+   own vertical scroll/rubber-band, which is what was still causing the
+   top/bottom nav bars to visibly jump on Android (worst on the students
+   page, whose table is the widest at min-w-[1000px]). */
 .overflow-x-auto {
   -webkit-overflow-scrolling: touch;
+  overscroll-behavior-x: contain;
 }
 
 /*
