@@ -61,11 +61,14 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-12" style={{ backgroundColor: loginBg }}>
+    <div className="relative flex min-h-screen items-center justify-center gap-6 px-4 py-12 lg:gap-16" style={{ backgroundColor: loginBg }}>
       {/* Purely decorative - soft glows, a faint building silhouette, and a
           scatter of dots to give the flat blue background some depth
-          without distracting from the form. Never intercepts clicks. */}
-      <div className="pointer-events-none absolute inset-0">
+          without distracting from the form. Never intercepts clicks.
+          overflow-hidden lives HERE (not on the page container above) so a
+          short viewport - e.g. a phone rotated to landscape - can still
+          scroll to reach the whole form instead of having it clipped. */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div
           className="absolute -left-40 -top-40 h-[560px] w-[560px] rounded-full"
           style={{ background: "radial-gradient(circle, rgba(255,255,255,0.16) 0%, rgba(255,255,255,0) 70%)" }}
@@ -81,12 +84,13 @@ export default function LoginPage() {
         <span className="absolute left-[68%] top-[30%] hidden h-1.5 w-1.5 rounded-full bg-white/20 lg:block" />
       </div>
 
-      {/* Welcome/instructions - anchored to the left, vertically centered in
-          line with the form card, independent of the form's own centering
-          so the form stays dead-center on the page regardless of how much
-          text lives here. Hidden on phones, where there isn't room for it
-          alongside the form. */}
-      <div className="absolute left-6 top-1/2 hidden max-w-md -translate-y-1/2 text-left sm:block lg:left-16">
+      {/* Welcome/instructions - a normal flex item sitting next to the card
+          (not absolutely positioned), so flexbox reserves real space for it
+          and it can never overlap the card, no matter the viewport size -
+          on a cramped width (e.g. a landscape phone) it just shrinks/wraps
+          instead of colliding with the card next to it. Hidden on portrait
+          phones, where there isn't room for it at all. */}
+      <div className="hidden min-w-0 max-w-md shrink text-left sm:block sm:max-w-xs lg:max-w-md">
         <p className="text-[22px] font-semibold" style={{ color: loginText, opacity: 0.9 }}>
           Welcome to
         </p>
@@ -125,18 +129,18 @@ export default function LoginPage() {
         <p className="mt-6 hidden text-sm font-medium text-accent-300 lg:block">Simple • Secure • Efficient</p>
       </div>
 
-      {/* Shifted right (only once the welcome panel is visible, from `sm` up)
-          so the card doesn't sit dead-center and crowd/overlap the left
-          welcome text - on phones (no margin) it stays perfectly centered. */}
-      <div className="relative w-full max-w-sm sm:ml-16 lg:ml-28 xl:ml-40">
+      {/* A normal flex item too (never shrinks) - sitting next to the welcome
+          panel above naturally pushes it right of true page-center once
+          that panel is visible (`sm` up), without needing any manual
+          margin/offset that could overlap on a cramped width. */}
+      <div className="relative w-full max-w-sm shrink-0">
         <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xl">
           <div className="mb-6 flex flex-col items-center text-center">
-            {/* Logo size: change h-36 w-36 below (both the <img> and the fallback box) to make it bigger/smaller. Each Tailwind step is 0.25rem (4px), e.g. h-40 = 160px, h-44 = 176px.
-                translate-x-4 nudges just the logo (not the title/subtitle below it) a little to the right of center. */}
+            {/* Logo size: change h-36 w-36 below (both the <img> and the fallback box) to make it bigger/smaller. Each Tailwind step is 0.25rem (4px), e.g. h-40 = 160px, h-44 = 176px. */}
             {logo_url ? (
-              <img src={logo_url} alt="Logo" className="mb-3 h-36 w-36 translate-x-4 rounded-2xl object-contain" />
+              <img src={logo_url} alt="Logo" className="mb-3 h-36 w-36 rounded-2xl object-contain" />
             ) : (
-              <div className="mb-3 flex h-36 w-36 translate-x-4 items-center justify-center rounded-2xl" style={{ backgroundColor: loginBg, color: loginText }}>
+              <div className="mb-3 flex h-36 w-36 items-center justify-center rounded-2xl" style={{ backgroundColor: loginBg, color: loginText }}>
                 <Building2 size={64} />
               </div>
             )}
