@@ -74,11 +74,11 @@ export default function LoginPage() {
           className="absolute -bottom-52 -right-32 h-[520px] w-[520px] rounded-full"
           style={{ background: "radial-gradient(circle, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0) 70%)" }}
         />
-        <Building2 className="absolute -bottom-16 left-1/3 hidden opacity-[0.08] sm:block" style={{ color: loginText }} size={340} strokeWidth={1} />
-        <span className="absolute left-[38%] top-[18%] hidden h-2 w-2 rounded-full bg-white/30 sm:block" />
-        <span className="absolute left-[48%] top-[65%] hidden h-1.5 w-1.5 rounded-full bg-white/20 sm:block" />
-        <span className="absolute left-[30%] top-[75%] hidden h-2.5 w-2.5 rounded-full bg-white/15 sm:block" />
-        <span className="absolute left-[55%] top-[30%] hidden h-1.5 w-1.5 rounded-full bg-white/20 sm:block" />
+        <Building2 className="absolute -bottom-16 right-10 hidden opacity-[0.08] lg:block" style={{ color: loginText }} size={320} strokeWidth={1} />
+        <span className="absolute left-[55%] top-[18%] hidden h-2 w-2 rounded-full bg-white/30 lg:block" />
+        <span className="absolute left-[62%] top-[65%] hidden h-1.5 w-1.5 rounded-full bg-white/20 lg:block" />
+        <span className="absolute left-[50%] top-[75%] hidden h-2.5 w-2.5 rounded-full bg-white/15 lg:block" />
+        <span className="absolute left-[68%] top-[30%] hidden h-1.5 w-1.5 rounded-full bg-white/20 lg:block" />
       </div>
 
       {/* Welcome/instructions - anchored to the left, vertically centered in
@@ -90,20 +90,25 @@ export default function LoginPage() {
         <p className="text-[22px] font-semibold" style={{ color: loginText, opacity: 0.9 }}>
           Welcome to
         </p>
-        <h2 className="mt-1 text-5xl font-extrabold uppercase leading-[1.05] tracking-tight sm:text-6xl lg:text-7xl" style={{ color: loginText }}>
+        <h2 className="mt-1 text-4xl font-extrabold uppercase leading-[1.05] tracking-tight lg:text-6xl xl:text-7xl" style={{ color: loginText }}>
           {app_name || "University Venue Booking"}
         </h2>
 
         <div
-          className="mt-6 h-1 w-[180px] rounded-full bg-accent-500"
+          className="mt-4 h-1 w-[180px] rounded-full bg-accent-500 lg:mt-6"
           style={{ boxShadow: "0 0 16px 2px var(--color-accent-500)" }}
         />
 
-        <p className="mt-6 max-w-md text-lg leading-[1.7]" style={{ color: loginText, opacity: 0.85 }}>
+        <p className="mt-4 max-w-md text-base leading-[1.6] lg:mt-6 lg:text-lg lg:leading-[1.7]" style={{ color: loginText, opacity: 0.85 }}>
           {app_name || "This system"} is the official platform for discovering, reserving and managing university venues. Sign in using your institutional account to continue.
         </p>
 
-        <div className="mt-6 space-y-4">
+        {/* Feature list + tagline only from `lg` up - on a landscape phone
+            (which lands in this `sm`-`lg` range: wide enough to trip the
+            `sm:block` panel visibility above, but still short on height)
+            this extra content would overflow the viewport and get clipped,
+            so only show it once there's guaranteed to be real vertical room. */}
+        <div className="mt-6 hidden space-y-4 lg:block">
           {FEATURES.map((f) => (
             <div key={f.title} className="flex items-start gap-4">
               <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white/10">
@@ -117,7 +122,7 @@ export default function LoginPage() {
           ))}
         </div>
 
-        <p className="mt-6 text-sm font-medium text-accent-300">Simple • Secure • Efficient</p>
+        <p className="mt-6 hidden text-sm font-medium text-accent-300 lg:block">Simple • Secure • Efficient</p>
       </div>
 
       <div className="relative w-full max-w-sm">
