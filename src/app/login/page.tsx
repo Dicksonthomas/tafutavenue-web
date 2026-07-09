@@ -1,10 +1,16 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Building2, X } from "lucide-react";
+import { BarChart3, Building2, CalendarClock, Search, X } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { apiErrorMessage } from "@/lib/api";
 import { useSettings, getReadableTextColor, DEFAULT_LOGIN_BACKGROUND_COLOR } from "@/lib/settings";
+
+const FEATURES = [
+  { icon: Search, title: "Search Venues", description: "Find and view available venues across campus." },
+  { icon: CalendarClock, title: "Make Bookings", description: "Reserve venues quickly and easily for your events." },
+  { icon: BarChart3, title: "Track Bookings", description: "Monitor booking approvals and their status." },
+];
 
 export default function LoginPage() {
   const { login } = useAuth();
@@ -55,22 +61,66 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center px-4 py-12" style={{ backgroundColor: loginBg }}>
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden px-4 py-12" style={{ backgroundColor: loginBg }}>
+      {/* Purely decorative - soft glows, a faint building silhouette, and a
+          scatter of dots to give the flat blue background some depth
+          without distracting from the form. Never intercepts clicks. */}
+      <div className="pointer-events-none absolute inset-0">
+        <div
+          className="absolute -left-40 -top-40 h-[560px] w-[560px] rounded-full"
+          style={{ background: "radial-gradient(circle, rgba(255,255,255,0.16) 0%, rgba(255,255,255,0) 70%)" }}
+        />
+        <div
+          className="absolute -bottom-52 -right-32 h-[520px] w-[520px] rounded-full"
+          style={{ background: "radial-gradient(circle, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0) 70%)" }}
+        />
+        <Building2 className="absolute -bottom-10 left-8 hidden opacity-[0.08] sm:block" style={{ color: loginText }} size={380} strokeWidth={1} />
+        <span className="absolute left-[38%] top-[18%] hidden h-2 w-2 rounded-full bg-white/30 sm:block" />
+        <span className="absolute left-[48%] top-[65%] hidden h-1.5 w-1.5 rounded-full bg-white/20 sm:block" />
+        <span className="absolute left-[30%] top-[75%] hidden h-2.5 w-2.5 rounded-full bg-white/15 sm:block" />
+        <span className="absolute left-[55%] top-[30%] hidden h-1.5 w-1.5 rounded-full bg-white/20 sm:block" />
+      </div>
+
       {/* Welcome/instructions - anchored to the left, vertically centered in
           line with the form card, independent of the form's own centering
           so the form stays dead-center on the page regardless of how much
           text lives here. Hidden on phones, where there isn't room for it
           alongside the form. */}
-      <div className="absolute left-6 top-1/2 hidden max-w-xs -translate-y-1/2 text-left sm:block lg:left-16">
-        <h2 className="text-2xl font-semibold" style={{ color: loginText }}>
-          Welcome to {app_name || "University Venue Booking"}
-        </h2>
-        <p className="mt-2 text-sm" style={{ color: loginText, opacity: 0.85 }}>
-          Sign in with the email and password given to you by your Admin to search venues, make bookings, and track their status.
+      <div className="absolute left-6 top-1/2 hidden max-w-md -translate-y-1/2 text-left sm:block lg:left-16">
+        <p className="text-[22px] font-semibold" style={{ color: loginText, opacity: 0.9 }}>
+          Welcome to
         </p>
+        <h2 className="mt-1 text-5xl font-extrabold uppercase leading-[1.05] tracking-tight sm:text-6xl lg:text-7xl" style={{ color: loginText }}>
+          {app_name || "University Venue Booking"}
+        </h2>
+
+        <div
+          className="mt-6 h-1 w-[180px] rounded-full bg-accent-500"
+          style={{ boxShadow: "0 0 16px 2px var(--color-accent-500)" }}
+        />
+
+        <p className="mt-6 max-w-md text-lg leading-[1.7]" style={{ color: loginText, opacity: 0.85 }}>
+          {app_name || "This system"} is the official platform for discovering, reserving and managing university venues. Sign in using your institutional account to continue.
+        </p>
+
+        <div className="mt-10 space-y-6">
+          {FEATURES.map((f) => (
+            <div key={f.title} className="flex items-start gap-4">
+              <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white/10">
+                <f.icon size={20} style={{ color: loginText }} />
+              </div>
+              <div>
+                <p className="font-bold" style={{ color: loginText }}>{f.title}</p>
+                <p className="mt-0.5 text-sm" style={{ color: loginText, opacity: 0.8 }}>{f.description}</p>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <p className="mt-10 text-sm font-medium text-accent-300">Simple • Secure • Efficient</p>
       </div>
 
-      <div className="w-full max-w-sm">
+      <div className="relative w-full max-w-sm">
         <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xl">
           <div className="mb-6 flex flex-col items-center text-center">
             {/* Logo size: change h-36 w-36 below (both the <img> and the fallback box) to make it bigger/smaller. Each Tailwind step is 0.25rem (4px), e.g. h-40 = 160px, h-44 = 176px. */}
