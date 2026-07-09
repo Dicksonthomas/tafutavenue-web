@@ -1,6 +1,6 @@
 "use client";
 
-import { ChevronUp } from "lucide-react";
+import { ArrowUp } from "lucide-react";
 
 export default function ShowMoreButton({
   onClick,
@@ -29,9 +29,9 @@ export default function ShowMoreButton({
         onClick={backToTop}
         aria-label="Back to Top"
         title="Back to Top"
-        className="absolute right-0 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-slate-300 text-slate-500 hover:bg-slate-50"
+        className="absolute right-0 top-1/2 flex -translate-y-1/2 items-center justify-center rounded-full border border-slate-300 p-3 text-slate-500 hover:bg-slate-50"
       >
-        <ChevronUp size={16} />
+        <ArrowUp size={22} />
       </button>
     </div>
   );
