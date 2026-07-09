@@ -57,6 +57,15 @@ export default function LoginPage() {
   return (
     <div className="flex min-h-screen items-center justify-center px-4 py-12" style={{ backgroundColor: loginBg }}>
       <div className="w-full max-w-sm">
+        <div className="mb-6 hidden text-center sm:block">
+          <h2 className="text-lg font-semibold" style={{ color: loginText }}>
+            Welcome to {app_name || "University Venue Booking"}
+          </h2>
+          <p className="mx-auto mt-1 max-w-xs text-sm" style={{ color: loginText, opacity: 0.85 }}>
+            Sign in with the email and password given to you by your Admin to search venues, make bookings, and track their status.
+          </p>
+        </div>
+
         <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xl">
           <div className="mb-6 flex flex-col items-center text-center">
             {/* Logo size: change h-36 w-36 below (both the <img> and the fallback box) to make it bigger/smaller. Each Tailwind step is 0.25rem (4px), e.g. h-40 = 160px, h-44 = 176px. */}
