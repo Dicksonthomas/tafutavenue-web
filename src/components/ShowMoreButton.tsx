@@ -29,7 +29,7 @@ export default function ShowMoreButton({
         onClick={backToTop}
         aria-label="Back to Top"
         title="Back to Top"
-        className="absolute right-0 top-1/2 flex -translate-y-1/2 items-center justify-center rounded-full border border-slate-300 p-3 text-slate-500 hover:bg-slate-50"
+        className="absolute right-0 top-1/2 flex -translate-y-1/2 items-center justify-center rounded-full bg-accent-600 p-3 text-white shadow-sm hover:bg-accent-700"
       >
         <ArrowUp size={22} />
       </button>
