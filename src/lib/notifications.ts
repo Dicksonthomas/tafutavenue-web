@@ -10,7 +10,6 @@ export const NOTIFICATION_TYPE_LABELS: Record<NotificationType, string> = {
   booking_rejected: "Booking Rejected",
   booking_pending: "Booking Pending",
   announcement: "Announcement",
-  announcement_cr_copy: "Sent to CRs",
 };
 
 /** Where clicking a notification of this type should navigate to, if anywhere. */

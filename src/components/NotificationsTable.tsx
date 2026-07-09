@@ -18,20 +18,21 @@ import Pagination from "@/components/Pagination";
 import PageSizeSelect from "@/components/PageSizeSelect";
 import { useDebouncedValue } from "@/lib/useDebounce";
 
-const TYPE_ICON: Record<NotificationType, typeof Bell> = {
+// Partial + a fallback at the call site (not a full Record) so an
+// unrecognized type value from an older/removed notification type still
+// renders something sane instead of crashing.
+const TYPE_ICON: Partial<Record<NotificationType, typeof Bell>> = {
   booking_approved: CheckCircle2,
   booking_rejected: XCircle,
   booking_pending: Clock,
   announcement: Megaphone,
-  announcement_cr_copy: Megaphone,
 };
 
-const TYPE_COLOR: Record<NotificationType, string> = {
+const TYPE_COLOR: Partial<Record<NotificationType, string>> = {
   booking_approved: "bg-emerald-50 text-emerald-600",
   booking_rejected: "bg-red-50 text-red-600",
   booking_pending: "bg-amber-50 text-amber-600",
   announcement: "bg-brand-50 text-brand-700",
-  announcement_cr_copy: "bg-slate-100 text-slate-500",
 };
 
 export default function NotificationsTable() {
@@ -174,7 +175,7 @@ export default function NotificationsTable() {
               </thead>
               <tbody>
                 {notifications.map((n, idx) => {
-                  const Icon = TYPE_ICON[n.type];
+                  const Icon = TYPE_ICON[n.type] ?? Bell;
                   const isUnread = !n.read_at;
                   const expanded = openId === n.id;
                   return (
@@ -187,7 +188,7 @@ export default function NotificationsTable() {
                           {((result?.current_page ?? 1) - 1) * (result?.per_page ?? 20) + idx + 1}
                         </td>
                         <td className="px-4 py-3">
-                          <span className={`inline-flex h-8 w-8 items-center justify-center rounded-full ${TYPE_COLOR[n.type]}`}>
+                          <span className={`inline-flex h-8 w-8 items-center justify-center rounded-full ${TYPE_COLOR[n.type] ?? "bg-slate-100 text-slate-500"}`}>
                             <Icon size={16} />
                           </span>
                         </td>

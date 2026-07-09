@@ -25,7 +25,7 @@ export default function AdminNotificationsPage() {
     <div className="mx-auto max-w-7xl">
       <PageHeader
         title="Notifications"
-        subtitle="New booking requests, and announcements you've sent to CRs."
+        subtitle="New booking requests, and announcements posted by admins on your campus."
         action={
           <button
             onClick={() => setComposing(true)}
@@ -51,7 +51,7 @@ export default function AdminNotificationsPage() {
             view === "mine" ? "border-accent-600 text-accent-700" : "border-transparent text-slate-500 hover:text-slate-700"
           }`}
         >
-          <Megaphone size={16} /> My Announcements
+          <Megaphone size={16} /> Announcements
         </button>
       </div>
 
@@ -76,6 +76,7 @@ function campusLabel(value: string, campuses: { value: string; label: string }[]
 }
 
 function AnnouncementsManager({ refreshKey }: { refreshKey: number }) {
+  const { user } = useAuth();
   const [result, setResult] = useState<PaginatedAnnouncements | null>(null);
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
@@ -117,7 +118,7 @@ function AnnouncementsManager({ refreshKey }: { refreshKey: number }) {
       {loading ? (
         <Spinner />
       ) : announcements.length === 0 ? (
-        <EmptyState icon={Megaphone} title="No announcements yet" description="Announcements you post to CRs will appear here, and you can edit or delete them any time." />
+        <EmptyState icon={Megaphone} title="No announcements yet" description="Announcements posted by admins on your campus will appear here. You can edit or delete your own any time." />
       ) : (
         <>
           <Card className="overflow-x-auto">
@@ -141,28 +142,33 @@ function AnnouncementsManager({ refreshKey }: { refreshKey: number }) {
                     <td className="px-4 py-3">
                       <p className="font-medium text-slate-800">{a.title}</p>
                       <p className="mt-0.5 max-w-xs truncate text-xs text-slate-500">{a.body}</p>
+                      {a.admin?.name && <p className="mt-0.5 text-xs text-slate-400">by {a.admin.name}</p>}
                     </td>
                     <td className="px-4 py-3 text-xs text-slate-500">{formatRelativeTime(a.created_at)}</td>
                     <td className="px-4 py-3 text-slate-600">{a.notifications_count ?? 0}</td>
                     <td className="px-4 py-3 text-slate-600">{a.read_count ?? 0} / {a.notifications_count ?? 0}</td>
                     <td className="px-4 py-3">
-                      <div className="flex items-center gap-2">
-                        <button
-                          onClick={() => setEditing(a)}
-                          title="Edit"
-                          className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-700"
-                        >
-                          <Pencil size={15} />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(a)}
-                          disabled={deletingId === a.id}
-                          title="Delete"
-                          className="rounded-lg p-1.5 text-red-500 hover:bg-red-50 hover:text-red-700 disabled:opacity-40"
-                        >
-                          <Trash2 size={15} />
-                        </button>
-                      </div>
+                      {a.admin_id === user?.id ? (
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() => setEditing(a)}
+                            title="Edit"
+                            className="rounded-lg p-1.5 text-slate-500 hover:bg-slate-100 hover:text-slate-700"
+                          >
+                            <Pencil size={15} />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(a)}
+                            disabled={deletingId === a.id}
+                            title="Delete"
+                            className="rounded-lg p-1.5 text-red-500 hover:bg-red-50 hover:text-red-700 disabled:opacity-40"
+                          >
+                            <Trash2 size={15} />
+                          </button>
+                        </div>
+                      ) : (
+                        <span className="text-xs text-slate-300">—</span>
+                      )}
                     </td>
                   </tr>
                 ))}
@@ -414,7 +420,6 @@ function NewAnnouncementModal({ onClose, onSent }: { onClose: () => void; onSent
 
                   <p className="mb-2 text-xs text-slate-500">
                     Leave a field blank to reach everyone in that campus. Choose from the list or type your own if it's not listed.
-                    Admins in that campus also get a read-only copy.
                   </p>
 
                   <div className="grid grid-cols-2 gap-2">
