@@ -15,7 +15,7 @@ import {
 import { Card, PageHeader } from "@/components/ui";
 import MyColorPreference from "@/components/MyColorPreference";
 
-const BRAND_DEFAULT_COLOR = "#da4e1f";
+const BRAND_DEFAULT_COLOR = "#FF7F50";
 
 /**
  * "00:00" as an end time means midnight (end of day), not "no duration" -
@@ -215,11 +215,11 @@ export default function AdminSettingsPage() {
                 onClick={() => saveColor(BRAND_DEFAULT_COLOR)}
                 className="flex items-center gap-1 rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50"
               >
-                <RotateCcw size={14} /> Restore Mzumbe Default
+                <RotateCcw size={14} /> Restore Default (Coral Orange)
               </button>
             </div>
             {!isValidHex && (
-              <p className="mt-1 text-xs text-red-600">Enter a full 6-digit hex color (e.g. #3db166) to see the preview.</p>
+              <p className="mt-1 text-xs text-red-600">Enter a full 6-digit hex color (e.g. #FF7F50) to see the preview.</p>
             )}
           </div>
 
@@ -407,7 +407,7 @@ export default function AdminSettingsPage() {
             </div>
 
             <div>
-              <label className="mb-1 block text-sm font-medium text-slate-600">Login Page Background Color (also used for the Sign In button)</label>
+              <label className="mb-1 block text-sm font-medium text-slate-600">Login Page &amp; Sidebar Background Color</label>
               <div className="flex flex-wrap items-center gap-3">
                 <input type="color" value={loginBg} onChange={(e) => setLoginBg(e.target.value)} className="h-10 w-14 cursor-pointer rounded border border-slate-300" />
                 <input value={loginBg} onChange={(e) => setLoginBg(e.target.value)} className="w-32 rounded-lg border border-slate-300 px-3 py-2 text-sm font-mono focus:border-accent-500 focus:outline-none" />
@@ -417,10 +417,12 @@ export default function AdminSettingsPage() {
                   disabled={savingBranding}
                   className="flex items-center gap-1 rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50 disabled:opacity-50"
                 >
-                  <RotateCcw size={14} /> Reset to Default
+                  <RotateCcw size={14} /> Reset to Default (Sky Blue)
                 </button>
               </div>
-              <p className="mt-1 text-xs text-slate-400">Text on the login page automatically switches between white and dark to stay readable on this color.</p>
+              <p className="mt-1 text-xs text-slate-400">
+                Used for the Login page background AND the sidebar for every CR and Admin. Text on the login page automatically switches between white and dark to stay readable on this color.
+              </p>
             </div>
 
             <button disabled={savingBranding} className="rounded-lg bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50">

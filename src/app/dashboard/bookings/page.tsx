@@ -11,8 +11,17 @@ import ShowMoreButton from "@/components/ShowMoreButton";
 import { confirmAction } from "@/lib/confirm";
 
 const EDITABLE_STATUSES = ["pending", "approved"];
+const EDIT_WINDOW_MS = 10 * 60 * 1000;
 
 const SHOW_STEP = 9;
+
+/** Mirrors BookingController::EDIT_WINDOW_MINUTES on the backend, which is
+ * the actual source of truth - this is just so the button disappears on its
+ * own instead of staying clickable and failing with a 422. */
+function isWithinEditWindow(b: Booking): boolean {
+  if (!b.created_at) return false;
+  return Date.now() - new Date(b.created_at).getTime() <= EDIT_WINDOW_MS;
+}
 
 export default function MyBookingsPage() {
   const [bookings, setBookings] = useState<Booking[]>([]);
@@ -24,6 +33,15 @@ export default function MyBookingsPage() {
   const [editingBooking, setEditingBooking] = useState<Booking | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // Forces a re-render every 30s so the Edit button disappears on its own
+  // once a booking's 10-minute edit window passes, without needing a
+  // page refresh.
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setTick((t) => t + 1), 30000);
+    return () => clearInterval(id);
+  }, []);
 
   async function load(withPerPage = perPage) {
     const { data } = await api.get("/bookings", { params: { per_page: withPerPage } });
@@ -126,7 +144,7 @@ export default function MyBookingsPage() {
               </div>
 
               <div className="mt-4 flex gap-2">
-                {EDITABLE_STATUSES.includes(b.status) && (
+                {EDITABLE_STATUSES.includes(b.status) && isWithinEditWindow(b) && (
                   <button onClick={() => setEditingBooking(b)} className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50">
                     Edit
                   </button>

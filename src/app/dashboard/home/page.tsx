@@ -6,10 +6,7 @@ import { api } from "@/lib/api";
 import { Booking } from "@/lib/types";
 import { Card, EmptyState, PageHeader, PurposeBadge, Spinner, StatusBadge } from "@/components/ui";
 import { useMidnightRefresh } from "@/lib/useMidnightRefresh";
-
-function todayIso() {
-  return new Date().toISOString().slice(0, 10);
-}
+import { todayIso } from "@/lib/date";
 
 export default function DashboardHomePage() {
   const [bookings, setBookings] = useState<Booking[]>([]);

@@ -7,12 +7,9 @@ import { Booking, TimetableSlot } from "@/lib/types";
 import { Card, EmptyState, PageHeader, PurposeBadge, Spinner, StatusBadge } from "@/components/ui";
 import ShowMoreButton from "@/components/ShowMoreButton";
 import { useMidnightRefresh } from "@/lib/useMidnightRefresh";
+import { todayIso } from "@/lib/date";
 
 const SHOW_STEP = 9;
-
-function todayIso() {
-  return new Date().toISOString().slice(0, 10);
-}
 
 export default function BookedVenuesPage() {
   const [date, setDate] = useState(todayIso());

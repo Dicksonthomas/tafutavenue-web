@@ -25,39 +25,39 @@
 }
 
 /*
- * Official Mzumbe University brand colors:
- * - Deep Blue #002D62 (brand-800) for the sidebar, header, and footer.
- * - Main Orange, gently muted to #da4e1f (accent-600) for buttons and key
- *   indicators - the raw official #F05A28 read as too glaring/neon when
- *   used as a large button fill, so saturation/lightness are toned down
- *   slightly here while staying in the same hue family.
- * The other shades in each scale are derived (muted tints/deeper tones)
- * from those two base colors. -50/-500/-600/-700 are also what Settings
- * -> Main System Color overrides live via applyColor()/deriveAccentShades()
- * - kept in sync here so the very first paint (before that JS runs)
- * already matches.
+ * System default colors (both changeable by a Super Admin under Settings ->
+ * App Branding, which then overrides these via applyColor()/applyBrandColor()
+ * in lib/settings.tsx - these are just the fallback/first-paint values,
+ * kept in sync with those functions' output for the default inputs below so
+ * the very first paint (before that JS runs) already matches):
+ * - Sky Blue #0284C7 (brand-800) for the sidebar, login page background,
+ *   header avatar, and a few informational badges.
+ * - Coral Orange #FF7F50 (accent-600) for buttons (including Sign In) and
+ *   key indicators/badges.
+ * The rest of each scale is derived (lighter tints / darker tones) from
+ * those two base colors - see deriveAccentShades()/deriveBrandShades().
  */
 @theme {
-  --color-brand-50: #eaedf0;
-  --color-brand-100: #d0d8e1;
-  --color-brand-200: #a5b6ca;
-  --color-brand-300: #7291b6;
+  --color-brand-50: #f2f6f7;
+  --color-brand-100: #f5f8fa;
+  --color-brand-200: #dae7ee;
+  --color-brand-300: #b3d2e2;
   --color-brand-400: #3e6ca3;
   --color-brand-500: #225087;
   --color-brand-600: #0d3e77;
-  --color-brand-700: #06346b;
-  --color-brand-800: #002d62;
+  --color-brand-700: #029fef;
+  --color-brand-800: #0284c7;
   --color-brand-900: #001c3d;
 
   --color-accent-50: #f9efec;
-  --color-accent-100: #f7d1c5;
-  --color-accent-200: #f0ab94;
-  --color-accent-300: #e98463;
-  --color-accent-400: #e3653b;
-  --color-accent-500: #e26136;
-  --color-accent-600: #da4e1f;
-  --color-accent-700: #ae3e19;
-  --color-accent-800: #812e12;
+  --color-accent-100: #fbf6f4;
+  --color-accent-200: #faf2ef;
+  --color-accent-300: #f4ddd5;
+  --color-accent-400: #efbaa7;
+  --color-accent-500: #ff956f;
+  --color-accent-600: #ff7f50;
+  --color-accent-700: #ff5a1d;
+  --color-accent-800: #f34100;
 }
 
 @media (prefers-color-scheme: dark) {

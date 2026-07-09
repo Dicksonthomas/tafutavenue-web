@@ -7,6 +7,7 @@ import { BookingPurpose, Semester, Venue } from "@/lib/types";
 import { useSettings } from "@/lib/settings";
 import SignaturePad from "@/components/SignaturePad";
 import { useMidnightRefresh } from "@/lib/useMidnightRefresh";
+import { todayIso } from "@/lib/date";
 
 const PURPOSES: { value: BookingPurpose; label: string }[] = [
   { value: "study_unit", label: "Study Unit" },
@@ -15,10 +16,6 @@ const PURPOSES: { value: BookingPurpose; label: string }[] = [
   { value: "meeting", label: "Meeting" },
   { value: "other", label: "Other" },
 ];
-
-function todayIso() {
-  return new Date().toISOString().slice(0, 10);
-}
 
 function dayOfWeekFromDate(dateStr: string): string {
   return new Date(`${dateStr}T00:00:00`).toLocaleDateString("en-US", { weekday: "long" });

@@ -6,6 +6,7 @@ import { api, apiErrorMessage } from "@/lib/api";
 import { Semester, TimetableSlot, Booking, Venue } from "@/lib/types";
 import { Card, EmptyState, PageHeader, PurposeBadge, Spinner, StatusBadge } from "@/components/ui";
 import BookingModal from "@/components/BookingModal";
+import BookingSuccessModal from "@/components/BookingSuccessModal";
 import { useAuth } from "@/lib/auth";
 import { useReferenceData } from "@/lib/referenceData";
 import { useSettings } from "@/lib/settings";
@@ -227,7 +228,6 @@ export default function DashboardPage() {
       </Card>
 
       {error && <div className="mb-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700 ring-1 ring-inset ring-red-200">{error}</div>}
-      {successMsg && <div className="mb-4 rounded-lg bg-emerald-50 px-4 py-3 text-sm text-emerald-700 ring-1 ring-inset ring-emerald-200">{successMsg}</div>}
 
       {message && (
         <div
@@ -343,6 +343,8 @@ export default function DashboardPage() {
           }}
         />
       )}
+
+      {successMsg && <BookingSuccessModal message={successMsg} onClose={() => setSuccessMsg(null)} />}
     </div>
   );
 }

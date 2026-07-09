@@ -9,10 +9,7 @@ import PageSizeSelect from "@/components/PageSizeSelect";
 import Pagination from "@/components/Pagination";
 import { useDebouncedValue } from "@/lib/useDebounce";
 import { useMidnightRefresh } from "@/lib/useMidnightRefresh";
-
-function todayIso() {
-  return new Date().toISOString().slice(0, 10);
-}
+import { todayIso } from "@/lib/date";
 
 interface PaginatedBookings {
   data: Booking[];

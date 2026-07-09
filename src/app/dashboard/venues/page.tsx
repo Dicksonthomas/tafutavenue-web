@@ -6,16 +6,14 @@ import { api } from "@/lib/api";
 import { Semester, Venue } from "@/lib/types";
 import { Card, EmptyState, PageHeader, Spinner, VenueStatusBadge } from "@/components/ui";
 import BookingModal from "@/components/BookingModal";
+import BookingSuccessModal from "@/components/BookingSuccessModal";
 import ShowMoreButton from "@/components/ShowMoreButton";
 import { useDebouncedValue } from "@/lib/useDebounce";
 import { useAuth } from "@/lib/auth";
 import { useReferenceData } from "@/lib/referenceData";
+import { todayIso } from "@/lib/date";
 
 const SHOW_STEP = 9;
-
-function todayIso() {
-  return new Date().toISOString().slice(0, 10);
-}
 
 function nowHm() {
   return new Date().toTimeString().slice(0, 5);
@@ -107,8 +105,6 @@ export default function AllVenuesPage() {
         />
       </div>
 
-      {successMsg && <div className="mb-4 rounded-lg bg-emerald-50 px-4 py-3 text-sm text-emerald-700 ring-1 ring-inset ring-emerald-200">{successMsg}</div>}
-
       {freeMode && !loading && (
         <p className="mb-4 text-xs text-slate-500">Showing venues free from now until the end of today. Click a card to book it.</p>
       )}
@@ -186,6 +182,8 @@ export default function AllVenuesPage() {
           }}
         />
       )}
+
+      {successMsg && <BookingSuccessModal message={successMsg} onClose={() => setSuccessMsg(null)} />}
     </div>
   );
 }

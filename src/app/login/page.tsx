@@ -15,12 +15,7 @@ export default function LoginPage() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
-  const [signInHover, setSignInHover] = useState(false);
   const errorTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  const SIGN_IN_HOVER_COLOR = "#f05a28";
-  const signInBg = signInHover ? SIGN_IN_HOVER_COLOR : loginBg;
-  const signInText = signInHover ? getReadableTextColor(SIGN_IN_HOVER_COLOR) : loginText;
 
   useEffect(() => {
     return () => {
@@ -112,12 +107,7 @@ export default function LoginPage() {
             <button
               type="submit"
               disabled={submitting}
-              onMouseEnter={() => setSignInHover(true)}
-              onMouseLeave={() => setSignInHover(false)}
-              onFocus={() => setSignInHover(true)}
-              onBlur={() => setSignInHover(false)}
-              style={{ backgroundColor: signInBg, color: signInText }}
-              className="w-full rounded-lg py-2.5 text-sm font-medium shadow-sm transition disabled:cursor-not-allowed disabled:opacity-50"
+              className="w-full rounded-lg bg-accent-600 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-accent-700 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {submitting ? "Signing in..." : "Sign In"}
             </button>
