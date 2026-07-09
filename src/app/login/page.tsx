@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { BarChart3, Building2, CalendarClock, Search, X } from "lucide-react";
+import { BarChart3, Building2, CalendarClock, KeyRound, Search, UserRound, X } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { apiErrorMessage } from "@/lib/api";
 import { useSettings, getReadableTextColor, DEFAULT_LOGIN_BACKGROUND_COLOR } from "@/lib/settings";
@@ -74,7 +74,7 @@ export default function LoginPage() {
           className="absolute -bottom-52 -right-32 h-[520px] w-[520px] rounded-full"
           style={{ background: "radial-gradient(circle, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0) 70%)" }}
         />
-        <Building2 className="absolute -bottom-10 left-8 hidden opacity-[0.08] sm:block" style={{ color: loginText }} size={380} strokeWidth={1} />
+        <Building2 className="absolute -bottom-16 left-1/3 hidden opacity-[0.08] sm:block" style={{ color: loginText }} size={340} strokeWidth={1} />
         <span className="absolute left-[38%] top-[18%] hidden h-2 w-2 rounded-full bg-white/30 sm:block" />
         <span className="absolute left-[48%] top-[65%] hidden h-1.5 w-1.5 rounded-full bg-white/20 sm:block" />
         <span className="absolute left-[30%] top-[75%] hidden h-2.5 w-2.5 rounded-full bg-white/15 sm:block" />
@@ -103,7 +103,7 @@ export default function LoginPage() {
           {app_name || "This system"} is the official platform for discovering, reserving and managing university venues. Sign in using your institutional account to continue.
         </p>
 
-        <div className="mt-10 space-y-6">
+        <div className="mt-6 space-y-4">
           {FEATURES.map((f) => (
             <div key={f.title} className="flex items-start gap-4">
               <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white/10">
@@ -117,7 +117,7 @@ export default function LoginPage() {
           ))}
         </div>
 
-        <p className="mt-10 text-sm font-medium text-accent-300">Simple • Secure • Efficient</p>
+        <p className="mt-6 text-sm font-medium text-accent-300">Simple • Secure • Efficient</p>
       </div>
 
       <div className="relative w-full max-w-sm">
@@ -147,26 +147,32 @@ export default function LoginPage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
               <label className="mb-1 block text-sm font-medium text-slate-600">Username</label>
-              <input
-                type="email"
-                required
-                autoFocus
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@example.com"
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500"
-              />
+              <div className="relative">
+                <UserRound size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="email"
+                  required
+                  autoFocus
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@example.com"
+                  className="w-full rounded-lg border border-slate-300 py-2 pl-9 pr-3 text-sm focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500"
+                />
+              </div>
             </div>
             <div>
               <label className="mb-1 block text-sm font-medium text-slate-600">Password</label>
-              <input
-                type="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500"
-              />
+              <div className="relative">
+                <KeyRound size={16} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input
+                  type="password"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="w-full rounded-lg border border-slate-300 py-2 pl-9 pr-3 text-sm focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500"
+                />
+              </div>
             </div>
             <button
               type="submit"
