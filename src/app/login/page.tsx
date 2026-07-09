@@ -56,11 +56,12 @@ export default function LoginPage() {
 
   return (
     <div className="relative flex min-h-screen items-center justify-center px-4 py-12" style={{ backgroundColor: loginBg }}>
-      {/* Welcome/instructions - anchored to the top-left, independent of the
-          centered form below, so the form stays dead-center on the page
-          regardless of how much text lives here. Hidden on phones, where
-          there isn't room for it alongside the form. */}
-      <div className="absolute left-6 top-10 hidden max-w-xs text-left sm:block lg:left-16">
+      {/* Welcome/instructions - anchored to the left, vertically centered in
+          line with the form card, independent of the form's own centering
+          so the form stays dead-center on the page regardless of how much
+          text lives here. Hidden on phones, where there isn't room for it
+          alongside the form. */}
+      <div className="absolute left-6 top-1/2 hidden max-w-xs -translate-y-1/2 text-left sm:block lg:left-16">
         <h2 className="text-2xl font-semibold" style={{ color: loginText }}>
           Welcome to {app_name || "University Venue Booking"}
         </h2>
