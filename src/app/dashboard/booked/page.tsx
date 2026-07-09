@@ -1,10 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { CalendarClock, BookOpen, Search, User2 } from "lucide-react";
 import { api, apiErrorMessage } from "@/lib/api";
 import { Booking, TimetableSlot } from "@/lib/types";
 import { Card, EmptyState, PageHeader, PurposeBadge, Spinner, StatusBadge } from "@/components/ui";
+import { useMidnightRefresh } from "@/lib/useMidnightRefresh";
 
 function todayIso() {
   return new Date().toISOString().slice(0, 10);
@@ -18,6 +19,13 @@ export default function BookedVenuesPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [q, setQ] = useState("");
+  const isAutoDateRef = useRef(true);
+
+  useMidnightRefresh(() => {
+    if (isAutoDateRef.current) {
+      setDate(todayIso());
+    }
+  });
 
   const filteredTimetable = useMemo(() => {
     if (!timetable) return timetable;
@@ -61,7 +69,7 @@ export default function BookedVenuesPage() {
             <input
               type="date"
               value={date}
-              onChange={(e) => setDate(e.target.value)}
+              onChange={(e) => { isAutoDateRef.current = false; setDate(e.target.value); }}
               className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500"
             />
           </div>

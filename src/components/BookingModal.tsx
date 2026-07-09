@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import axios from "axios";
 import { api, apiErrorMessage } from "@/lib/api";
 import { BookingPurpose, Semester, Venue } from "@/lib/types";
 import { useSettings } from "@/lib/settings";
 import SignaturePad from "@/components/SignaturePad";
+import { useMidnightRefresh } from "@/lib/useMidnightRefresh";
 
 const PURPOSES: { value: BookingPurpose; label: string }[] = [
   { value: "study_unit", label: "Study Unit" },
@@ -48,6 +49,7 @@ export default function BookingModal({
   const [semesters, setSemesters] = useState<Semester[]>([]);
   const [internalSemesterId, setInternalSemesterId] = useState(semesterId ?? "");
   const [internalDate, setInternalDate] = useState(date ?? todayIso());
+  const isAutoDateRef = useRef(!date);
   const [internalStart, setInternalStart] = useState(startTime ?? "19:00");
   const [internalEnd, setInternalEnd] = useState(endTime ?? "20:00");
 
@@ -60,6 +62,12 @@ export default function BookingModal({
   const [submitting, setSubmitting] = useState(false);
 
   const needsOwnSchedule = !semesterId || !date || !startTime || !endTime;
+
+  useMidnightRefresh(() => {
+    if (isAutoDateRef.current) {
+      setInternalDate(todayIso());
+    }
+  });
 
   useEffect(() => {
     if (!semesterId) {
@@ -144,7 +152,7 @@ export default function BookingModal({
               {!date && (
                 <div>
                   <label className="mb-1 block text-xs font-medium text-slate-600">Date</label>
-                  <input type="date" value={internalDate} onChange={(e) => setInternalDate(e.target.value)} className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500" />
+                  <input type="date" value={internalDate} onChange={(e) => { isAutoDateRef.current = false; setInternalDate(e.target.value); }} className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500" />
                 </div>
               )}
               {(!startTime || !endTime) && (

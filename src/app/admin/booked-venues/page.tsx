@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CalendarClock, DoorOpen, Search } from "lucide-react";
 import { api } from "@/lib/api";
 import { Booking } from "@/lib/types";
@@ -8,6 +8,7 @@ import { Card, EmptyState, PageHeader, PurposeBadge, Spinner, StatusBadge } from
 import PageSizeSelect from "@/components/PageSizeSelect";
 import Pagination from "@/components/Pagination";
 import { useDebouncedValue } from "@/lib/useDebounce";
+import { useMidnightRefresh } from "@/lib/useMidnightRefresh";
 
 function todayIso() {
   return new Date().toISOString().slice(0, 10);
@@ -31,6 +32,7 @@ export default function AdminBookedVenuesPage() {
   const [loading, setLoading] = useState(true);
   const [q, setQ] = useState("");
   const debouncedQ = useDebouncedValue(q, 350);
+  const isAutoDateRef = useRef(true);
 
   async function load() {
     setLoading(true);
@@ -56,6 +58,12 @@ export default function AdminBookedVenuesPage() {
     setPage(1);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [debouncedQ]);
+
+  useMidnightRefresh(() => {
+    if (isAutoDateRef.current) {
+      setDate(todayIso());
+    }
+  });
 
   const bookings = result?.data ?? [];
 
@@ -96,7 +104,7 @@ export default function AdminBookedVenuesPage() {
               <input
                 type="date"
                 value={date}
-                onChange={(e) => { setPage(1); setDate(e.target.value); }}
+                onChange={(e) => { setPage(1); isAutoDateRef.current = false; setDate(e.target.value); }}
                 className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none"
               />
             </div>
