@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, ChevronDown, UserRound, KeyRound, LogOut, MapPin, Bell } from "lucide-react";
 import { useAuth } from "@/lib/auth";
-import { fetchNewNotificationCount, notificationHref } from "@/lib/notifications";
+import { fetchUnreadCount, notificationHref, NOTIFICATIONS_CHANGED_EVENT } from "@/lib/notifications";
 import InstallAppButton from "./InstallAppButton";
 
 const NOTIFICATION_POLL_MS = 120000;
@@ -28,7 +28,7 @@ export default function TopBar({
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
-  const [newCount, setNewCount] = useState(0);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   useEffect(() => {
     function handleClickOutside(e: MouseEvent) {
@@ -44,15 +44,17 @@ export default function TopBar({
     if (!user) return;
     let cancelled = false;
     function refresh() {
-      fetchNewNotificationCount(user!.role).then((count) => {
-        if (!cancelled) setNewCount(count);
+      fetchUnreadCount().then((count) => {
+        if (!cancelled) setUnreadCount(count);
       });
     }
     refresh();
     const interval = setInterval(refresh, NOTIFICATION_POLL_MS);
+    window.addEventListener(NOTIFICATIONS_CHANGED_EVENT, refresh);
     return () => {
       cancelled = true;
       clearInterval(interval);
+      window.removeEventListener(NOTIFICATIONS_CHANGED_EVENT, refresh);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user?.role, pathname]);
@@ -101,8 +103,10 @@ export default function TopBar({
           className="relative flex h-9 w-9 items-center justify-center rounded-full text-slate-600 hover:bg-slate-100"
         >
           <Bell size={20} />
-          {newCount > 0 && (
-            <span className="absolute right-1.5 top-1.5 flex h-2.5 w-2.5 items-center justify-center rounded-full bg-accent-600 ring-2 ring-white" />
+          {unreadCount > 0 && (
+            <span className="absolute -right-1 -top-1 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-accent-600 px-1 text-[10px] font-semibold leading-none text-white ring-2 ring-white">
+              {unreadCount > 99 ? "99+" : unreadCount}
+            </span>
           )}
         </Link>
 

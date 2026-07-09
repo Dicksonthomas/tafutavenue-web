@@ -93,3 +93,19 @@ export interface Booking {
   semester?: Semester;
   approver?: User | null;
 }
+
+export type NotificationType = "booking_approved" | "booking_rejected" | "booking_pending" | "announcement";
+
+export interface Notification {
+  id: number;
+  user_id: number;
+  type: NotificationType;
+  title: string;
+  body: string | null;
+  booking_id: number | null;
+  announcement_id: number | null;
+  read_at: string | null;
+  created_at: string;
+  updated_at: string;
+  booking?: Booking | null;
+}

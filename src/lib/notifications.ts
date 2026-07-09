@@ -1,43 +1,59 @@
 import { api } from "./api";
-import { Booking, Role } from "./types";
-
-export const NOTIFICATION_NEW_WINDOW_DAYS = 3;
+import { Notification, NotificationType, Role } from "./types";
 
 export function notificationHref(role: Role): string {
   return role === "admin" ? "/admin/notifications" : "/dashboard/notifications";
 }
 
-/** CR: most recent activity on their own bookings (status changes). */
-export function crEventTimestamp(b: Booking): string {
-  return b.updated_at ?? b.created_at ?? b.booking_date;
+export const NOTIFICATION_TYPE_LABELS: Record<NotificationType, string> = {
+  booking_approved: "Booking Approved",
+  booking_rejected: "Booking Rejected",
+  booking_pending: "New Booking Request",
+  announcement: "Announcement",
+};
+
+export interface PaginatedNotifications {
+  data: Notification[];
+  current_page: number;
+  last_page: number;
+  total: number;
+  per_page: number;
 }
 
-/** Admin: when the pending booking request came in. */
-export function adminEventTimestamp(b: Booking): string {
-  return b.created_at ?? b.booking_date;
+export interface NotificationFilters {
+  type?: string;
+  read?: "unread" | "read" | "";
+  date?: string;
+  q?: string;
+  page?: number;
+  per_page?: string | number;
 }
 
-export function isRecent(iso: string): boolean {
-  const ts = new Date(iso).getTime();
-  if (Number.isNaN(ts)) return false;
-  return Date.now() - ts <= NOTIFICATION_NEW_WINDOW_DAYS * 24 * 60 * 60 * 1000;
+export async function fetchNotifications(filters: NotificationFilters = {}): Promise<PaginatedNotifications> {
+  const { data } = await api.get("/notifications", { params: filters });
+  return data;
 }
 
-export async function fetchCrNotifications(): Promise<Booking[]> {
-  const { data } = await api.get("/bookings");
-  return data.data ?? data;
+export async function fetchUnreadCount(): Promise<number> {
+  const { data } = await api.get("/notifications/unread-count");
+  return data.count;
 }
 
-export async function fetchAdminNotifications(): Promise<Booking[]> {
-  const { data } = await api.get("/admin/bookings", { params: { status: "pending", per_page: 50 } });
-  return data.data ?? data;
-}
+export const NOTIFICATIONS_CHANGED_EVENT = "notifications-changed";
 
-export async function fetchNewNotificationCount(role: Role): Promise<number> {
-  if (role === "admin") {
-    const bookings = await fetchAdminNotifications();
-    return bookings.filter((b) => isRecent(adminEventTimestamp(b))).length;
+function announceChange() {
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(new Event(NOTIFICATIONS_CHANGED_EVENT));
   }
-  const bookings = await fetchCrNotifications();
-  return bookings.filter((b) => isRecent(crEventTimestamp(b))).length;
+}
+
+export async function markNotificationRead(id: number): Promise<Notification> {
+  const { data } = await api.post(`/notifications/${id}/read`);
+  announceChange();
+  return data;
+}
+
+export async function markAllNotificationsRead(): Promise<void> {
+  await api.post("/notifications/read-all");
+  announceChange();
 }

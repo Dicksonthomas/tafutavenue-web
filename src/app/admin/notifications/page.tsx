@@ -1,97 +1,126 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
-import Link from "next/link";
-import { Bell, Clock } from "lucide-react";
-import { Booking } from "@/lib/types";
-import { Card, EmptyState, PageHeader, PurposeBadge, Spinner } from "@/components/ui";
-import { formatRelativeTime } from "@/lib/relativeTime";
-import { adminEventTimestamp, fetchAdminNotifications, isRecent } from "@/lib/notifications";
-
-type FilterOption = "new" | "all";
+import { useState } from "react";
+import { Megaphone, X } from "lucide-react";
+import { api, apiErrorMessage } from "@/lib/api";
+import { PageHeader } from "@/components/ui";
+import NotificationsTable from "@/components/NotificationsTable";
 
 export default function AdminNotificationsPage() {
-  const [bookings, setBookings] = useState<Booking[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [filter, setFilter] = useState<FilterOption>("new");
-
-  useEffect(() => {
-    fetchAdminNotifications().then((data) => {
-      setBookings(data);
-      setLoading(false);
-    });
-  }, []);
-
-  const sorted = useMemo(
-    () => [...bookings].sort((a, b) => new Date(adminEventTimestamp(b)).getTime() - new Date(adminEventTimestamp(a)).getTime()),
-    [bookings]
-  );
-
-  const visible = useMemo(
-    () => (filter === "new" ? sorted.filter((b) => isRecent(adminEventTimestamp(b))) : sorted),
-    [sorted, filter]
-  );
+  const [composing, setComposing] = useState(false);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   return (
     <div className="mx-auto max-w-7xl">
-      <PageHeader title="Notifications" subtitle="Bookings waiting for your approval." />
+      <PageHeader
+        title="Notifications"
+        subtitle="New booking requests, and announcements you've sent to CRs."
+        action={
+          <button
+            onClick={() => setComposing(true)}
+            className="flex items-center gap-2 rounded-lg bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700"
+          >
+            <Megaphone size={16} /> New Announcement
+          </button>
+        }
+      />
 
-      <div className="mb-5">
-        <select
-          value={filter}
-          onChange={(e) => setFilter(e.target.value as FilterOption)}
-          className="rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium focus:border-accent-500 focus:outline-none"
-        >
-          <option value="new">New Notifications</option>
-          <option value="all">All Notifications</option>
-        </select>
-      </div>
+      <NotificationsTable key={refreshKey} />
 
-      {loading ? (
-        <Spinner />
-      ) : visible.length === 0 ? (
-        <EmptyState
-          icon={Bell}
-          title={filter === "new" ? "No new notifications" : "Nothing pending"}
-          description={filter === "new" ? "No new booking requests in the last few days." : "There are no bookings waiting for approval right now."}
+      {composing && (
+        <NewAnnouncementModal
+          onClose={() => setComposing(false)}
+          onSent={() => {
+            setComposing(false);
+            setRefreshKey((k) => k + 1);
+          }}
         />
-      ) : (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {visible.map((b) => {
-            const ts = adminEventTimestamp(b);
-            const isNewItem = isRecent(ts);
-            return (
-              <Link key={b.id} href="/admin/bookings?status=pending" className="block h-full">
-                <Card className={`flex h-full flex-col gap-3 p-4 transition-colors hover:bg-slate-50 ${isNewItem ? "ring-1 ring-accent-200" : ""}`}>
-                  <div className="flex items-start gap-3">
-                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-amber-50 text-amber-600">
-                      <Clock size={18} />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-start justify-between gap-2">
-                        <p className="text-sm font-medium leading-snug text-slate-800">
-                          {b.user?.name ?? "A CR"} requested {b.venue?.name ?? `Venue #${b.venue_id}`}
-                        </p>
-                        {isNewItem && <span className="mt-1 h-2 w-2 shrink-0 rounded-full bg-accent-500" />}
-                      </div>
-                      <p className="mt-1 text-xs text-slate-500">
-                        {b.booking_date?.slice(0, 10)} · {b.start_time}–{b.end_time}
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-wrap items-center gap-2">
-                    <PurposeBadge purpose={b.purpose} />
-                    {b.title && <span className="truncate text-xs text-slate-500">{b.title}</span>}
-                  </div>
-
-                  <p className="mt-auto text-xs text-slate-400">{formatRelativeTime(ts)}</p>
-                </Card>
-              </Link>
-            );
-          })}
-        </div>
       )}
+    </div>
+  );
+}
+
+function NewAnnouncementModal({ onClose, onSent }: { onClose: () => void; onSent: () => void }) {
+  const [title, setTitle] = useState("");
+  const [body, setBody] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [sentTo, setSentTo] = useState<number | null>(null);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    setSubmitting(true);
+    try {
+      const { data } = await api.post("/admin/announcements", { title, body });
+      setSentTo(data.recipients);
+    } catch (err) {
+      setError(apiErrorMessage(err));
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/40 px-4 py-8">
+      <div className="w-full max-w-lg rounded-xl bg-white p-5 shadow-xl">
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="font-semibold text-slate-900">New Announcement</h2>
+          <button onClick={sentTo === null ? onClose : onSent} className="text-slate-400 hover:text-slate-600">
+            <X size={18} />
+          </button>
+        </div>
+
+        {sentTo !== null ? (
+          <div className="py-4 text-center">
+            <p className="text-sm text-slate-700">Announcement sent to {sentTo} CR{sentTo === 1 ? "" : "s"}.</p>
+            <button
+              onClick={onSent}
+              className="mt-4 rounded-lg bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700"
+            >
+              Done
+            </button>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-3">
+            {error && <div className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div>}
+
+            <input
+              required
+              placeholder="Title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              maxLength={255}
+              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none"
+            />
+            <textarea
+              required
+              placeholder="Write the announcement..."
+              value={body}
+              onChange={(e) => setBody(e.target.value)}
+              maxLength={2000}
+              rows={5}
+              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none"
+            />
+            <p className="text-xs text-slate-400">
+              This goes to every CR on your campus as a notification (a Super Admin's announcement goes to every CR university-wide).
+            </p>
+
+            <div className="flex justify-end gap-2 pt-2">
+              <button type="button" onClick={onClose} className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50">
+                Cancel
+              </button>
+              <button
+                type="submit"
+                disabled={submitting}
+                className="rounded-lg bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-60"
+              >
+                {submitting ? "Sending..." : "Send Announcement"}
+              </button>
+            </div>
+          </form>
+        )}
+      </div>
     </div>
   );
 }
