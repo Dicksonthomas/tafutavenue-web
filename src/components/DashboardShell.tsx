@@ -135,7 +135,7 @@ export default function DashboardShell({
       {/* Permanent sidebar - from `lg` up, so tablets (which land in the
           `md`-`lg` range) still get the phone-style bottom nav + drawer
           below instead of a cramped permanent sidebar. */}
-      <aside className={`hidden shrink-0 bg-brand-800 transition-all duration-200 lg:block ${collapsed ? "w-16" : "w-64"}`}>
+      <aside className={`sticky top-0 hidden h-screen shrink-0 overflow-y-auto bg-brand-800 transition-all duration-200 lg:block ${collapsed ? "w-16" : "w-64"}`}>
         {renderSidebar(true)}
       </aside>
 
