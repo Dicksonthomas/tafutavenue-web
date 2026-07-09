@@ -272,6 +272,7 @@ function NewAnnouncementModal({ onClose, onSent }: { onClose: () => void; onSent
 
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
+  const [audience, setAudience] = useState<"cr" | "admin">("cr");
   const [campus, setCampus] = useState(""); // super admin only - "" = all campuses
   const [faculty, setFaculty] = useState("");
   const [department, setDepartment] = useState("");
@@ -302,13 +303,15 @@ function NewAnnouncementModal({ onClose, onSent }: { onClose: () => void; onSent
     setError(null);
     setSubmitting(true);
     try {
-      const payload: Record<string, unknown> = { title, body };
-      if (isSuperAdmin && campus) payload.campus = campus;
-      if (faculty) payload.faculty = faculty;
-      if (department) payload.department = department;
-      if (program) payload.program = program;
-      if (level) payload.level = level;
-      if (yearOfStudy) payload.year_of_study = Number(yearOfStudy);
+      const payload: Record<string, unknown> = { title, body, audience };
+      if (audience === "cr") {
+        if (isSuperAdmin && campus) payload.campus = campus;
+        if (faculty) payload.faculty = faculty;
+        if (department) payload.department = department;
+        if (program) payload.program = program;
+        if (level) payload.level = level;
+        if (yearOfStudy) payload.year_of_study = Number(yearOfStudy);
+      }
 
       const { data } = await api.post("/admin/announcements", payload);
       setSentTo(data.recipients);
@@ -331,7 +334,9 @@ function NewAnnouncementModal({ onClose, onSent }: { onClose: () => void; onSent
 
         {sentTo !== null ? (
           <div className="py-4 text-center">
-            <p className="text-sm text-slate-700">Announcement sent to {sentTo} CR{sentTo === 1 ? "" : "s"}.</p>
+            <p className="text-sm text-slate-700">
+              Announcement sent to {sentTo} {audience === "admin" ? `admin${sentTo === 1 ? "" : "s"}` : `CR${sentTo === 1 ? "" : "s"}`}.
+            </p>
             <button
               onClick={onSent}
               className="mt-4 rounded-lg bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700"
@@ -364,70 +369,98 @@ function NewAnnouncementModal({ onClose, onSent }: { onClose: () => void; onSent
             <div className="rounded-lg border border-slate-200 p-3">
               <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">Audience</p>
 
-              {isSuperAdmin ? (
-                <div className="mb-2">
-                  <label className="mb-1 block text-xs font-medium text-slate-600">Campus</label>
-                  <select
-                    value={campus}
-                    onChange={(e) => { setCampus(e.target.value); setProgram(""); }}
-                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none"
-                  >
-                    <option value="">All Campuses</option>
-                    {campuses.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
-                  </select>
-                </div>
-              ) : (
-                <p className="mb-2 text-xs text-slate-500">
-                  Goes to CRs on your campus{user?.campus ? ` (${campusLabel(user.campus, campuses)})` : ""}.
-                </p>
-              )}
-
-              <p className="mb-2 text-xs text-slate-500">
-                Leave a field blank to reach everyone in that campus. Choose from the list or type your own if it's not listed.
-              </p>
-
-              <div className="grid grid-cols-2 gap-2">
-                <Combobox
-                  value={faculty}
-                  onChange={setFaculty}
-                  options={faculties.map((f) => f.value)}
-                  placeholder="Any Faculty"
-                />
-
-                <Combobox
-                  value={department}
-                  onChange={setDepartment}
-                  options={departmentOptions}
-                  placeholder="Any Department"
-                />
-
-                <div className="col-span-2">
-                  <Combobox
-                    value={program}
-                    onChange={setProgram}
-                    options={programs}
-                    placeholder="Any Program"
-                  />
-                </div>
-
-                <select
-                  value={level}
-                  onChange={(e) => { setLevel(e.target.value); setYearOfStudy(""); }}
-                  className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none"
+              <div className="mb-3 flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setAudience("cr")}
+                  className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium ${
+                    audience === "cr" ? "border-accent-500 bg-accent-50 text-accent-700" : "border-slate-300 text-slate-600 hover:bg-slate-50"
+                  }`}
                 >
-                  <option value="">Any Level</option>
-                  {levelOptions.map((l) => <option key={l} value={l}>{l}</option>)}
-                </select>
-
-                <select
-                  value={yearOfStudy}
-                  onChange={(e) => setYearOfStudy(e.target.value)}
-                  className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none"
+                  CRs
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAudience("admin")}
+                  className={`flex-1 rounded-lg border px-3 py-2 text-sm font-medium ${
+                    audience === "admin" ? "border-accent-500 bg-accent-50 text-accent-700" : "border-slate-300 text-slate-600 hover:bg-slate-50"
+                  }`}
                 >
-                  <option value="">Any Year of Study</option>
-                  {yearOptions.map((y) => <option key={y} value={y}>Year {y}</option>)}
-                </select>
+                  Admins
+                </button>
               </div>
+
+              {audience === "admin" ? (
+                <p className="text-xs text-slate-500">Goes to every other Admin, as a direct notification.</p>
+              ) : (
+                <>
+                  {isSuperAdmin ? (
+                    <div className="mb-2">
+                      <label className="mb-1 block text-xs font-medium text-slate-600">Campus</label>
+                      <select
+                        value={campus}
+                        onChange={(e) => { setCampus(e.target.value); setProgram(""); }}
+                        className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none"
+                      >
+                        <option value="">All Campuses</option>
+                        {campuses.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
+                      </select>
+                    </div>
+                  ) : (
+                    <p className="mb-2 text-xs text-slate-500">
+                      Goes to CRs on your campus{user?.campus ? ` (${campusLabel(user.campus, campuses)})` : ""}.
+                    </p>
+                  )}
+
+                  <p className="mb-2 text-xs text-slate-500">
+                    Leave a field blank to reach everyone in that campus. Choose from the list or type your own if it's not listed.
+                    Admins in that campus also get a read-only copy.
+                  </p>
+
+                  <div className="grid grid-cols-2 gap-2">
+                    <Combobox
+                      value={faculty}
+                      onChange={setFaculty}
+                      options={faculties.map((f) => f.value)}
+                      placeholder="Any Faculty"
+                    />
+
+                    <Combobox
+                      value={department}
+                      onChange={setDepartment}
+                      options={departmentOptions}
+                      placeholder="Any Department"
+                    />
+
+                    <div className="col-span-2">
+                      <Combobox
+                        value={program}
+                        onChange={setProgram}
+                        options={programs}
+                        placeholder="Any Program"
+                      />
+                    </div>
+
+                    <select
+                      value={level}
+                      onChange={(e) => { setLevel(e.target.value); setYearOfStudy(""); }}
+                      className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none"
+                    >
+                      <option value="">Any Level</option>
+                      {levelOptions.map((l) => <option key={l} value={l}>{l}</option>)}
+                    </select>
+
+                    <select
+                      value={yearOfStudy}
+                      onChange={(e) => setYearOfStudy(e.target.value)}
+                      className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none"
+                    >
+                      <option value="">Any Year of Study</option>
+                      {yearOptions.map((y) => <option key={y} value={y}>Year {y}</option>)}
+                    </select>
+                  </div>
+                </>
+              )}
             </div>
 
             <div className="flex justify-end gap-2 pt-2">

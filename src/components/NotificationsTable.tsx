@@ -23,6 +23,7 @@ const TYPE_ICON: Record<NotificationType, typeof Bell> = {
   booking_rejected: XCircle,
   booking_pending: Clock,
   announcement: Megaphone,
+  announcement_cr_copy: Megaphone,
 };
 
 const TYPE_COLOR: Record<NotificationType, string> = {
@@ -30,6 +31,7 @@ const TYPE_COLOR: Record<NotificationType, string> = {
   booking_rejected: "bg-red-50 text-red-600",
   booking_pending: "bg-amber-50 text-amber-600",
   announcement: "bg-brand-50 text-brand-700",
+  announcement_cr_copy: "bg-slate-100 text-slate-500",
 };
 
 export default function NotificationsTable() {
