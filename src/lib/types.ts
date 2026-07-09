@@ -86,6 +86,8 @@ export interface Booking {
   signed_at: string | null;
   approved_at: string | null;
   rejection_reason: string | null;
+  created_at?: string;
+  updated_at?: string;
   venue?: Venue;
   user?: User;
   semester?: Semester;

@@ -1,12 +1,13 @@
 "use client";
 
 import { ReactNode } from "react";
-import { LayoutDashboard, DoorOpen, ClipboardCheck, CalendarRange, GraduationCap, Settings, CalendarClock, ShieldCheck, History } from "lucide-react";
+import { LayoutDashboard, DoorOpen, ClipboardCheck, CalendarRange, GraduationCap, Settings, CalendarClock, ShieldCheck, History, Bell } from "lucide-react";
 import AuthGuard from "@/components/AuthGuard";
 import DashboardShell, { NavItem } from "@/components/DashboardShell";
 
 const navItems: NavItem[] = [
   { href: "/admin", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/admin/notifications", label: "Notifications", icon: Bell },
   { href: "/admin/venues", label: "Venues", icon: DoorOpen },
   { href: "/admin/bookings", label: "Bookings", icon: ClipboardCheck },
   { href: "/admin/booked-venues", label: "Booked Venues", icon: CalendarClock },
