@@ -128,11 +128,12 @@ export default function LoginPage() {
       <div className="relative w-full max-w-sm">
         <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xl">
           <div className="mb-6 flex flex-col items-center text-center">
-            {/* Logo size: change h-36 w-36 below (both the <img> and the fallback box) to make it bigger/smaller. Each Tailwind step is 0.25rem (4px), e.g. h-40 = 160px, h-44 = 176px. */}
+            {/* Logo size: change h-36 w-36 below (both the <img> and the fallback box) to make it bigger/smaller. Each Tailwind step is 0.25rem (4px), e.g. h-40 = 160px, h-44 = 176px.
+                translate-x-4 nudges just the logo (not the title/subtitle below it) a little to the right of center. */}
             {logo_url ? (
-              <img src={logo_url} alt="Logo" className="mb-3 h-36 w-36 rounded-2xl object-contain" />
+              <img src={logo_url} alt="Logo" className="mb-3 h-36 w-36 translate-x-4 rounded-2xl object-contain" />
             ) : (
-              <div className="mb-3 flex h-36 w-36 items-center justify-center rounded-2xl" style={{ backgroundColor: loginBg, color: loginText }}>
+              <div className="mb-3 flex h-36 w-36 translate-x-4 items-center justify-center rounded-2xl" style={{ backgroundColor: loginBg, color: loginText }}>
                 <Building2 size={64} />
               </div>
             )}
