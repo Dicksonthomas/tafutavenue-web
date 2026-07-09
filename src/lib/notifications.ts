@@ -8,9 +8,15 @@ export function notificationHref(role: Role): string {
 export const NOTIFICATION_TYPE_LABELS: Record<NotificationType, string> = {
   booking_approved: "Booking Approved",
   booking_rejected: "Booking Rejected",
-  booking_pending: "New Booking Request",
+  booking_pending: "Booking Pending",
   announcement: "Announcement",
 };
+
+/** Where clicking a notification of this type should navigate to, if anywhere. */
+export function notificationTargetHref(n: Notification): string | null {
+  if (n.type === "booking_pending") return "/admin/bookings?status=pending";
+  return null;
+}
 
 export interface PaginatedNotifications {
   data: Notification[];

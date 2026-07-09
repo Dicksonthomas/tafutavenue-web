@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Megaphone, X } from "lucide-react";
 import { api, apiErrorMessage } from "@/lib/api";
+import { useAuth } from "@/lib/auth";
+import { useReferenceData } from "@/lib/referenceData";
 import { PageHeader } from "@/components/ui";
 import NotificationsTable from "@/components/NotificationsTable";
 
@@ -40,19 +42,54 @@ export default function AdminNotificationsPage() {
   );
 }
 
+function campusLabel(value: string, campuses: { value: string; label: string }[]): string {
+  return campuses.find((c) => c.value === value)?.label ?? value;
+}
+
 function NewAnnouncementModal({ onClose, onSent }: { onClose: () => void; onSent: () => void }) {
+  const { user } = useAuth();
+  const isSuperAdmin = !!user?.is_super_admin;
+
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
+  const [campus, setCampus] = useState(""); // super admin only - "" = all campuses
+  const [faculty, setFaculty] = useState("");
+  const [department, setDepartment] = useState("");
+  const [program, setProgram] = useState("");
+  const [level, setLevel] = useState("");
+  const [yearOfStudy, setYearOfStudy] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [sentTo, setSentTo] = useState<number | null>(null);
+
+  const effectiveCampus = isSuperAdmin ? campus : user?.campus;
+  const { campuses, faculties, departmentsByFaculty, programs, levelYears } = useReferenceData(effectiveCampus || undefined);
+
+  const departmentOptions = useMemo(() => {
+    if (faculty) return departmentsByFaculty[faculty] ?? [];
+    const set = new Set<string>();
+    Object.values(departmentsByFaculty).forEach((list) => list.forEach((d) => set.add(d)));
+    return Array.from(set).sort();
+  }, [departmentsByFaculty, faculty]);
+
+  const levelOptions = Object.keys(levelYears);
+  const maxYear = level ? levelYears[level] ?? 4 : 4;
+  const yearOptions = Array.from({ length: maxYear }, (_, i) => i + 1);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
     setSubmitting(true);
     try {
-      const { data } = await api.post("/admin/announcements", { title, body });
+      const payload: Record<string, unknown> = { title, body };
+      if (isSuperAdmin && campus) payload.campus = campus;
+      if (faculty) payload.faculty = faculty;
+      if (department) payload.department = department;
+      if (program) payload.program = program;
+      if (level) payload.level = level;
+      if (yearOfStudy) payload.year_of_study = Number(yearOfStudy);
+
+      const { data } = await api.post("/admin/announcements", payload);
       setSentTo(data.recipients);
     } catch (err) {
       setError(apiErrorMessage(err));
@@ -99,12 +136,82 @@ function NewAnnouncementModal({ onClose, onSent }: { onClose: () => void; onSent
               value={body}
               onChange={(e) => setBody(e.target.value)}
               maxLength={2000}
-              rows={5}
+              rows={4}
               className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none"
             />
-            <p className="text-xs text-slate-400">
-              This goes to every CR on your campus as a notification (a Super Admin's announcement goes to every CR university-wide).
-            </p>
+
+            <div className="rounded-lg border border-slate-200 p-3">
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">Audience</p>
+
+              {isSuperAdmin ? (
+                <div className="mb-2">
+                  <label className="mb-1 block text-xs font-medium text-slate-600">Campus</label>
+                  <select
+                    value={campus}
+                    onChange={(e) => { setCampus(e.target.value); setProgram(""); }}
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none"
+                  >
+                    <option value="">All Campuses</option>
+                    {campuses.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
+                  </select>
+                </div>
+              ) : (
+                <p className="mb-2 text-xs text-slate-500">
+                  Goes to CRs on your campus{user?.campus ? ` (${campusLabel(user.campus, campuses)})` : ""}.
+                </p>
+              )}
+
+              <p className="mb-2 text-xs text-slate-500">
+                Leave the fields below as &quot;Any&quot; to reach everyone in that campus, or narrow it down to a specific group.
+              </p>
+
+              <div className="grid grid-cols-2 gap-2">
+                <select
+                  value={faculty}
+                  onChange={(e) => { setFaculty(e.target.value); setDepartment(""); }}
+                  className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none"
+                >
+                  <option value="">Any Faculty</option>
+                  {faculties.map((f) => <option key={f.value} value={f.value}>{f.label}</option>)}
+                </select>
+
+                <select
+                  value={department}
+                  onChange={(e) => setDepartment(e.target.value)}
+                  className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none"
+                >
+                  <option value="">Any Department</option>
+                  {departmentOptions.map((d) => <option key={d} value={d}>{d}</option>)}
+                </select>
+
+                <select
+                  value={program}
+                  onChange={(e) => setProgram(e.target.value)}
+                  className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none"
+                >
+                  <option value="">Any Program</option>
+                  {programs.map((p) => <option key={p} value={p}>{p}</option>)}
+                </select>
+
+                <select
+                  value={level}
+                  onChange={(e) => { setLevel(e.target.value); setYearOfStudy(""); }}
+                  className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none"
+                >
+                  <option value="">Any Level</option>
+                  {levelOptions.map((l) => <option key={l} value={l}>{l}</option>)}
+                </select>
+
+                <select
+                  value={yearOfStudy}
+                  onChange={(e) => setYearOfStudy(e.target.value)}
+                  className="col-span-2 rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none"
+                >
+                  <option value="">Any Year of Study</option>
+                  {yearOptions.map((y) => <option key={y} value={y}>Year {y}</option>)}
+                </select>
+              </div>
+            </div>
 
             <div className="flex justify-end gap-2 pt-2">
               <button type="button" onClick={onClose} className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50">

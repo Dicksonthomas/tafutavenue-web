@@ -1,6 +1,7 @@
 "use client";
 
 import { Fragment, useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Bell, CheckCircle2, Clock, Megaphone, XCircle } from "lucide-react";
 import { Notification, NotificationType } from "@/lib/types";
 import {
@@ -8,6 +9,7 @@ import {
   fetchNotifications,
   markAllNotificationsRead,
   markNotificationRead,
+  notificationTargetHref,
   PaginatedNotifications,
 } from "@/lib/notifications";
 import { formatRelativeTime } from "@/lib/relativeTime";
@@ -31,6 +33,7 @@ const TYPE_COLOR: Record<NotificationType, string> = {
 };
 
 export default function NotificationsTable() {
+  const router = useRouter();
   const [result, setResult] = useState<PaginatedNotifications | null>(null);
   const [loading, setLoading] = useState(true);
   const [type, setType] = useState("");
@@ -67,11 +70,18 @@ export default function NotificationsTable() {
   }, [type, readFilter, date, debouncedQ]);
 
   async function openNotification(n: Notification) {
-    setOpenId((current) => (current === n.id ? null : n.id));
     if (!n.read_at) {
       const updated = await markNotificationRead(n.id);
       setResult((prev) => (prev ? { ...prev, data: prev.data.map((x) => (x.id === n.id ? updated : x)) } : prev));
     }
+
+    const target = notificationTargetHref(n);
+    if (target) {
+      router.push(target);
+      return;
+    }
+
+    setOpenId((current) => (current === n.id ? null : n.id));
   }
 
   async function markAllRead() {
@@ -176,7 +186,12 @@ export default function NotificationsTable() {
                           </span>
                         </td>
                         <td className="px-4 py-3">
-                          <p className={`truncate ${isUnread ? "font-semibold text-slate-900" : "text-slate-700"}`}>{n.title}</p>
+                          <div className="flex items-center gap-2">
+                            <p className={`truncate ${isUnread ? "font-semibold text-slate-900" : "text-slate-700"}`}>{n.title}</p>
+                            {n.type === "booking_pending" && (
+                              <span className="shrink-0 text-xs font-medium text-accent-600">Review →</span>
+                            )}
+                          </div>
                           {n.booking && (
                             <p className="mt-0.5 truncate text-xs text-slate-500">
                               {n.booking.venue?.name} · {n.booking.booking_date?.slice(0, 10)} · {n.booking.start_time}–{n.booking.end_time}
