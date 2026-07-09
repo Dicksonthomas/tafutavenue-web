@@ -6,25 +6,40 @@ import SignaturePad from "@/components/SignaturePad";
 import { api, apiErrorMessage } from "@/lib/api";
 import { Booking } from "@/lib/types";
 import { Card, EmptyState, PageHeader, PurposeBadge, Spinner, StatusBadge } from "@/components/ui";
+import ShowMoreButton from "@/components/ShowMoreButton";
 import { confirmAction } from "@/lib/confirm";
+
+const SHOW_STEP = 9;
 
 export default function MyBookingsPage() {
   const [bookings, setBookings] = useState<Booking[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [perPage, setPerPage] = useState(SHOW_STEP);
+  const [total, setTotal] = useState(0);
   const [signingId, setSigningId] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  async function load() {
-    setLoading(true);
-    const { data } = await api.get("/bookings");
+  async function load(withPerPage = perPage) {
+    const { data } = await api.get("/bookings", { params: { per_page: withPerPage } });
     setBookings(data.data ?? data);
-    setLoading(false);
+    setTotal(data.total ?? (data.data ?? data).length);
   }
 
   useEffect(() => {
-    load();
+    setLoading(true);
+    load(SHOW_STEP).finally(() => setLoading(false));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  async function showMore() {
+    setLoadingMore(true);
+    const next = perPage + SHOW_STEP;
+    setPerPage(next);
+    await load(next);
+    setLoadingMore(false);
+  }
 
   async function cancelBooking(id: number) {
     const ok = await confirmAction("This booking will be cancelled and you won't be able to use it again.", { title: "Cancel this booking?", confirmText: "Yes, cancel" });
@@ -131,6 +146,10 @@ export default function MyBookingsPage() {
             </Card>
           ))}
         </div>
+      )}
+
+      {!loading && bookings.length < total && (
+        <ShowMoreButton onClick={showMore} loading={loadingMore} />
       )}
     </div>
   );

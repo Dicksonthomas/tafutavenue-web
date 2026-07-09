@@ -5,13 +5,17 @@ import { Search, User2, CalendarClock } from "lucide-react";
 import { api, apiErrorMessage } from "@/lib/api";
 import { TimetableSlot } from "@/lib/types";
 import { Card, EmptyState, PageHeader, Spinner } from "@/components/ui";
+import ShowMoreButton from "@/components/ShowMoreButton";
 import { useDebouncedValue } from "@/lib/useDebounce";
+
+const SHOW_STEP = 9;
 
 export default function LecturerTimetablePage() {
   const [name, setName] = useState("");
   const [slots, setSlots] = useState<TimetableSlot[] | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [visibleCount, setVisibleCount] = useState(SHOW_STEP);
   const debouncedName = useDebouncedValue(name, 350);
 
   useEffect(() => {
@@ -21,6 +25,7 @@ export default function LecturerTimetablePage() {
     }
     setError(null);
     setLoading(true);
+    setVisibleCount(SHOW_STEP);
     api
       .get("/timetable/by-lecturer", { params: { name: debouncedName } })
       .then(({ data }) => setSlots(data))
@@ -56,8 +61,9 @@ export default function LecturerTimetablePage() {
       )}
 
       {!loading && slots && slots.length > 0 && (
+        <>
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {slots.map((s) => (
+          {slots.slice(0, visibleCount).map((s) => (
             <Card key={s.id} className="p-4">
               <div className="flex items-start justify-between gap-2">
                 <p className="font-medium text-slate-800">{s.day_of_week}</p>
@@ -70,6 +76,10 @@ export default function LecturerTimetablePage() {
             </Card>
           ))}
         </div>
+        {visibleCount < slots.length && (
+          <ShowMoreButton onClick={() => setVisibleCount((v) => v + SHOW_STEP)} />
+        )}
+        </>
       )}
     </div>
   );

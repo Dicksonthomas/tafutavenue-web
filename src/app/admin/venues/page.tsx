@@ -6,9 +6,12 @@ import { Plus, Trash2, X, DoorOpen, UploadCloud, Link2, Pencil, Search } from "l
 import { api, apiErrorMessage } from "@/lib/api";
 import { BookingPurpose, Level, Semester, Venue, VenueStatus, VenueType } from "@/lib/types";
 import { Card, EmptyState, PageHeader, Spinner, VenueStatusBadge } from "@/components/ui";
+import ShowMoreButton from "@/components/ShowMoreButton";
 import { useDebouncedValue } from "@/lib/useDebounce";
 import { useReferenceData } from "@/lib/referenceData";
 import { confirmAction } from "@/lib/confirm";
+
+const SHOW_STEP = 9;
 
 const TYPES: VenueType[] = ["lecture_hall", "laboratory", "seminar_room", "hall", "other"];
 const STATUSES: VenueStatus[] = ["available", "maintenance", "disabled"];
@@ -40,6 +43,7 @@ export default function AdminVenuesPage() {
   const [showLinkImport, setShowLinkImport] = useState(false);
   const [showClearTimetable, setShowClearTimetable] = useState(false);
   const [editingVenue, setEditingVenue] = useState<Venue | null>(null);
+  const [visibleCount, setVisibleCount] = useState(SHOW_STEP);
   const debouncedQ = useDebouncedValue(q, 300);
 
   async function load(query = debouncedQ, campus = campusFilter) {
@@ -49,6 +53,7 @@ export default function AdminVenuesPage() {
     if (campus) params.campus = campus;
     const { data } = await api.get("/admin/venues", { params });
     setVenues(data.data ?? data);
+    setVisibleCount(SHOW_STEP);
     setLoading(false);
   }
 
@@ -194,8 +199,9 @@ export default function AdminVenuesPage() {
       ) : venues.length === 0 ? (
         <EmptyState icon={DoorOpen} title="No venue yet" description="Click 'Add Venue' to get started." />
       ) : (
+        <>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {venues.map((v) => (
+          {venues.slice(0, visibleCount).map((v) => (
             <Card key={v.id} className="p-5">
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
@@ -246,6 +252,10 @@ export default function AdminVenuesPage() {
             </Card>
           ))}
         </div>
+        {visibleCount < venues.length && (
+          <ShowMoreButton onClick={() => setVisibleCount((v) => v + SHOW_STEP)} />
+        )}
+        </>
       )}
     </div>
   );

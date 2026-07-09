@@ -5,7 +5,10 @@ import { CalendarClock, BookOpen, Search, User2 } from "lucide-react";
 import { api, apiErrorMessage } from "@/lib/api";
 import { Booking, TimetableSlot } from "@/lib/types";
 import { Card, EmptyState, PageHeader, PurposeBadge, Spinner, StatusBadge } from "@/components/ui";
+import ShowMoreButton from "@/components/ShowMoreButton";
 import { useMidnightRefresh } from "@/lib/useMidnightRefresh";
+
+const SHOW_STEP = 9;
 
 function todayIso() {
   return new Date().toISOString().slice(0, 10);
@@ -19,6 +22,8 @@ export default function BookedVenuesPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [q, setQ] = useState("");
+  const [visibleTimetable, setVisibleTimetable] = useState(SHOW_STEP);
+  const [visibleBookings, setVisibleBookings] = useState(SHOW_STEP);
   const isAutoDateRef = useRef(true);
 
   useMidnightRefresh(() => {
@@ -48,6 +53,8 @@ export default function BookedVenuesPage() {
       setTimetable(data.timetable);
       setBookings(data.bookings);
       setDayOfWeek(data.day_of_week);
+      setVisibleTimetable(SHOW_STEP);
+      setVisibleBookings(SHOW_STEP);
     } catch (err) {
       setError(apiErrorMessage(err));
     } finally {
@@ -96,7 +103,7 @@ export default function BookedVenuesPage() {
                 <Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
                   value={q}
-                  onChange={(e) => setQ(e.target.value)}
+                  onChange={(e) => { setQ(e.target.value); setVisibleTimetable(SHOW_STEP); }}
                   placeholder="Search by venue, course, lecturer or program... (live search)"
                   className="w-full rounded-lg border border-slate-300 py-2 pl-9 pr-3 text-sm focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500"
                 />
@@ -108,8 +115,9 @@ export default function BookedVenuesPage() {
             ) : filteredTimetable && filteredTimetable.length === 0 ? (
               <EmptyState icon={Search} title="Nothing matched your search" description="Try another term." />
             ) : (
+              <>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                {filteredTimetable?.map((t) => (
+                {filteredTimetable?.slice(0, visibleTimetable).map((t) => (
                   <Card key={t.id} className="p-4">
                     <div className="flex items-start justify-between gap-2">
                       <p className="font-medium text-slate-800">{t.venue?.name}</p>
@@ -126,6 +134,10 @@ export default function BookedVenuesPage() {
                   </Card>
                 ))}
               </div>
+              {filteredTimetable && visibleTimetable < filteredTimetable.length && (
+                <ShowMoreButton onClick={() => setVisibleTimetable((v) => v + SHOW_STEP)} />
+              )}
+              </>
             )}
           </section>
 
@@ -136,8 +148,9 @@ export default function BookedVenuesPage() {
             {bookings.length === 0 ? (
               <EmptyState icon={CalendarClock} title="No booking on this day" />
             ) : (
+              <>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                {bookings.map((b) => (
+                {bookings.slice(0, visibleBookings).map((b) => (
                   <Card key={b.id} className="p-4">
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0">
@@ -154,6 +167,10 @@ export default function BookedVenuesPage() {
                   </Card>
                 ))}
               </div>
+              {visibleBookings < bookings.length && (
+                <ShowMoreButton onClick={() => setVisibleBookings((v) => v + SHOW_STEP)} />
+              )}
+              </>
             )}
           </section>
         </div>

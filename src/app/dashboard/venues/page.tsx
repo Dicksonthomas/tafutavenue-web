@@ -6,9 +6,12 @@ import { api } from "@/lib/api";
 import { Semester, Venue } from "@/lib/types";
 import { Card, EmptyState, PageHeader, Spinner, VenueStatusBadge } from "@/components/ui";
 import BookingModal from "@/components/BookingModal";
+import ShowMoreButton from "@/components/ShowMoreButton";
 import { useDebouncedValue } from "@/lib/useDebounce";
 import { useAuth } from "@/lib/auth";
 import { useReferenceData } from "@/lib/referenceData";
+
+const SHOW_STEP = 9;
 
 function todayIso() {
   return new Date().toISOString().slice(0, 10);
@@ -36,6 +39,7 @@ export default function AllVenuesPage() {
   const [freeMode, setFreeMode] = useState(false);
   const [bookingVenue, setBookingVenue] = useState<Venue | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
+  const [visibleCount, setVisibleCount] = useState(SHOW_STEP);
   const debouncedQ = useDebouncedValue(q, 300);
 
   const isFreeQuery = debouncedQ.trim().toLowerCase() === "free";
@@ -43,6 +47,7 @@ export default function AllVenuesPage() {
   useEffect(() => {
     setLoading(true);
     setSuccessMsg(null);
+    setVisibleCount(SHOW_STEP);
 
     if (isFreeQuery) {
       setFreeMode(true);
@@ -98,8 +103,9 @@ export default function AllVenuesPage() {
       ) : venues.length === 0 ? (
         <EmptyState icon={DoorOpen} title="No venue found" description="Try another name or number." />
       ) : (
+        <>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {venues.map((v) => (
+          {venues.slice(0, visibleCount).map((v) => (
             <Card
               key={v.id}
               onClick={() => setBookingVenue(v)}
@@ -140,6 +146,10 @@ export default function AllVenuesPage() {
             </Card>
           ))}
         </div>
+        {visibleCount < venues.length && (
+          <ShowMoreButton onClick={() => setVisibleCount((v) => v + SHOW_STEP)} />
+        )}
+        </>
       )}
 
       {bookingVenue && (
