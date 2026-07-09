@@ -141,7 +141,6 @@ function AnnouncementsManager({ refreshKey }: { refreshKey: number }) {
                     <td className="px-4 py-3">
                       <p className="font-medium text-slate-800">{a.title}</p>
                       <p className="mt-0.5 max-w-xs truncate text-xs text-slate-500">{a.body}</p>
-                      {a.admin?.name && <p className="mt-0.5 text-xs text-slate-400">by {a.admin.name}</p>}
                     </td>
                     <td className="px-4 py-3 text-xs text-slate-500">{formatRelativeTime(a.created_at)}</td>
                     <td className="px-4 py-3 text-slate-600">{a.notifications_count ?? 0}</td>
