@@ -109,3 +109,15 @@ export interface Notification {
   updated_at: string;
   booking?: Booking | null;
 }
+
+export interface Announcement {
+  id: number;
+  admin_id: number;
+  title: string;
+  body: string;
+  created_at: string;
+  updated_at: string;
+  admin?: User | null;
+  notifications_count?: number;
+  read_count?: number;
+}

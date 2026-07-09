@@ -1,5 +1,5 @@
 import { api } from "./api";
-import { Notification, NotificationType, Role } from "./types";
+import { Announcement, Notification, NotificationType, Role } from "./types";
 
 export function notificationHref(role: Role): string {
   return role === "admin" ? "/admin/notifications" : "/dashboard/notifications";
@@ -61,5 +61,29 @@ export async function markNotificationRead(id: number): Promise<Notification> {
 
 export async function markAllNotificationsRead(): Promise<void> {
   await api.post("/notifications/read-all");
+  announceChange();
+}
+
+export interface PaginatedAnnouncements {
+  data: Announcement[];
+  current_page: number;
+  last_page: number;
+  total: number;
+  per_page: number;
+}
+
+export async function fetchMyAnnouncements(page = 1, perPage: string | number = 20): Promise<PaginatedAnnouncements> {
+  const { data } = await api.get("/admin/announcements", { params: { page, per_page: perPage } });
+  return data;
+}
+
+export async function updateAnnouncement(id: number, title: string, body: string): Promise<Announcement> {
+  const { data } = await api.put(`/admin/announcements/${id}`, { title, body });
+  announceChange();
+  return data;
+}
+
+export async function deleteAnnouncement(id: number): Promise<void> {
+  await api.delete(`/admin/announcements/${id}`);
   announceChange();
 }
