@@ -3,11 +3,14 @@
 import { useEffect, useState } from "react";
 import { CalendarClock, ClipboardList, PenLine } from "lucide-react";
 import SignaturePad from "@/components/SignaturePad";
+import EditBookingModal from "@/components/EditBookingModal";
 import { api, apiErrorMessage } from "@/lib/api";
 import { Booking } from "@/lib/types";
 import { Card, EmptyState, PageHeader, PurposeBadge, Spinner, StatusBadge } from "@/components/ui";
 import ShowMoreButton from "@/components/ShowMoreButton";
 import { confirmAction } from "@/lib/confirm";
+
+const EDITABLE_STATUSES = ["pending", "approved"];
 
 const SHOW_STEP = 9;
 
@@ -18,6 +21,7 @@ export default function MyBookingsPage() {
   const [perPage, setPerPage] = useState(SHOW_STEP);
   const [total, setTotal] = useState(0);
   const [signingId, setSigningId] = useState<number | null>(null);
+  const [editingBooking, setEditingBooking] = useState<Booking | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -122,6 +126,11 @@ export default function MyBookingsPage() {
               </div>
 
               <div className="mt-4 flex gap-2">
+                {EDITABLE_STATUSES.includes(b.status) && (
+                  <button onClick={() => setEditingBooking(b)} className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50">
+                    Edit
+                  </button>
+                )}
                 {b.status === "pending" && (
                   <button onClick={() => cancelBooking(b.id)} className="rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-medium text-slate-600 hover:bg-slate-50">
                     Cancel Booking
@@ -150,6 +159,17 @@ export default function MyBookingsPage() {
 
       {!loading && bookings.length < total && (
         <ShowMoreButton onClick={showMore} loading={loadingMore} />
+      )}
+
+      {editingBooking && (
+        <EditBookingModal
+          booking={editingBooking}
+          onClose={() => setEditingBooking(null)}
+          onSuccess={() => {
+            setEditingBooking(null);
+            load();
+          }}
+        />
       )}
     </div>
   );

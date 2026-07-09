@@ -2,7 +2,7 @@
 
 import { Fragment, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Bell, CheckCircle2, Clock, Megaphone, XCircle } from "lucide-react";
+import { Bell, CheckCircle2, Clock, Megaphone, Pencil, XCircle } from "lucide-react";
 import { Notification, NotificationType } from "@/lib/types";
 import {
   NOTIFICATION_TYPE_LABELS,
@@ -25,6 +25,7 @@ const TYPE_ICON: Partial<Record<NotificationType, typeof Bell>> = {
   booking_approved: CheckCircle2,
   booking_rejected: XCircle,
   booking_pending: Clock,
+  booking_edited: Pencil,
   announcement: Megaphone,
 };
 
@@ -32,6 +33,7 @@ const TYPE_COLOR: Partial<Record<NotificationType, string>> = {
   booking_approved: "bg-emerald-50 text-emerald-600",
   booking_rejected: "bg-red-50 text-red-600",
   booking_pending: "bg-amber-50 text-amber-600",
+  booking_edited: "bg-sky-50 text-sky-600",
   announcement: "bg-brand-50 text-brand-700",
 };
 

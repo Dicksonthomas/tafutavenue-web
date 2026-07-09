@@ -95,7 +95,7 @@ export interface Booking {
   approver?: User | null;
 }
 
-export type NotificationType = "booking_approved" | "booking_rejected" | "booking_pending" | "announcement";
+export type NotificationType = "booking_approved" | "booking_rejected" | "booking_pending" | "booking_edited" | "announcement";
 
 export interface Notification {
   id: number;

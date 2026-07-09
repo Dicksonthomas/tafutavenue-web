@@ -9,6 +9,7 @@ export const NOTIFICATION_TYPE_LABELS: Record<NotificationType, string> = {
   booking_approved: "Booking Approved",
   booking_rejected: "Booking Rejected",
   booking_pending: "Booking Pending",
+  booking_edited: "Booking Edited",
   announcement: "Announcement",
 };
 

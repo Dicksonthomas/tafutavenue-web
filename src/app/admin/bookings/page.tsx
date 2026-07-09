@@ -2,14 +2,17 @@
 
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { Check, X, ClipboardCheck, Download, Info, Search, Trash2 } from "lucide-react";
+import { Check, X, ClipboardCheck, Download, Info, Pencil, Search, Trash2 } from "lucide-react";
 import { api, apiErrorMessage, blobErrorMessage } from "@/lib/api";
 import { Booking } from "@/lib/types";
 import { Card, EmptyState, PageHeader, PurposeBadge, Spinner, StatusBadge } from "@/components/ui";
 import PageSizeSelect from "@/components/PageSizeSelect";
 import Pagination from "@/components/Pagination";
+import AdminEditBookingModal from "@/components/AdminEditBookingModal";
 import { confirmAction } from "@/lib/confirm";
 import { useDebouncedValue } from "@/lib/useDebounce";
+
+const EDITABLE_STATUSES = ["pending", "approved"];
 
 interface PaginatedBookings {
   data: Booking[];
@@ -34,6 +37,7 @@ export default function AdminBookingsPage() {
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [deletingAll, setDeletingAll] = useState(false);
   const [viewingReason, setViewingReason] = useState<Booking | null>(null);
+  const [editingBooking, setEditingBooking] = useState<Booking | null>(null);
   const [q, setQ] = useState("");
   const debouncedQ = useDebouncedValue(q, 350);
   const [reportDate, setReportDate] = useState("");
@@ -277,6 +281,14 @@ export default function AdminBookingsPage() {
                             </button>
                           </>
                         )}
+                        {EDITABLE_STATUSES.includes(b.status) && (
+                          <button
+                            onClick={() => setEditingBooking(b)}
+                            className="flex items-center gap-1 rounded-lg border border-slate-300 px-2 py-1.5 text-xs text-slate-600 hover:bg-slate-50"
+                          >
+                            <Pencil size={12} /> Edit
+                          </button>
+                        )}
                         <button
                           onClick={() => deleteBooking(b)}
                           disabled={deletingId === b.id}
@@ -310,6 +322,17 @@ export default function AdminBookingsPage() {
 
       {result && (
         <Pagination page={result.current_page} lastPage={result.last_page} total={result.total} itemLabel="bookings" onPageChange={setPage} />
+      )}
+
+      {editingBooking && (
+        <AdminEditBookingModal
+          booking={editingBooking}
+          onClose={() => setEditingBooking(null)}
+          onSuccess={() => {
+            setEditingBooking(null);
+            load();
+          }}
+        />
       )}
 
       {viewingReason && (
