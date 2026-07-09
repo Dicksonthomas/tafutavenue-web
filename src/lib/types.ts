@@ -52,6 +52,7 @@ export interface Venue {
   restricted_department?: string | null;
   free_from?: string;
   free_until?: string;
+  occupied_until?: string | null;
 }
 
 export interface TimetableSlot {

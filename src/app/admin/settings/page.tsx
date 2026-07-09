@@ -17,6 +17,26 @@ import MyColorPreference from "@/components/MyColorPreference";
 
 const BRAND_DEFAULT_COLOR = "#da4e1f";
 
+/**
+ * "00:00" as an end time means midnight (end of day), not "no duration" -
+ * everywhere else in the system (BookingController, BookingModal) treats it
+ * the same way, so this mirrors that instead of introducing a 3rd meaning.
+ */
+function durationLabel(start: string, end: string): { label: string; invalid: boolean } {
+  if (!start || !end) return { label: "—", invalid: false };
+  const [sh, sm] = start.split(":").map(Number);
+  const [eh, em] = end.split(":").map(Number);
+  const startMin = sh * 60 + sm;
+  const endMin = end === "00:00" ? 24 * 60 : eh * 60 + em;
+  const diff = endMin - startMin;
+
+  if (diff <= 0) return { label: "End must be after start", invalid: true };
+
+  const hours = Math.floor(diff / 60);
+  const mins = diff % 60;
+  return { label: [hours > 0 ? `${hours}h` : "", mins > 0 ? `${mins}m` : ""].filter(Boolean).join(" ") || "0m", invalid: false };
+}
+
 export default function AdminSettingsPage() {
   const { user } = useAuth();
   const settings = useSettings();
@@ -95,10 +115,24 @@ export default function AdminSettingsPage() {
     setStudyUnitHours((prev) => ({ ...prev, [day]: { ...prev[day], [field]: value } }));
   }
 
+  const hoursValidation = useMemo(() => {
+    const result: Record<string, { label: string; invalid: boolean }> = {};
+    for (const day of WEEK_DAYS) {
+      result[day] = durationLabel(studyUnitHours[day]?.start ?? "19:00", studyUnitHours[day]?.end ?? "00:00");
+    }
+    return result;
+  }, [studyUnitHours]);
+
+  const hasInvalidDay = Object.values(hoursValidation).some((v) => v.invalid);
+
   async function saveHours(e: React.FormEvent) {
     e.preventDefault();
     setHoursError(null);
     setHoursSuccess(null);
+    if (hasInvalidDay) {
+      setHoursError("Fix the day(s) marked in red first - the end time must be after the start time.");
+      return;
+    }
     setSavingHours(true);
     try {
       const { data } = await api.post("/admin/settings", { study_unit_hours: studyUnitHours });
@@ -263,7 +297,9 @@ export default function AdminSettingsPage() {
       <Card className="p-6">
         <h2 className="mb-1 text-sm font-semibold text-slate-700">Study Unit Booking Hours</h2>
         <p className="mb-4 text-xs text-slate-500">
-          Set what time CRs are allowed to book a venue for a &quot;Study Unit&quot;, per day of the week. Use 00:00 for end time to mean midnight.
+          Per day of the week, set the window CRs are allowed to book a venue for &quot;Study Unit&quot;. <b>Start</b> is when the window opens
+          (e.g. <code>19:00</code>); <b>End</b> is when it closes - use <code>00:00</code> for &quot;until midnight&quot;. A CR's booking must both
+          start and finish inside this window, or it's rejected with the allowed hours shown to them.
         </p>
 
         {hoursError && <div className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{hoursError}</div>}
@@ -271,36 +307,41 @@ export default function AdminSettingsPage() {
 
         <form onSubmit={saveHours} className="space-y-3">
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[400px] text-left text-sm">
+            <table className="w-full min-w-[480px] text-left text-sm">
               <thead className="text-xs uppercase tracking-wide text-slate-500">
                 <tr>
                   <th className="py-2 pr-4">Day</th>
                   <th className="py-2 pr-4">Start</th>
-                  <th className="py-2">End</th>
+                  <th className="py-2 pr-4">End</th>
+                  <th className="py-2">Duration</th>
                 </tr>
               </thead>
               <tbody>
-                {WEEK_DAYS.map((day) => (
-                  <tr key={day} className="border-t border-slate-100">
-                    <td className="py-2 pr-4 font-medium text-slate-700">{day}</td>
-                    <td className="py-2 pr-4">
-                      <input
-                        type="time"
-                        value={studyUnitHours[day]?.start ?? "19:00"}
-                        onChange={(e) => updateDayHours(day, "start", e.target.value)}
-                        className="rounded-lg border border-slate-300 px-2 py-1.5 text-sm focus:border-accent-500 focus:outline-none"
-                      />
-                    </td>
-                    <td className="py-2">
-                      <input
-                        type="time"
-                        value={studyUnitHours[day]?.end ?? "00:00"}
-                        onChange={(e) => updateDayHours(day, "end", e.target.value)}
-                        className="rounded-lg border border-slate-300 px-2 py-1.5 text-sm focus:border-accent-500 focus:outline-none"
-                      />
-                    </td>
-                  </tr>
-                ))}
+                {WEEK_DAYS.map((day) => {
+                  const { label, invalid } = hoursValidation[day];
+                  return (
+                    <tr key={day} className={`border-t border-slate-100 ${invalid ? "bg-red-50/60" : ""}`}>
+                      <td className="py-2 pr-4 font-medium text-slate-700">{day}</td>
+                      <td className="py-2 pr-4">
+                        <input
+                          type="time"
+                          value={studyUnitHours[day]?.start ?? "19:00"}
+                          onChange={(e) => updateDayHours(day, "start", e.target.value)}
+                          className={`rounded-lg border px-2 py-1.5 text-sm focus:outline-none ${invalid ? "border-red-300 focus:border-red-500" : "border-slate-300 focus:border-accent-500"}`}
+                        />
+                      </td>
+                      <td className="py-2 pr-4">
+                        <input
+                          type="time"
+                          value={studyUnitHours[day]?.end ?? "00:00"}
+                          onChange={(e) => updateDayHours(day, "end", e.target.value)}
+                          className={`rounded-lg border px-2 py-1.5 text-sm focus:outline-none ${invalid ? "border-red-300 focus:border-red-500" : "border-slate-300 focus:border-accent-500"}`}
+                        />
+                      </td>
+                      <td className={`py-2 text-xs ${invalid ? "font-medium text-red-600" : "text-slate-500"}`}>{label}</td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
@@ -309,7 +350,7 @@ export default function AdminSettingsPage() {
             <button type="button" onClick={resetHours} className="flex items-center gap-1 rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50">
               <RotateCcw size={14} /> Reset to Default
             </button>
-            <button disabled={savingHours} className="rounded-lg bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50">
+            <button disabled={savingHours || hasInvalidDay} className="rounded-lg bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50">
               {savingHours ? "Saving..." : "Save Hours"}
             </button>
           </div>

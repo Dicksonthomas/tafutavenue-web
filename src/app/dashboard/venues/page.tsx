@@ -29,6 +29,13 @@ function to12h(time: string): string {
   return `${String(h).padStart(2, "0")}:${m} ${suffix}`;
 }
 
+function minutesUntil(hhmm: string): number {
+  const now = new Date();
+  const [h, m] = hhmm.split(":").map(Number);
+  const target = new Date(now.getFullYear(), now.getMonth(), now.getDate(), h, m, 0, 0);
+  return Math.max(0, Math.round((target.getTime() - now.getTime()) / 60000));
+}
+
 export default function AllVenuesPage() {
   const { user } = useAuth();
   const { campuses } = useReferenceData();
@@ -43,6 +50,14 @@ export default function AllVenuesPage() {
   const debouncedQ = useDebouncedValue(q, 300);
 
   const isFreeQuery = debouncedQ.trim().toLowerCase() === "free";
+
+  // Forces a re-render every minute so "Occupied until HH:MM (~N min left)"
+  // counts down without needing to refetch from the server.
+  const [, setTick] = useState(0);
+  useEffect(() => {
+    const id = setInterval(() => setTick((t) => t + 1), 60000);
+    return () => clearInterval(id);
+  }, []);
 
   useEffect(() => {
     setLoading(true);
@@ -127,6 +142,12 @@ export default function AllVenuesPage() {
               {freeMode && v.free_from && v.free_until && (
                 <p className="mt-2 rounded-full bg-emerald-50 px-2.5 py-1 text-center text-xs font-medium text-emerald-700 ring-1 ring-inset ring-emerald-200">
                   Free {to12h(v.free_from)} – {to12h(v.free_until)}
+                </p>
+              )}
+
+              {!freeMode && v.occupied_until && (
+                <p className="mt-2 rounded-full bg-amber-50 px-2.5 py-1 text-center text-xs font-medium text-amber-700 ring-1 ring-inset ring-amber-200">
+                  Occupied until {to12h(v.occupied_until)} (~{minutesUntil(v.occupied_until)} min left)
                 </p>
               )}
 

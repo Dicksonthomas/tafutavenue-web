@@ -8,7 +8,13 @@ import { Card, EmptyState, PageHeader, PurposeBadge, Spinner, StatusBadge } from
 import BookingModal from "@/components/BookingModal";
 import { useAuth } from "@/lib/auth";
 import { useReferenceData } from "@/lib/referenceData";
+import { useSettings } from "@/lib/settings";
 import { useMidnightRefresh } from "@/lib/useMidnightRefresh";
+
+function dayNameFor(dateStr: string): string {
+  const d = dateStr ? new Date(`${dateStr}T00:00:00`) : new Date();
+  return d.toLocaleDateString("en-US", { weekday: "long" });
+}
 
 function to12h(time: string): string {
   const [hStr, m] = time.split(":");
@@ -21,6 +27,7 @@ function to12h(time: string): string {
 export default function DashboardPage() {
   const { user } = useAuth();
   const { campuses } = useReferenceData();
+  const settings = useSettings();
   const campusName = campuses.find((c) => c.value === user?.campus)?.label ?? user?.campus;
   const [semesters, setSemesters] = useState<Semester[]>([]);
   const [semesterId, setSemesterId] = useState<string>("");
@@ -42,6 +49,18 @@ export default function DashboardPage() {
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
   const [overview, setOverview] = useState<{ free_venues: number; busy_venues: number; total_venues: number; day_of_week: string } | null>(null);
+
+  // The "Evening - Study Unit" preset below fills the actual booking time
+  // (BookingModal isn't given a chance to adjust it once startTime/endTime
+  // are set here), so it has to track whatever the Admin configured for
+  // this weekday instead of a hardcoded guess - otherwise a CR could tap
+  // it and still get rejected for being outside the real window.
+  const studyUnitDay = dayNameFor(date);
+  const studyUnitWindow = settings.study_unit_hours?.[studyUnitDay];
+  const studyUnitStart = studyUnitWindow?.start ?? "19:00";
+  const studyUnitEndRaw = studyUnitWindow?.end ?? "00:00";
+  const studyUnitEndLabel = studyUnitEndRaw === "00:00" ? "Midnight" : studyUnitEndRaw;
+  const studyUnitSearchEnd = studyUnitEndRaw === "00:00" ? "23:59" : studyUnitEndRaw;
 
   function refreshOverview() {
     api.get("/venues/today-overview").then(({ data }) => setOverview(data));
@@ -152,10 +171,10 @@ export default function DashboardPage() {
               </button>
               <button
                 type="button"
-                onClick={() => applyPreset("18:00", "20:00")}
+                onClick={() => applyPreset(studyUnitStart, studyUnitSearchEnd)}
                 className="flex items-center gap-1.5 rounded-full border border-accent-200 bg-accent-50 px-3 py-1.5 text-xs font-medium text-accent-700 hover:bg-accent-100"
               >
-                <Moon size={14} /> Evening - Study Unit/Test (18:00–20:00)
+                <Moon size={14} /> Study Unit hours for {date ? studyUnitDay : "today"} ({studyUnitStart}–{studyUnitEndLabel})
               </button>
               <span className="flex items-center text-xs text-slate-400">or set your own time below (Saturday/Sunday allowed)</span>
             </div>

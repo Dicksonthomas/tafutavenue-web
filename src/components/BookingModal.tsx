@@ -28,6 +28,15 @@ function isWithinStudyUnitWindow(start: string, end: string, windowStart: string
   return start >= windowStart && (end === "00:00" || end > start);
 }
 
+const MAX_TEST_MINUTES = 60;
+
+function durationMinutes(start: string, end: string): number {
+  const effectiveEnd = end === "00:00" ? "23:59" : end;
+  const [sh, sm] = start.split(":").map(Number);
+  const [eh, em] = effectiveEnd.split(":").map(Number);
+  return eh * 60 + em - (sh * 60 + sm);
+}
+
 export default function BookingModal({
   venue,
   semesterId,
@@ -85,11 +94,16 @@ export default function BookingModal({
   const effectiveDate = date ?? internalDate;
   const dayHours = study_unit_hours?.[dayOfWeekFromDate(effectiveDate)] ?? { start: "19:00", end: "00:00" };
   const studyUnitViolation = purpose === "study_unit" && !isWithinStudyUnitWindow(effectiveStart, effectiveEnd, dayHours.start);
+  const testViolation = purpose === "test" && durationMinutes(effectiveStart, effectiveEnd) > MAX_TEST_MINUTES;
 
   async function handleSubmit() {
     if (!signature) return;
     if (studyUnitViolation) {
       setError(`Study Unit bookings are only allowed from ${dayHours.start} until ${dayHours.end === "00:00" ? "midnight" : dayHours.end}.`);
+      return;
+    }
+    if (testViolation) {
+      setError("A Test booking cannot be longer than 1 hour. Please shorten the time.");
       return;
     }
     setError(null);
@@ -182,6 +196,11 @@ export default function BookingModal({
                 Study Unit bookings are only allowed from {dayHours.start} until {dayHours.end === "00:00" ? "midnight" : dayHours.end}.
               </p>
             )}
+            {purpose === "test" && (
+              <p className={`mt-1 text-xs ${testViolation ? "text-red-600" : "text-slate-400"}`}>
+                Test bookings can be at most 1 hour (e.g. 17:00-18:00).
+              </p>
+            )}
           </div>
           <div>
             <label className="mb-1 block text-xs font-medium text-slate-600">Title/Subject (optional)</label>
@@ -225,7 +244,7 @@ export default function BookingModal({
             <button
               type="button"
               onClick={handleSubmit}
-              disabled={submitting || !signature || (needsReason && !reason.trim())}
+              disabled={submitting || !signature || (needsReason && !reason.trim()) || testViolation}
               className="flex-1 rounded-lg bg-accent-600 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50"
             >
               {submitting ? "Submitting..." : "Confirm Booking"}
