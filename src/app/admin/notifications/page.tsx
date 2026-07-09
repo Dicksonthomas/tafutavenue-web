@@ -6,6 +6,7 @@ import { api, apiErrorMessage } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { useReferenceData } from "@/lib/referenceData";
 import { PageHeader } from "@/components/ui";
+import Combobox from "@/components/Combobox";
 import NotificationsTable from "@/components/NotificationsTable";
 
 export default function AdminNotificationsPage() {
@@ -65,12 +66,13 @@ function NewAnnouncementModal({ onClose, onSent }: { onClose: () => void; onSent
   const effectiveCampus = isSuperAdmin ? campus : user?.campus;
   const { campuses, faculties, departmentsByFaculty, programs, levelYears } = useReferenceData(effectiveCampus || undefined);
 
-  const departmentOptions = useMemo(() => {
-    if (faculty) return departmentsByFaculty[faculty] ?? [];
-    const set = new Set<string>();
-    Object.values(departmentsByFaculty).forEach((list) => list.forEach((d) => set.add(d)));
-    return Array.from(set).sort();
-  }, [departmentsByFaculty, faculty]);
+  // Union of all departments (not filtered to the typed faculty) - same
+  // choice made in EducationFields, since faculty is free text here too and
+  // an exact-match filter often produced an empty list.
+  const departmentOptions = useMemo(
+    () => Array.from(new Set(Object.values(departmentsByFaculty).flat())).sort(),
+    [departmentsByFaculty]
+  );
 
   const levelOptions = Object.keys(levelYears);
   const maxYear = level ? levelYears[level] ?? 4 : 4;
@@ -162,36 +164,32 @@ function NewAnnouncementModal({ onClose, onSent }: { onClose: () => void; onSent
               )}
 
               <p className="mb-2 text-xs text-slate-500">
-                Leave the fields below as &quot;Any&quot; to reach everyone in that campus, or narrow it down to a specific group.
+                Leave a field blank to reach everyone in that campus. Choose from the list or type your own if it's not listed.
               </p>
 
               <div className="grid grid-cols-2 gap-2">
-                <select
+                <Combobox
                   value={faculty}
-                  onChange={(e) => { setFaculty(e.target.value); setDepartment(""); }}
-                  className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none"
-                >
-                  <option value="">Any Faculty</option>
-                  {faculties.map((f) => <option key={f.value} value={f.value}>{f.label}</option>)}
-                </select>
+                  onChange={setFaculty}
+                  options={faculties.map((f) => f.value)}
+                  placeholder="Any Faculty"
+                />
 
-                <select
+                <Combobox
                   value={department}
-                  onChange={(e) => setDepartment(e.target.value)}
-                  className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none"
-                >
-                  <option value="">Any Department</option>
-                  {departmentOptions.map((d) => <option key={d} value={d}>{d}</option>)}
-                </select>
+                  onChange={setDepartment}
+                  options={departmentOptions}
+                  placeholder="Any Department"
+                />
 
-                <select
-                  value={program}
-                  onChange={(e) => setProgram(e.target.value)}
-                  className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none"
-                >
-                  <option value="">Any Program</option>
-                  {programs.map((p) => <option key={p} value={p}>{p}</option>)}
-                </select>
+                <div className="col-span-2">
+                  <Combobox
+                    value={program}
+                    onChange={setProgram}
+                    options={programs}
+                    placeholder="Any Program"
+                  />
+                </div>
 
                 <select
                   value={level}
@@ -205,7 +203,7 @@ function NewAnnouncementModal({ onClose, onSent }: { onClose: () => void; onSent
                 <select
                   value={yearOfStudy}
                   onChange={(e) => setYearOfStudy(e.target.value)}
-                  className="col-span-2 rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none"
+                  className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none"
                 >
                   <option value="">Any Year of Study</option>
                   {yearOptions.map((y) => <option key={y} value={y}>Year {y}</option>)}
