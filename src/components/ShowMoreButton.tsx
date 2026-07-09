@@ -16,7 +16,7 @@ export default function ShowMoreButton({
   }
 
   return (
-    <div className="mt-5 flex flex-col items-center gap-3">
+    <div className="relative mt-5 flex justify-center">
       <button
         onClick={onClick}
         disabled={loading}
@@ -27,9 +27,11 @@ export default function ShowMoreButton({
       <button
         type="button"
         onClick={backToTop}
-        className="flex items-center gap-1 text-xs font-medium text-accent-600 hover:text-accent-700"
+        aria-label="Back to Top"
+        title="Back to Top"
+        className="absolute right-0 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-full border border-slate-300 text-slate-500 hover:bg-slate-50"
       >
-        <ChevronUp size={14} /> Back to Top
+        <ChevronUp size={16} />
       </button>
     </div>
   );
