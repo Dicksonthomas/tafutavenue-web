@@ -80,7 +80,7 @@ export default function TopBar({
         willChange: "transform",
       }}
     >
-      <button onClick={onMenuClick} className="text-slate-600 md:hidden">
+      <button onClick={onMenuClick} className="text-slate-600 lg:hidden">
         <Menu size={22} />
       </button>
 

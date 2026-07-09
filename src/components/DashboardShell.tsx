@@ -80,14 +80,14 @@ export default function DashboardShell({
               </div>
             )}
           </div>
-          <button onClick={() => setMobileOpen(false)} className="ml-auto text-brand-200 md:hidden">
+          <button onClick={() => setMobileOpen(false)} className="ml-auto text-brand-200 lg:hidden">
             <X size={20} />
           </button>
           {isCollapsible && (
             <button
               onClick={toggleCollapsed}
               title={isCollapsed ? "Expand menu" : "Collapse menu"}
-              className={`hidden text-brand-200 hover:text-white md:block ${isCollapsed ? "" : "ml-auto"}`}
+              className={`hidden text-brand-200 hover:text-white lg:block ${isCollapsed ? "" : "ml-auto"}`}
             >
               <Menu size={18} />
             </button>
@@ -132,16 +132,18 @@ export default function DashboardShell({
 
   return (
     <div className="flex min-h-screen bg-slate-50">
-      {/* Desktop sidebar */}
-      <aside className={`hidden shrink-0 bg-brand-800 transition-all duration-200 md:block ${collapsed ? "w-16" : "w-64"}`}>
+      {/* Permanent sidebar - from `lg` up, so tablets (which land in the
+          `md`-`lg` range) still get the phone-style bottom nav + drawer
+          below instead of a cramped permanent sidebar. */}
+      <aside className={`hidden shrink-0 bg-brand-800 transition-all duration-200 lg:block ${collapsed ? "w-16" : "w-64"}`}>
         {renderSidebar(true)}
       </aside>
 
-      {/* Mobile drawer - always shows the full (uncollapsed) sidebar, since
-          it's an overlay the user explicitly opened and closes with the X
-          above, independent of the desktop collapse preference. */}
+      {/* Mobile/tablet drawer - always shows the full (uncollapsed) sidebar,
+          since it's an overlay the user explicitly opened and closes with
+          the X above, independent of the desktop collapse preference. */}
       {mobileOpen && (
-        <div className="fixed inset-0 z-40 md:hidden">
+        <div className="fixed inset-0 z-40 lg:hidden">
           <div className="absolute inset-0 bg-black/40" onClick={() => setMobileOpen(false)} />
           <aside className="absolute left-0 top-0 h-full w-64 bg-brand-800 shadow-xl">{renderSidebar(false)}</aside>
         </div>
@@ -155,8 +157,8 @@ export default function DashboardShell({
         />
         <OfflineBanner />
 
-        <main className="flex-1 px-4 py-6 pb-20 sm:px-6 lg:px-8 md:pb-6">{children}</main>
-        <div className="hidden md:block"><Footer /></div>
+        <main className="flex-1 px-4 py-6 pb-20 sm:px-6 lg:px-8 lg:pb-6">{children}</main>
+        <div className="hidden lg:block"><Footer /></div>
         <BottomNav
           navItems={mobileNavItems ?? navItems.slice(0, 4)}
           allNavItems={navItems}

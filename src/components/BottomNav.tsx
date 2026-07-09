@@ -21,7 +21,7 @@ export default function BottomNav({
 
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-30 flex border-t border-slate-200 bg-white md:hidden"
+      className="fixed inset-x-0 bottom-0 z-30 flex border-t border-slate-200 bg-white lg:hidden"
       style={{
         paddingBottom: "env(safe-area-inset-bottom)",
         // Forces its own compositing layer so it stays pinned to the
