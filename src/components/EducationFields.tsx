@@ -23,10 +23,17 @@ export default function EducationFields({
 }) {
   const { faculties, departmentsByFaculty, programs, levelYears } = useReferenceData(campus);
 
-  // Show all departments (not just those for the typed faculty) - since
-  // Faculty is now free-text, restricting departments to an exact faculty
-  // match often produced an empty list (a bad selection experience).
-  const departmentOptions = Array.from(new Set(Object.values(departmentsByFaculty).flat())).sort();
+  // Faculty is free-text, so match it case-insensitively against a known
+  // faculty key (e.g. typing "fst" or "Fst" should still scope to "FST").
+  // If it doesn't match anything known yet (mid-typing, or a genuinely new
+  // faculty), fall back to every department across all faculties rather
+  // than showing an empty list.
+  const matchedFacultyKey = Object.keys(departmentsByFaculty).find(
+    (key) => key.toLowerCase() === value.faculty.trim().toLowerCase()
+  );
+  const departmentOptions = matchedFacultyKey
+    ? departmentsByFaculty[matchedFacultyKey]
+    : Array.from(new Set(Object.values(departmentsByFaculty).flat())).sort();
   const maxYears = levelYears[value.level] ?? 3;
   const yearOptions = Array.from({ length: maxYears }, (_, i) => i + 1);
 
