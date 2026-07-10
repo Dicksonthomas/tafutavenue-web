@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
-import { ClipboardList, DoorOpen, TrendingUp, GraduationCap, UserRound, MapPin } from "lucide-react";
+import { CheckCircle2, ClipboardList, DoorOpen, TrendingUp, GraduationCap, UserRound, MapPin } from "lucide-react";
 import { api } from "@/lib/api";
 import { useReferenceData } from "@/lib/referenceData";
 import { Card, PageHeader, Spinner } from "@/components/ui";
@@ -18,6 +18,9 @@ interface Summary {
   crs_by_campus: Record<string, number>;
   male_crs: number;
   female_crs: number;
+  free_venues_today: number;
+  free_venues_by_campus: Record<string, number>;
+  day_of_week: string;
 }
 
 const RANGES: { value: string; label: string }[] = [
@@ -60,8 +63,22 @@ export default function AdminHomePage() {
       <div className="mb-6 grid grid-cols-2 gap-4 sm:grid-cols-4">
         <StatCard icon={ClipboardList} label="Total Bookings" value={summary.total_bookings} href="/admin/bookings" />
         <StatCard icon={DoorOpen} label="Venues" value={summary.total_venues} href="/admin/venues" />
+        <StatCard icon={CheckCircle2} label={`Free Today (${summary.day_of_week})`} value={summary.free_venues_today} href="/admin/venues" />
         {Object.entries(summary.by_status).map(([status, count]) => (
           <StatCard key={status} icon={TrendingUp} label={status} value={count} href={`/admin/bookings?status=${status}`} />
+        ))}
+      </div>
+
+      <h2 className="mb-3 text-sm font-semibold text-slate-700">Free Venues by Campus (Today)</h2>
+      <div className="mb-8 grid grid-cols-2 gap-4 sm:grid-cols-4">
+        {campuses.map((c) => (
+          <StatCard
+            key={c.value}
+            icon={CheckCircle2}
+            label={c.label}
+            value={summary.free_venues_by_campus[c.value] ?? 0}
+            href={`/admin/venues?campus=${c.value}`}
+          />
         ))}
       </div>
 
