@@ -3,7 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Building2 } from "lucide-react";
+import { Building2, Check, Copy } from "lucide-react";
 import { api, apiErrorMessage } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { useSettings } from "@/lib/settings";
@@ -71,6 +71,8 @@ export default function RegisterPage() {
   });
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [credentials, setCredentials] = useState<{ email: string; password: string } | null>(null);
+  const [copied, setCopied] = useState(false);
 
   const preview = useMemo(() => previewEmail(name, regNo), [name, regNo]);
 
@@ -83,12 +85,69 @@ export default function RegisterPage() {
       localStorage.setItem("token", data.token);
       setUser(data.user);
       refreshSettings();
-      router.push("/dashboard");
+      // Shown once, right here - not emailed - so save-and-continue below
+      // is the only way to see this password again.
+      setCredentials({ email: data.user.email, password: data.password });
     } catch (err) {
       setError(apiErrorMessage(err));
     } finally {
       setSubmitting(false);
     }
+  }
+
+  function copyPassword() {
+    if (!credentials) return;
+    navigator.clipboard.writeText(credentials.password);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }
+
+  if (credentials) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4 py-10">
+        <div className="w-full max-w-md">
+          <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+            <h1 className="text-lg font-semibold text-slate-900">Account Created</h1>
+            <p className="mt-1 text-sm text-slate-500">
+              Save your login details below - you will need the password to sign in again later. It is shown only this once.
+            </p>
+
+            <div className="mt-4 space-y-3">
+              <div>
+                <label className="mb-1 block text-xs font-medium text-slate-500">Email</label>
+                <div className="rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 text-sm text-slate-800">
+                  {credentials.email}
+                </div>
+              </div>
+              <div>
+                <label className="mb-1 block text-xs font-medium text-slate-500">Password</label>
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 rounded-lg border border-slate-300 bg-slate-50 px-3 py-2 font-mono text-sm text-slate-800">
+                    {credentials.password}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={copyPassword}
+                    className="flex items-center gap-1 rounded-lg border border-slate-300 px-3 py-2 text-xs font-medium text-slate-600 hover:bg-slate-50"
+                  >
+                    {copied ? <Check size={14} /> : <Copy size={14} />}
+                    {copied ? "Copied" : "Copy"}
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => router.push("/dashboard")}
+              className="mt-6 w-full rounded-lg bg-accent-600 py-2 text-sm font-medium text-white hover:bg-accent-700"
+            >
+              I&apos;ve Saved It - Continue to Dashboard
+            </button>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -155,7 +214,7 @@ export default function RegisterPage() {
                 </p>
               )}
               <p className="mt-1 text-xs text-slate-400">
-                Your email and password will be generated automatically and sent to that email.
+                Your email and password will be generated automatically and shown to you after registering.
               </p>
             </div>
 
