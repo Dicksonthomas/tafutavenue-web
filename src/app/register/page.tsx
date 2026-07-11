@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { Check, Copy } from "lucide-react";
 import { api, apiErrorMessage } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
-import { useSettings } from "@/lib/settings";
+import { useSettings, getReadableTextColor, DEFAULT_LOGIN_BACKGROUND_COLOR } from "@/lib/settings";
 
 import { Level } from "@/lib/types";
 import EducationFields, { EducationValue } from "@/components/EducationFields";
@@ -58,12 +58,19 @@ export default function RegisterPage() {
   const { setUser } = useAuth();
   const {
     logo_url,
+    app_name,
+    support_phone,
+    footer_text,
+    footer_link,
+    login_background_color,
     loading: settingsLoading,
     refresh: refreshSettings,
     cr_registration_closed_campuses,
     cr_registration_windows,
     staff_registration_windows,
   } = useSettings();
+  const loginBg = login_background_color || DEFAULT_LOGIN_BACKGROUND_COLOR;
+  const loginText = getReadableTextColor(loginBg);
   const { campuses } = useReferenceData();
   const now = new Date();
   const outsideWindow = (windows: Record<string, { open_from: string | null; open_until: string | null }>, c: string) => {
@@ -155,9 +162,34 @@ export default function RegisterPage() {
     setTimeout(() => setCopied(false), 2000);
   }
 
+  const footerMessage = (
+    <div className="mt-6 w-full max-w-md">
+      <p className="text-center text-xs" style={{ color: loginText, opacity: 0.85 }}>
+        {app_name || "University Venue Booking System"}
+      </p>
+      {support_phone && (
+        <p className="mt-1 text-center text-xs" style={{ color: loginText, opacity: 0.7 }}>
+          Need help? Call {support_phone}
+        </p>
+      )}
+      <p className="mt-1 text-center text-xs" style={{ color: loginText, opacity: 0.7 }}>
+        From{" "}
+        <a
+          href={footer_link || "https://dtech.co.tz/"}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ color: loginText }}
+          className="font-medium underline opacity-100 hover:opacity-80"
+        >
+          {footer_text || "DTECH INNOVATIONS"}
+        </a>
+      </p>
+    </div>
+  );
+
   if (bothFullyClosed) {
     return (
-      <div className="flex min-h-dvh items-center justify-center bg-slate-50 px-4 py-10">
+      <div className="flex min-h-dvh flex-col items-center justify-center px-4 py-10" style={{ backgroundColor: loginBg }}>
         <div className="w-full max-w-md">
           <div className="rounded-xl border border-slate-200 bg-white p-6 text-center shadow-sm">
             {settingsLoading ? (
@@ -177,13 +209,14 @@ export default function RegisterPage() {
             </Link>
           </div>
         </div>
+        {footerMessage}
       </div>
     );
   }
 
   if (credentials) {
     return (
-      <div className="flex min-h-dvh items-center justify-center bg-slate-50 px-4 py-10">
+      <div className="flex min-h-dvh flex-col items-center justify-center px-4 py-10" style={{ backgroundColor: loginBg }}>
         <div className="w-full max-w-md">
           <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
             <h1 className="text-lg font-semibold text-slate-900">
@@ -229,12 +262,13 @@ export default function RegisterPage() {
             </button>
           </div>
         </div>
+        {footerMessage}
       </div>
     );
   }
 
   return (
-    <div className="flex min-h-dvh items-center justify-center bg-slate-50 px-4 py-10">
+    <div className="flex min-h-dvh flex-col items-center justify-center px-4 py-10" style={{ backgroundColor: loginBg }}>
       <div className="w-full max-w-lg">
         <div className="mb-6 flex flex-col items-center text-center">
           {settingsLoading ? (
@@ -435,6 +469,7 @@ export default function RegisterPage() {
           </Link>
         </p>
       </div>
+      {footerMessage}
     </div>
   );
 }
