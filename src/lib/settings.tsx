@@ -7,7 +7,7 @@ export interface StudyUnitHours {
   [day: string]: { start: string; end: string };
 }
 
-export interface StaffRegistrationWindow {
+export interface RegistrationWindow {
   open_from: string | null;
   open_until: string | null;
 }
@@ -23,7 +23,8 @@ interface AppSettings {
   login_background_color: string | null;
   study_unit_hours: StudyUnitHours | null;
   cr_registration_closed_campuses: string[];
-  staff_registration_windows: Record<string, StaffRegistrationWindow>;
+  cr_registration_windows: Record<string, RegistrationWindow>;
+  staff_registration_windows: Record<string, RegistrationWindow>;
   marquee_enabled: boolean;
   marquee_until: string | null;
   maintenance_mode: boolean;
@@ -50,6 +51,7 @@ const SettingsContext = createContext<SettingsContextValue>({
   login_background_color: null,
   study_unit_hours: null,
   cr_registration_closed_campuses: [],
+  cr_registration_windows: {},
   staff_registration_windows: {},
   marquee_enabled: true,
   marquee_until: null,
@@ -210,6 +212,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     login_background_color: null,
     study_unit_hours: null,
     cr_registration_closed_campuses: [],
+    cr_registration_windows: {},
     staff_registration_windows: {},
     marquee_enabled: true,
     marquee_until: null,

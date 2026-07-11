@@ -11,6 +11,7 @@ import {
   WEEK_DAYS,
   defaultStudyUnitHours,
   StudyUnitHours,
+  RegistrationWindow,
 } from "@/lib/settings";
 import { Card, PageHeader } from "@/components/ui";
 import MyColorPreference from "@/components/MyColorPreference";
@@ -36,6 +37,91 @@ function durationLabel(start: string, end: string): { label: string; invalid: bo
   const hours = Math.floor(diff / 60);
   const mins = diff % 60;
   return { label: [hours > 0 ? `${hours}h` : "", mins > 0 ? `${mins}m` : ""].filter(Boolean).join(" ") || "0m", invalid: false };
+}
+
+/**
+ * Per-campus [open_from, open_until] datetime editor, shared by CR and
+ * Staff registration windows. The "apply to all campuses" row lets an Admin
+ * fill every campus at once instead of one by one, then still adjust any
+ * single campus afterward.
+ */
+function RegistrationWindowsEditor({
+  campuses,
+  windows,
+  onChange,
+}: {
+  campuses: { value: string; label: string }[];
+  windows: Record<string, { open_from: string; open_until: string }>;
+  onChange: (campus: string, field: "open_from" | "open_until", value: string) => void;
+}) {
+  const [bulkFrom, setBulkFrom] = useState("");
+  const [bulkUntil, setBulkUntil] = useState("");
+
+  function applyToAll() {
+    campuses.forEach((c) => {
+      onChange(c.value, "open_from", bulkFrom);
+      onChange(c.value, "open_until", bulkUntil);
+    });
+  }
+
+  return (
+    <div className="space-y-3">
+      {campuses.length > 1 && (
+        <div className="flex flex-wrap items-end gap-3 rounded-lg bg-slate-50 p-3">
+          <div>
+            <label className="mb-1 block text-xs font-medium text-slate-500">Set for ALL campuses: from</label>
+            <input
+              type="datetime-local"
+              value={bulkFrom}
+              onChange={(e) => setBulkFrom(e.target.value)}
+              className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none"
+            />
+          </div>
+          <div>
+            <label className="mb-1 block text-xs font-medium text-slate-500">until</label>
+            <input
+              type="datetime-local"
+              value={bulkUntil}
+              onChange={(e) => setBulkUntil(e.target.value)}
+              className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none"
+            />
+          </div>
+          <button
+            type="button"
+            onClick={applyToAll}
+            className="rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50"
+          >
+            Apply to all campuses below
+          </button>
+        </div>
+      )}
+      {campuses.map((c) => (
+        <div key={c.value} className="rounded-lg border border-slate-200 p-3">
+          <p className="mb-2 text-sm font-medium text-slate-700">{c.label}</p>
+          <div className="flex flex-wrap gap-4">
+            <div>
+              <label className="mb-1 block text-xs font-medium text-slate-500">Open from</label>
+              <input
+                type="datetime-local"
+                value={windows[c.value]?.open_from ?? ""}
+                onChange={(e) => onChange(c.value, "open_from", e.target.value)}
+                className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="mb-1 block text-xs font-medium text-slate-500">Open until</label>
+              <input
+                type="datetime-local"
+                value={windows[c.value]?.open_until ?? ""}
+                onChange={(e) => onChange(c.value, "open_until", e.target.value)}
+                className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none"
+              />
+            </div>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
 }
 
 export default function AdminSettingsPage() {
@@ -236,13 +322,58 @@ export default function AdminSettingsPage() {
     setClosedCampuses((prev) => (prev.includes(value) ? prev.filter((c) => c !== value) : [...prev, value]));
   }
 
+  const allVisibleClosed = visibleCampuses.length > 0 && visibleCampuses.every((c) => closedCampuses.includes(c.value));
+
+  function toggleAllCampusesClosed() {
+    setClosedCampuses((prev) => {
+      const others = prev.filter((c) => !visibleCampuses.some((v) => v.value === c));
+      return allVisibleClosed ? others : [...others, ...visibleCampuses.map((c) => c.value)];
+    });
+  }
+
+  // Scheduled open/close window per campus (in addition to the immediate
+  // toggle above) - e.g. "close automatically from this date+time until
+  // that one", for both CR and Staff.
+  type WindowState = { open_from: string; open_until: string };
+  function buildWindowState(windows: Record<string, RegistrationWindow>): Record<string, WindowState> {
+    return Object.fromEntries(
+      campuses.map((c) => [
+        c.value,
+        {
+          open_from: windows[c.value]?.open_from?.slice(0, 16) ?? "",
+          open_until: windows[c.value]?.open_until?.slice(0, 16) ?? "",
+        },
+      ])
+    );
+  }
+
+  const [crWindows, setCrWindows] = useState<Record<string, WindowState>>({});
+
+  useEffect(() => {
+    if (!settings.loading && campuses.length > 0) setCrWindows(buildWindowState(settings.cr_registration_windows ?? {}));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [settings.loading, campuses.length]);
+
+  function updateCrWindow(campus: string, field: "open_from" | "open_until", value: string) {
+    setCrWindows((prev) => ({ ...prev, [campus]: { ...prev[campus], [field]: value } }));
+  }
+
   async function saveCrRegistration(e: React.FormEvent) {
     e.preventDefault();
     setCrRegError(null);
     setCrRegSuccess(null);
     setSavingCrReg(true);
     try {
-      const { data } = await api.post("/admin/settings", { cr_registration_closed_campuses: closedCampuses });
+      const windowPayload = Object.fromEntries(
+        Object.entries(crWindows).map(([campus, w]) => [
+          campus,
+          { open_from: w.open_from || null, open_until: w.open_until || null },
+        ])
+      );
+      const { data } = await api.post("/admin/settings", {
+        cr_registration_closed_campuses: closedCampuses,
+        cr_registration_windows: windowPayload,
+      });
       setCrRegSuccess(data.message);
       settings.refresh();
     } catch (err) {
@@ -294,26 +425,13 @@ export default function AdminSettingsPage() {
   // just a date - so an Admin can close it at a specific time of day too).
   // Outside the window, the Register page disables the Staff tab for that
   // campus the same way it does for a closed CR campus.
-  type StaffWindowState = { open_from: string; open_until: string };
-  function buildStaffWindowState(): Record<string, StaffWindowState> {
-    const windows = settings.staff_registration_windows ?? {};
-    return Object.fromEntries(
-      campuses.map((c) => [
-        c.value,
-        {
-          open_from: windows[c.value]?.open_from?.slice(0, 16) ?? "",
-          open_until: windows[c.value]?.open_until?.slice(0, 16) ?? "",
-        },
-      ])
-    );
-  }
-  const [staffWindows, setStaffWindows] = useState<Record<string, StaffWindowState>>({});
+  const [staffWindows, setStaffWindows] = useState<Record<string, WindowState>>({});
   const [staffRegError, setStaffRegError] = useState<string | null>(null);
   const [staffRegSuccess, setStaffRegSuccess] = useState<string | null>(null);
   const [savingStaffReg, setSavingStaffReg] = useState(false);
 
   useEffect(() => {
-    if (!settings.loading && campuses.length > 0) setStaffWindows(buildStaffWindowState());
+    if (!settings.loading && campuses.length > 0) setStaffWindows(buildWindowState(settings.staff_registration_windows ?? {}));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [settings.loading, campuses.length]);
 
@@ -619,14 +737,20 @@ export default function AdminSettingsPage() {
         <p className="mb-4 text-xs text-slate-500">
           Close CR self-registration for a campus once that campus&apos;s intake is done - the Register page then
           only shows Staff registration (or, for other campuses still open, disables just that campus with an
-          explanation).
+          explanation). You can also schedule an exact date/time it opens or closes, per campus, below.
         </p>
 
         {crRegError && <div className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{crRegError}</div>}
         {crRegSuccess && <div className="mb-4 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-700">{crRegSuccess}</div>}
 
-        <form onSubmit={saveCrRegistration} className="space-y-3">
+        <form onSubmit={saveCrRegistration} className="space-y-5">
           <div className="space-y-2">
+            {visibleCampuses.length > 1 && (
+              <label className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2 text-sm">
+                <span className="font-medium text-slate-700">Close ALL campuses at once</span>
+                <input type="checkbox" checked={allVisibleClosed} onChange={toggleAllCampusesClosed} />
+              </label>
+            )}
             {visibleCampuses.map((c) => {
               const closed = closedCampuses.includes(c.value);
               return (
@@ -640,6 +764,12 @@ export default function AdminSettingsPage() {
               );
             })}
           </div>
+
+          <div>
+            <p className="mb-2 text-xs font-medium text-slate-500">Scheduled open/close window (optional, per campus)</p>
+            <RegistrationWindowsEditor campuses={visibleCampuses} windows={crWindows} onChange={updateCrWindow} />
+          </div>
+
           <button disabled={savingCrReg} className="rounded-lg bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50">
             {savingCrReg ? "Saving..." : "Save"}
           </button>
@@ -762,31 +892,7 @@ export default function AdminSettingsPage() {
           {staffRegSuccess && <div className="mb-4 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-700">{staffRegSuccess}</div>}
 
           <form onSubmit={saveStaffRegistration} className="space-y-4">
-            {visibleCampuses.map((c) => (
-              <div key={c.value} className="rounded-lg border border-slate-200 p-3">
-                <p className="mb-2 text-sm font-medium text-slate-700">{c.label}</p>
-                <div className="flex flex-wrap gap-4">
-                  <div>
-                    <label className="mb-1 block text-xs font-medium text-slate-500">Open from</label>
-                    <input
-                      type="datetime-local"
-                      value={staffWindows[c.value]?.open_from ?? ""}
-                      onChange={(e) => updateStaffWindow(c.value, "open_from", e.target.value)}
-                      className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none"
-                    />
-                  </div>
-                  <div>
-                    <label className="mb-1 block text-xs font-medium text-slate-500">Open until</label>
-                    <input
-                      type="datetime-local"
-                      value={staffWindows[c.value]?.open_until ?? ""}
-                      onChange={(e) => updateStaffWindow(c.value, "open_until", e.target.value)}
-                      className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none"
-                    />
-                  </div>
-                </div>
-              </div>
-            ))}
+            <RegistrationWindowsEditor campuses={visibleCampuses} windows={staffWindows} onChange={updateStaffWindow} />
             <button disabled={savingStaffReg} className="rounded-lg bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50">
               {savingStaffReg ? "Saving..." : "Save"}
             </button>

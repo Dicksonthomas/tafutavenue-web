@@ -61,18 +61,21 @@ export default function RegisterPage() {
     loading: settingsLoading,
     refresh: refreshSettings,
     cr_registration_closed_campuses,
+    cr_registration_windows,
     staff_registration_windows,
   } = useSettings();
   const { campuses } = useReferenceData();
-  const crFullyClosed = campuses.length > 0 && campuses.every((c) => cr_registration_closed_campuses.includes(c.value));
   const now = new Date();
-  const staffClosedForCampus = (c: string) => {
-    const window = staff_registration_windows[c];
+  const outsideWindow = (windows: Record<string, { open_from: string | null; open_until: string | null }>, c: string) => {
+    const window = windows[c];
     if (!window) return false;
     if (window.open_from && now < new Date(window.open_from)) return true;
     if (window.open_until && now > new Date(window.open_until)) return true;
     return false;
   };
+  const crClosedForCampus = (c: string) => cr_registration_closed_campuses.includes(c) || outsideWindow(cr_registration_windows, c);
+  const staffClosedForCampus = (c: string) => outsideWindow(staff_registration_windows, c);
+  const crFullyClosed = campuses.length > 0 && campuses.every((c) => crClosedForCampus(c.value));
   const staffFullyClosed = campuses.length > 0 && campuses.every((c) => staffClosedForCampus(c.value));
   const [mode, setMode] = useState<"cr" | "staff">("cr");
   const [title, setTitle] = useState("");
@@ -97,7 +100,7 @@ export default function RegisterPage() {
   const [copied, setCopied] = useState(false);
 
   const preview = useMemo(() => previewEmail(name, regNo), [name, regNo]);
-  const crClosedForSelectedCampus = mode === "cr" && !!campus && cr_registration_closed_campuses.includes(campus);
+  const crClosedForSelectedCampus = mode === "cr" && !!campus && crClosedForCampus(campus);
   const staffClosedForSelectedCampus = mode === "staff" && !!campus && staffClosedForCampus(campus);
 
   // If CR registration has been closed for every campus, only Staff
