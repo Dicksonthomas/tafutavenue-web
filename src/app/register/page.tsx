@@ -102,6 +102,8 @@ export default function RegisterPage() {
   const preview = useMemo(() => previewEmail(name, regNo), [name, regNo]);
   const crClosedForSelectedCampus = mode === "cr" && !!campus && crClosedForCampus(campus);
   const staffClosedForSelectedCampus = mode === "staff" && !!campus && staffClosedForCampus(campus);
+  const closedForSelectedCampus = crClosedForSelectedCampus || staffClosedForSelectedCampus;
+  const bothFullyClosed = crFullyClosed && staffFullyClosed;
 
   // If CR registration has been closed for every campus, only Staff
   // registration makes sense - force the mode and never show the CR tab.
@@ -151,6 +153,32 @@ export default function RegisterPage() {
     navigator.clipboard.writeText(credentials.password);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
+  }
+
+  if (bothFullyClosed) {
+    return (
+      <div className="flex min-h-dvh items-center justify-center bg-slate-50 px-4 py-10">
+        <div className="w-full max-w-md">
+          <div className="rounded-xl border border-slate-200 bg-white p-6 text-center shadow-sm">
+            {settingsLoading ? (
+              <div className="mx-auto mb-3 h-11 w-11 rounded-xl bg-slate-100" />
+            ) : (
+              <img src={logo_url || "/default-logo.jpg"} alt="Logo" className="mx-auto mb-3 h-11 w-11 rounded-xl object-contain" />
+            )}
+            <h1 className="text-lg font-semibold text-slate-900">Registration Closed</h1>
+            <p className="mt-2 text-sm text-slate-500">
+              Registration is currently closed for both CR and Staff on every campus. Please contact the Admin.
+            </p>
+            <Link
+              href="/login"
+              className="mt-6 inline-block w-full rounded-lg bg-accent-600 py-2 text-sm font-medium text-white hover:bg-accent-700"
+            >
+              Go to Login
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   if (credentials) {
@@ -239,12 +267,6 @@ export default function RegisterPage() {
           </div>
         )}
 
-        {staffFullyClosed && mode === "staff" && (
-          <div className="mb-4 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800 ring-1 ring-inset ring-amber-200">
-            Staff registration is currently closed on every campus. Contact the Admin.
-          </div>
-        )}
-
         <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
           {error && (
             <div className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700 ring-1 ring-inset ring-red-200">{error}</div>
@@ -264,18 +286,16 @@ export default function RegisterPage() {
                   <option key={c.value} value={c.value}>{c.label}</option>
                 ))}
               </select>
-              {crClosedForSelectedCampus && (
-                <p className="mt-1 text-xs text-red-600">
-                  CR registration is closed for this campus. Register as Staff instead, or contact the Admin.
-                </p>
-              )}
-              {staffClosedForSelectedCampus && (
-                <p className="mt-1 text-xs text-red-600">
-                  Staff registration is currently closed for this campus. Contact the Admin.
-                </p>
-              )}
             </div>
 
+            {campus && closedForSelectedCampus ? (
+              <div className="col-span-full rounded-lg bg-amber-50 px-4 py-3 text-sm text-amber-800 ring-1 ring-inset ring-amber-200">
+                {mode === "cr"
+                  ? "Registration is closed for this campus. Register as Staff instead, or contact the Admin."
+                  : "Registration is closed for this campus. Contact the Admin."}
+              </div>
+            ) : (
+            <>
             <div className="col-span-full">
               <label className="mb-1 block text-sm font-medium text-slate-600">Full Name</label>
               <input
@@ -398,11 +418,13 @@ export default function RegisterPage() {
 
             <button
               type="submit"
-              disabled={submitting || crClosedForSelectedCampus || staffClosedForSelectedCampus}
+              disabled={submitting}
               className="col-span-full rounded-lg bg-accent-600 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50"
             >
               {submitting ? "Registering..." : "Register"}
             </button>
+            </>
+            )}
           </form>
         </div>
 

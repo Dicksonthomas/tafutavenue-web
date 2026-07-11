@@ -25,6 +25,7 @@ interface AppSettings {
   cr_registration_closed_campuses: string[];
   cr_registration_windows: Record<string, RegistrationWindow>;
   staff_registration_windows: Record<string, RegistrationWindow>;
+  staff_registration_closed_campuses: string[];
   marquee_enabled: boolean;
   marquee_until: string | null;
   maintenance_mode: boolean;
@@ -53,6 +54,7 @@ const SettingsContext = createContext<SettingsContextValue>({
   cr_registration_closed_campuses: [],
   cr_registration_windows: {},
   staff_registration_windows: {},
+  staff_registration_closed_campuses: [],
   marquee_enabled: true,
   marquee_until: null,
   maintenance_mode: false,
@@ -214,6 +216,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     cr_registration_closed_campuses: [],
     cr_registration_windows: {},
     staff_registration_windows: {},
+    staff_registration_closed_campuses: [],
     marquee_enabled: true,
     marquee_until: null,
     maintenance_mode: false,

@@ -129,6 +129,77 @@ function RegistrationWindowsEditor({
   );
 }
 
+/**
+ * Per-campus immediate Open/Closed toggle, shared by CR and Staff
+ * registration. Explicit buttons (not a checkbox) so clicking "Closed"
+ * always means closed, regardless of the current state - a checkbox here
+ * previously let an Admin toggle the wrong direction while believing they'd
+ * closed a campus.
+ */
+function ClosedCampusesToggle({
+  campuses,
+  closedCampuses,
+  onToggleCampus,
+  onToggleAll,
+}: {
+  campuses: { value: string; label: string }[];
+  closedCampuses: string[];
+  onToggleCampus: (campus: string) => void;
+  onToggleAll: () => void;
+}) {
+  const allClosed = campuses.length > 0 && campuses.every((c) => closedCampuses.includes(c.value));
+
+  return (
+    <div className="space-y-2">
+      {campuses.length > 1 && (
+        <div className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2 text-sm">
+          <span className="font-medium text-slate-700">All campuses at once</span>
+          <div className="flex overflow-hidden rounded-lg border border-slate-300">
+            <button
+              type="button"
+              onClick={() => allClosed && onToggleAll()}
+              className={`px-3 py-1 text-xs font-semibold ${!allClosed ? "bg-emerald-600 text-white" : "bg-white text-slate-500 hover:bg-slate-100"}`}
+            >
+              Open
+            </button>
+            <button
+              type="button"
+              onClick={() => !allClosed && onToggleAll()}
+              className={`px-3 py-1 text-xs font-semibold ${allClosed ? "bg-red-600 text-white" : "bg-white text-slate-500 hover:bg-slate-100"}`}
+            >
+              Closed
+            </button>
+          </div>
+        </div>
+      )}
+      {campuses.map((c) => {
+        const closed = closedCampuses.includes(c.value);
+        return (
+          <div key={c.value} className="flex items-center justify-between rounded-lg border border-slate-200 px-3 py-2 text-sm">
+            <span className="font-medium text-slate-700">{c.label}</span>
+            <div className="flex overflow-hidden rounded-lg border border-slate-300">
+              <button
+                type="button"
+                onClick={() => closed && onToggleCampus(c.value)}
+                className={`px-3 py-1 text-xs font-semibold ${!closed ? "bg-emerald-600 text-white" : "bg-white text-slate-500 hover:bg-slate-100"}`}
+              >
+                Open
+              </button>
+              <button
+                type="button"
+                onClick={() => !closed && onToggleCampus(c.value)}
+                className={`px-3 py-1 text-xs font-semibold ${closed ? "bg-red-600 text-white" : "bg-white text-slate-500 hover:bg-slate-100"}`}
+              >
+                Closed
+              </button>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 export default function AdminSettingsPage() {
   const { user } = useAuth();
   const isStaffAdmin = user?.admin_domain === "staff";
@@ -430,10 +501,28 @@ export default function AdminSettingsPage() {
   // just a date - so an Admin can close it at a specific time of day too).
   // Outside the window, the Register page disables the Staff tab for that
   // campus the same way it does for a closed CR campus.
+  const [staffClosedCampuses, setStaffClosedCampuses] = useState<string[]>(settings.staff_registration_closed_campuses ?? []);
   const [staffWindows, setStaffWindows] = useState<Record<string, WindowState>>({});
   const [staffRegError, setStaffRegError] = useState<string | null>(null);
   const [staffRegSuccess, setStaffRegSuccess] = useState<string | null>(null);
   const [savingStaffReg, setSavingStaffReg] = useState(false);
+
+  useEffect(() => {
+    if (!settings.loading) setStaffClosedCampuses(settings.staff_registration_closed_campuses ?? []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [settings.loading]);
+
+  function toggleStaffCampusClosed(value: string) {
+    setStaffClosedCampuses((prev) => (prev.includes(value) ? prev.filter((c) => c !== value) : [...prev, value]));
+  }
+
+  function toggleAllStaffCampusesClosed() {
+    const allClosed = visibleCampuses.length > 0 && visibleCampuses.every((c) => staffClosedCampuses.includes(c.value));
+    setStaffClosedCampuses((prev) => {
+      const others = prev.filter((c) => !visibleCampuses.some((v) => v.value === c));
+      return allClosed ? others : [...others, ...visibleCampuses.map((c) => c.value)];
+    });
+  }
 
   useEffect(() => {
     if (!settings.loading && campuses.length > 0) setStaffWindows(buildWindowState(settings.staff_registration_windows ?? {}));
@@ -456,7 +545,10 @@ export default function AdminSettingsPage() {
           { open_from: w.open_from || null, open_until: w.open_until || null },
         ])
       );
-      const { data } = await api.post("/admin/settings", { staff_registration_windows: payload });
+      const { data } = await api.post("/admin/settings", {
+        staff_registration_windows: payload,
+        staff_registration_closed_campuses: staffClosedCampuses,
+      });
       setStaffRegSuccess(data.message);
       settings.refresh();
     } catch (err) {
@@ -749,53 +841,12 @@ export default function AdminSettingsPage() {
         {crRegSuccess && <div className="mb-4 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-700">{crRegSuccess}</div>}
 
         <form onSubmit={saveCrRegistration} className="space-y-5">
-          <div className="space-y-2">
-            {visibleCampuses.length > 1 && (
-              <div className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2 text-sm">
-                <span className="font-medium text-slate-700">All campuses at once</span>
-                <div className="flex overflow-hidden rounded-lg border border-slate-300">
-                  <button
-                    type="button"
-                    onClick={() => !allVisibleClosed || toggleAllCampusesClosed()}
-                    className={`px-3 py-1 text-xs font-semibold ${!allVisibleClosed ? "bg-emerald-600 text-white" : "bg-white text-slate-500 hover:bg-slate-100"}`}
-                  >
-                    Open
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => allVisibleClosed || toggleAllCampusesClosed()}
-                    className={`px-3 py-1 text-xs font-semibold ${allVisibleClosed ? "bg-red-600 text-white" : "bg-white text-slate-500 hover:bg-slate-100"}`}
-                  >
-                    Closed
-                  </button>
-                </div>
-              </div>
-            )}
-            {visibleCampuses.map((c) => {
-              const closed = closedCampuses.includes(c.value);
-              return (
-                <div key={c.value} className="flex items-center justify-between rounded-lg border border-slate-200 px-3 py-2 text-sm">
-                  <span className="font-medium text-slate-700">{c.label}</span>
-                  <div className="flex overflow-hidden rounded-lg border border-slate-300">
-                    <button
-                      type="button"
-                      onClick={() => closed && toggleCampusClosed(c.value)}
-                      className={`px-3 py-1 text-xs font-semibold ${!closed ? "bg-emerald-600 text-white" : "bg-white text-slate-500 hover:bg-slate-100"}`}
-                    >
-                      Open
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => !closed && toggleCampusClosed(c.value)}
-                      className={`px-3 py-1 text-xs font-semibold ${closed ? "bg-red-600 text-white" : "bg-white text-slate-500 hover:bg-slate-100"}`}
-                    >
-                      Closed
-                    </button>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
+          <ClosedCampusesToggle
+            campuses={visibleCampuses}
+            closedCampuses={closedCampuses}
+            onToggleCampus={toggleCampusClosed}
+            onToggleAll={toggleAllCampusesClosed}
+          />
 
           <div>
             <p className="mb-2 text-xs font-medium text-slate-500">Scheduled open/close window (optional, per campus)</p>
@@ -915,16 +966,26 @@ export default function AdminSettingsPage() {
         <Card className="p-6">
           <h2 className="mb-1 text-sm font-semibold text-slate-700">Staff Registration</h2>
           <p className="mb-4 text-xs text-slate-500">
-            Restrict Staff self-registration to a specific period per campus - e.g. only during onboarding season,
-            down to the exact time of day it opens/closes. Leave both blank for a campus to keep it open
-            indefinitely there. Outside its window, the Register page disables Staff registration for that campus.
+            Close Staff self-registration for a campus once needed - the Register page then disables Staff
+            registration for that campus. You can also schedule an exact date/time it opens or closes, below.
           </p>
 
           {staffRegError && <div className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{staffRegError}</div>}
           {staffRegSuccess && <div className="mb-4 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-700">{staffRegSuccess}</div>}
 
-          <form onSubmit={saveStaffRegistration} className="space-y-4">
-            <RegistrationWindowsEditor campuses={visibleCampuses} windows={staffWindows} onChange={updateStaffWindow} />
+          <form onSubmit={saveStaffRegistration} className="space-y-5">
+            <ClosedCampusesToggle
+              campuses={visibleCampuses}
+              closedCampuses={staffClosedCampuses}
+              onToggleCampus={toggleStaffCampusClosed}
+              onToggleAll={toggleAllStaffCampusesClosed}
+            />
+
+            <div>
+              <p className="mb-2 text-xs font-medium text-slate-500">Scheduled open/close window (optional, per campus)</p>
+              <RegistrationWindowsEditor campuses={visibleCampuses} windows={staffWindows} onChange={updateStaffWindow} />
+            </div>
+
             <button disabled={savingStaffReg} className="rounded-lg bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50">
               {savingStaffReg ? "Saving..." : "Save"}
             </button>
