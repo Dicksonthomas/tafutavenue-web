@@ -162,23 +162,29 @@ export default function DashboardPage() {
           <Spinner label="Loading semesters..." />
         ) : (
           <>
-            <div className="mb-4 flex flex-wrap gap-2">
-              <button
-                type="button"
-                onClick={() => applyPreset("06:00", "18:00")}
-                className="flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-medium text-amber-700 hover:bg-amber-100"
-              >
-                <Sun size={14} /> Daytime (06:00–18:00)
-              </button>
-              <button
-                type="button"
-                onClick={() => applyPreset(studyUnitStart, studyUnitSearchEnd)}
-                className="flex items-center gap-1.5 rounded-full border border-accent-200 bg-accent-50 px-3 py-1.5 text-xs font-medium text-accent-700 hover:bg-accent-100"
-              >
-                <Moon size={14} /> Study Unit hours for {date ? studyUnitDay : "today"} ({studyUnitStart}–{studyUnitEndLabel})
-              </button>
-              <span className="flex items-center text-xs text-slate-400">or set your own time below (Saturday/Sunday allowed)</span>
-            </div>
+            {user?.role === "staff" ? (
+              <p className="mb-4 text-xs text-slate-400">
+                Set your own time below - book any time as long as the venue is free (Saturday/Sunday allowed).
+              </p>
+            ) : (
+              <div className="mb-4 flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => applyPreset("06:00", "18:00")}
+                  className="flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-3 py-1.5 text-xs font-medium text-amber-700 hover:bg-amber-100"
+                >
+                  <Sun size={14} /> Daytime (06:00–18:00)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => applyPreset(studyUnitStart, studyUnitSearchEnd)}
+                  className="flex items-center gap-1.5 rounded-full border border-accent-200 bg-accent-50 px-3 py-1.5 text-xs font-medium text-accent-700 hover:bg-accent-100"
+                >
+                  <Moon size={14} /> Study Unit hours for {date ? studyUnitDay : "today"} ({studyUnitStart}–{studyUnitEndLabel})
+                </button>
+                <span className="flex items-center text-xs text-slate-400">or set your own time below (Saturday/Sunday allowed)</span>
+              </div>
+            )}
 
             <form onSubmit={handleSearch} className="grid grid-cols-2 gap-4 sm:grid-cols-5">
               <div className="col-span-2 sm:col-span-1">

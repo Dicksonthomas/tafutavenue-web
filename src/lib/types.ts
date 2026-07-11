@@ -5,6 +5,7 @@ export type Level = "Certificate" | "Diploma" | "Degree" | "Masters" | "PhD";
 export interface User {
   id: number;
   name: string;
+  title?: string | null;
   reg_no?: string | null;
   staff_id?: string | null;
   position?: string | null;

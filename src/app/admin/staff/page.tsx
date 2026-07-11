@@ -33,6 +33,7 @@ function isPending(u: User): boolean {
 export default function AdminStaffPage() {
   const searchParams = useSearchParams();
   const [campusFilter, setCampusFilter] = useState(searchParams.get("campus") ?? "");
+  const [statusFilter, setStatusFilter] = useState<"" | "pending" | "active" | "suspended">("");
   const { campuses } = useReferenceData();
 
   const [result, setResult] = useState<PaginatedUsers | null>(null);
@@ -55,6 +56,7 @@ export default function AdminStaffPage() {
         role: "staff",
         ...(query ? { q: query } : {}),
         ...(campusFilter ? { campus: campusFilter } : {}),
+        ...(statusFilter ? { status: statusFilter } : {}),
         page: pageNum,
         per_page: perPageVal,
       },
@@ -67,7 +69,7 @@ export default function AdminStaffPage() {
     setPage(1);
     load(debouncedQ, 1, perPage);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [debouncedQ, campusFilter]);
+  }, [debouncedQ, campusFilter, statusFilter]);
 
   useEffect(() => {
     load(debouncedQ, page);
@@ -195,8 +197,16 @@ export default function AdminStaffPage() {
           <option value="">All Campuses</option>
           {campuses.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
         </select>
-        {campusFilter && (
-          <button onClick={() => setCampusFilter("")} className="flex items-center gap-1 rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50">
+        <button
+          onClick={() => setStatusFilter(statusFilter === "pending" ? "" : "pending")}
+          className={`rounded-full border px-3 py-1.5 text-sm font-medium ${
+            statusFilter === "pending" ? "border-amber-300 bg-amber-50 text-amber-700" : "border-slate-300 text-slate-600 hover:bg-slate-50"
+          }`}
+        >
+          Pending only
+        </button>
+        {(campusFilter || statusFilter) && (
+          <button onClick={() => { setCampusFilter(""); setStatusFilter(""); }} className="flex items-center gap-1 rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50">
             <X size={14} /> Clear Filter
           </button>
         )}

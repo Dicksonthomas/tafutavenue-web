@@ -14,6 +14,7 @@ import { useReferenceData } from "@/lib/referenceData";
 
 const EMAIL_DOMAIN = "mustudent.ac.tz";
 const MIN_INTAKE_YEAR = 2022;
+const STAFF_TITLES = ["Mr", "Mrs", "Ms", "Dr", "Prof", "Eng", "CPA"];
 
 function maxIntakeYear(): number {
   const now = new Date();
@@ -55,10 +56,22 @@ function previewEmail(name: string, regNo: string): { email: string | null; erro
 export default function RegisterPage() {
   const router = useRouter();
   const { setUser } = useAuth();
-  const { logo_url, loading: settingsLoading, refresh: refreshSettings, cr_registration_closed_campuses } = useSettings();
+  const {
+    logo_url,
+    loading: settingsLoading,
+    refresh: refreshSettings,
+    cr_registration_closed_campuses,
+    staff_registration_open_from,
+    staff_registration_open_until,
+  } = useSettings();
   const { campuses } = useReferenceData();
   const crFullyClosed = campuses.length > 0 && campuses.every((c) => cr_registration_closed_campuses.includes(c.value));
+  const todayIso = new Date().toISOString().slice(0, 10);
+  const staffFullyClosed =
+    (!!staff_registration_open_from && todayIso < staff_registration_open_from) ||
+    (!!staff_registration_open_until && todayIso > staff_registration_open_until);
   const [mode, setMode] = useState<"cr" | "staff">("cr");
+  const [title, setTitle] = useState("");
   const [name, setName] = useState("");
   const [regNo, setRegNo] = useState("");
   const [phone, setPhone] = useState("");
@@ -84,9 +97,11 @@ export default function RegisterPage() {
 
   // If CR registration has been closed for every campus, only Staff
   // registration makes sense - force the mode and never show the CR tab.
+  // Same the other way if Staff registration is outside its open window.
   useEffect(() => {
-    if (crFullyClosed && mode === "cr") setMode("staff");
-  }, [crFullyClosed, mode]);
+    if (crFullyClosed && !staffFullyClosed && mode === "cr") setMode("staff");
+    if (staffFullyClosed && !crFullyClosed && mode === "staff") setMode("cr");
+  }, [crFullyClosed, staffFullyClosed, mode]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -96,6 +111,7 @@ export default function RegisterPage() {
       if (mode === "staff") {
         const { data } = await api.post("/register-staff", {
           name,
+          title: title || null,
           staff_id: staffId,
           email: staffEmail,
           phone,
@@ -196,7 +212,7 @@ export default function RegisterPage() {
           </p>
         </div>
 
-        {!crFullyClosed && (
+        {!crFullyClosed && !staffFullyClosed && (
           <div className="mb-4 grid grid-cols-2 gap-1 rounded-lg bg-slate-100 p-1 text-sm font-medium">
             <button
               type="button"
@@ -212,6 +228,12 @@ export default function RegisterPage() {
             >
               Staff
             </button>
+          </div>
+        )}
+
+        {staffFullyClosed && mode === "staff" && (
+          <div className="mb-4 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800 ring-1 ring-inset ring-amber-200">
+            Staff registration is currently closed. Contact the Admin.
           </div>
         )}
 
@@ -302,6 +324,18 @@ export default function RegisterPage() {
             ) : (
               <>
                 <div>
+                  <label className="mb-1 block text-sm font-medium text-slate-600">Title</label>
+                  <select
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none focus:ring-1 focus:ring-accent-500"
+                  >
+                    <option value="">Choose (optional)...</option>
+                    {STAFF_TITLES.map((t) => <option key={t} value={t}>{t}</option>)}
+                  </select>
+                </div>
+
+                <div>
                   <label className="mb-1 block text-sm font-medium text-slate-600">Staff ID / Payroll No</label>
                   <input
                     required
@@ -351,7 +385,7 @@ export default function RegisterPage() {
 
             <button
               type="submit"
-              disabled={submitting || crClosedForSelectedCampus}
+              disabled={submitting || crClosedForSelectedCampus || (mode === "staff" && staffFullyClosed)}
               className="col-span-full rounded-lg bg-accent-600 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50"
             >
               {submitting ? "Registering..." : "Register"}

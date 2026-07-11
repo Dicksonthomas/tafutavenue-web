@@ -20,6 +20,8 @@ interface AppSettings {
   cr_registration_closed_campuses: string[];
   marquee_enabled: boolean;
   marquee_until: string | null;
+  staff_registration_open_from: string | null;
+  staff_registration_open_until: string | null;
 }
 
 interface SettingsContextValue extends AppSettings {
@@ -44,6 +46,8 @@ const SettingsContext = createContext<SettingsContextValue>({
   cr_registration_closed_campuses: [],
   marquee_enabled: true,
   marquee_until: null,
+  staff_registration_open_from: null,
+  staff_registration_open_until: null,
   loading: true,
   refresh: () => Promise.resolve(),
 });
@@ -201,6 +205,8 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     cr_registration_closed_campuses: [],
     marquee_enabled: true,
     marquee_until: null,
+    staff_registration_open_from: null,
+    staff_registration_open_until: null,
   });
   const [loading, setLoading] = useState(true);
 

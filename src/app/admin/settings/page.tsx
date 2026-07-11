@@ -288,6 +288,43 @@ export default function AdminSettingsPage() {
     }
   }
 
+  // Staff Registration open window (from/until dates) - the Staff-side
+  // equivalent of CR Registration's per-campus toggle, managed by a Staff
+  // Admin instead. Outside the window, the Register page hides/closes the
+  // Staff tab the same way it does for a fully-closed CR registration.
+  const [staffRegFrom, setStaffRegFrom] = useState(settings.staff_registration_open_from ?? "");
+  const [staffRegUntil, setStaffRegUntil] = useState(settings.staff_registration_open_until ?? "");
+  const [staffRegError, setStaffRegError] = useState<string | null>(null);
+  const [staffRegSuccess, setStaffRegSuccess] = useState<string | null>(null);
+  const [savingStaffReg, setSavingStaffReg] = useState(false);
+
+  useEffect(() => {
+    if (!settings.loading) {
+      setStaffRegFrom(settings.staff_registration_open_from ?? "");
+      setStaffRegUntil(settings.staff_registration_open_until ?? "");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [settings.loading]);
+
+  async function saveStaffRegistration(e: React.FormEvent) {
+    e.preventDefault();
+    setStaffRegError(null);
+    setStaffRegSuccess(null);
+    setSavingStaffReg(true);
+    try {
+      const { data } = await api.post("/admin/settings", {
+        staff_registration_open_from: staffRegFrom || null,
+        staff_registration_open_until: staffRegUntil || null,
+      });
+      setStaffRegSuccess(data.message);
+      settings.refresh();
+    } catch (err) {
+      setStaffRegError(apiErrorMessage(err));
+    } finally {
+      setSavingStaffReg(false);
+    }
+  }
+
   return (
     <div className="mx-auto max-w-7xl space-y-6">
       <PageHeader title="System Settings" subtitle="Change the main color (default for all users) and the App logo." />
@@ -622,6 +659,45 @@ export default function AdminSettingsPage() {
             <DatabaseZap size={16} />
             {runningMigrate ? "Running..." : "Run Database Migrations"}
           </button>
+        </Card>
+      )}
+
+      {isStaffAdmin && (
+        <Card className="p-6">
+          <h2 className="mb-1 text-sm font-semibold text-slate-700">Staff Registration</h2>
+          <p className="mb-4 text-xs text-slate-500">
+            Restrict Staff self-registration to a specific period - e.g. only during onboarding season. Leave both
+            blank to keep it open indefinitely. Outside this window, the Register page hides the Staff option.
+          </p>
+
+          {staffRegError && <div className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{staffRegError}</div>}
+          {staffRegSuccess && <div className="mb-4 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-700">{staffRegSuccess}</div>}
+
+          <form onSubmit={saveStaffRegistration} className="space-y-3">
+            <div className="flex flex-wrap gap-4">
+              <div>
+                <label className="mb-1 block text-sm font-medium text-slate-600">Open from</label>
+                <input
+                  type="date"
+                  value={staffRegFrom}
+                  onChange={(e) => setStaffRegFrom(e.target.value)}
+                  className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-sm font-medium text-slate-600">Open until</label>
+                <input
+                  type="date"
+                  value={staffRegUntil}
+                  onChange={(e) => setStaffRegUntil(e.target.value)}
+                  className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none"
+                />
+              </div>
+            </div>
+            <button disabled={savingStaffReg} className="rounded-lg bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50">
+              {savingStaffReg ? "Saving..." : "Save"}
+            </button>
+          </form>
         </Card>
       )}
 

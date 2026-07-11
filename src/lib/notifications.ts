@@ -69,6 +69,11 @@ export async function markAllNotificationsRead(): Promise<void> {
   announceChange();
 }
 
+export async function deleteNotification(id: number): Promise<void> {
+  await api.delete(`/notifications/${id}`);
+  announceChange();
+}
+
 export interface PaginatedAnnouncements {
   data: Announcement[];
   current_page: number;

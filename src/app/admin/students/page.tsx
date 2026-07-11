@@ -79,6 +79,7 @@ export default function AdminStudentsPage() {
   const [levelFilter, setLevelFilter] = useState("");
   const [yearFilter, setYearFilter] = useState("");
   const [sexFilter, setSexFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState<"" | "pending" | "active" | "suspended">("");
 
   const { campuses, faculties, departmentsByFaculty, programs, levelYears } = useReferenceData(campusFilter || undefined);
   const departmentOptions = facultyFilter
@@ -112,6 +113,7 @@ export default function AdminStudentsPage() {
     level: levelFilter,
     year_of_study: yearFilter,
     sex: sexFilter,
+    status: statusFilter,
   };
   const hasActiveFilters = Object.values(filters).some(Boolean);
 
@@ -123,6 +125,7 @@ export default function AdminStudentsPage() {
     setLevelFilter("");
     setYearFilter("");
     setSexFilter("");
+    setStatusFilter("");
   }
 
   async function load(query = debouncedQ, pageNum = page, perPageVal = perPage) {
@@ -143,7 +146,7 @@ export default function AdminStudentsPage() {
     setPage(1);
     load(debouncedQ, 1, perPage);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [debouncedQ, campusFilter, facultyFilter, departmentFilter, programFilter, levelFilter, yearFilter, sexFilter]);
+  }, [debouncedQ, campusFilter, facultyFilter, departmentFilter, programFilter, levelFilter, yearFilter, sexFilter, statusFilter]);
 
   async function printList() {
     setError(null);
@@ -406,6 +409,14 @@ export default function AdminStudentsPage() {
           <option value="male">Male</option>
           <option value="female">Female</option>
         </select>
+        <button
+          onClick={() => setStatusFilter(statusFilter === "pending" ? "" : "pending")}
+          className={`rounded-full border px-3 py-1.5 text-sm font-medium ${
+            statusFilter === "pending" ? "border-amber-300 bg-amber-50 text-amber-700" : "border-slate-300 text-slate-600 hover:bg-slate-50"
+          }`}
+        >
+          Pending only
+        </button>
         {hasActiveFilters && (
           <button onClick={clearFilters} className="flex items-center gap-1 rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50">
             <X size={14} /> Clear Filters

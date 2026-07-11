@@ -2,13 +2,14 @@
 
 import { Fragment, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Bell, CheckCircle2, Clock, Megaphone, Pencil, UserCheck, XCircle } from "lucide-react";
+import { Bell, CheckCircle2, Clock, Megaphone, Pencil, Trash2, UserCheck, XCircle } from "lucide-react";
 import { Notification, NotificationType } from "@/lib/types";
 import {
   NOTIFICATION_TYPE_LABELS,
   fetchNotifications,
   markAllNotificationsRead,
   markNotificationRead,
+  deleteNotification,
   notificationTargetHref,
   PaginatedNotifications,
 } from "@/lib/notifications";
@@ -98,6 +99,11 @@ export default function NotificationsTable() {
     await load();
   }
 
+  async function handleDelete(n: Notification) {
+    await deleteNotification(n.id);
+    setResult((prev) => (prev ? { ...prev, data: prev.data.filter((x) => x.id !== n.id), total: prev.total - 1 } : prev));
+  }
+
   const notifications = result?.data ?? [];
   const hasUnread = notifications.some((n) => !n.read_at);
 
@@ -177,6 +183,7 @@ export default function NotificationsTable() {
                   <th className="px-4 py-3">Notification</th>
                   <th className="px-4 py-3">Received</th>
                   <th className="px-4 py-3">Status</th>
+                  <th className="px-4 py-3 text-right">Actions</th>
                 </tr>
               </thead>
               <tbody>
@@ -221,11 +228,20 @@ export default function NotificationsTable() {
                             <span className="text-xs text-slate-400">Read</span>
                           )}
                         </td>
+                        <td className="px-4 py-3 text-right">
+                          <button
+                            onClick={(e) => { e.stopPropagation(); handleDelete(n); }}
+                            title="Delete"
+                            className="rounded-lg p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600"
+                          >
+                            <Trash2 size={15} />
+                          </button>
+                        </td>
                       </tr>
                       {expanded && n.body && (
                         <tr className="border-b border-slate-100 bg-slate-50">
                           <td />
-                          <td colSpan={4} className="px-4 py-3 text-sm text-slate-600">{n.body}</td>
+                          <td colSpan={5} className="px-4 py-3 text-sm text-slate-600">{n.body}</td>
                         </tr>
                       )}
                     </Fragment>

@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { Menu, ChevronDown, UserRound, KeyRound, LogOut, MapPin, Bell } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { fetchUnreadCount, notificationHref, NOTIFICATIONS_CHANGED_EVENT } from "@/lib/notifications";
+import { User } from "@/lib/types";
 import InstallAppButton from "./InstallAppButton";
 
 const NOTIFICATION_POLL_MS = 120000;
@@ -13,6 +14,16 @@ const NOTIFICATION_POLL_MS = 120000;
 function campusName(campus?: string): string | null {
   if (!campus) return null;
   return campus.split("_").map((w) => w[0].toUpperCase() + w.slice(1)).join(" ");
+}
+
+/** "Dr. Kilima" for a Staff member with a title set, otherwise just the
+ * first name (e.g. "Silivia") like everyone else. */
+function greetingName(user: User): string {
+  if (user.title) {
+    const parts = user.name.trim().split(/\s+/);
+    return `${user.title}. ${parts[parts.length - 1]}`;
+  }
+  return user.name.split(" ")[0];
 }
 
 export default function TopBar({
@@ -86,7 +97,7 @@ export default function TopBar({
 
       <div className="flex items-center gap-3">
         <span className="hidden text-sm text-slate-500 md:block">
-          Hello, <span className="font-medium text-slate-800">{user.name.split(" ")[0]}</span>
+          Hello, <span className="font-medium text-slate-800">{greetingName(user)}</span>
         </span>
         {campusName(user.campus) && (
           <span className="flex items-center gap-1 rounded-full bg-brand-50 px-2.5 py-1 text-xs font-medium text-brand-700">
