@@ -66,6 +66,11 @@ function RegistrationWindowsEditor({
 
   return (
     <div className="space-y-3">
+      <p className="text-xs text-slate-400">
+        Leave both blank for a campus to leave it alone (no scheduled change). &quot;Open from&quot; is when
+        registration becomes available again; &quot;Open until&quot; is when it automatically closes - to close a
+        campus starting right now, set &quot;Open until&quot; to the current date/time (not &quot;Open from&quot;).
+      </p>
       {campuses.length > 1 && (
         <div className="flex flex-wrap items-end gap-3 rounded-lg bg-slate-50 p-3">
           <div>
@@ -746,21 +751,48 @@ export default function AdminSettingsPage() {
         <form onSubmit={saveCrRegistration} className="space-y-5">
           <div className="space-y-2">
             {visibleCampuses.length > 1 && (
-              <label className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2 text-sm">
-                <span className="font-medium text-slate-700">Close ALL campuses at once</span>
-                <input type="checkbox" checked={allVisibleClosed} onChange={toggleAllCampusesClosed} />
-              </label>
+              <div className="flex items-center justify-between rounded-lg bg-slate-50 px-3 py-2 text-sm">
+                <span className="font-medium text-slate-700">All campuses at once</span>
+                <div className="flex overflow-hidden rounded-lg border border-slate-300">
+                  <button
+                    type="button"
+                    onClick={() => !allVisibleClosed || toggleAllCampusesClosed()}
+                    className={`px-3 py-1 text-xs font-semibold ${!allVisibleClosed ? "bg-emerald-600 text-white" : "bg-white text-slate-500 hover:bg-slate-100"}`}
+                  >
+                    Open
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => allVisibleClosed || toggleAllCampusesClosed()}
+                    className={`px-3 py-1 text-xs font-semibold ${allVisibleClosed ? "bg-red-600 text-white" : "bg-white text-slate-500 hover:bg-slate-100"}`}
+                  >
+                    Closed
+                  </button>
+                </div>
+              </div>
             )}
             {visibleCampuses.map((c) => {
               const closed = closedCampuses.includes(c.value);
               return (
-                <label key={c.value} className="flex items-center justify-between rounded-lg border border-slate-200 px-3 py-2 text-sm">
+                <div key={c.value} className="flex items-center justify-between rounded-lg border border-slate-200 px-3 py-2 text-sm">
                   <span className="font-medium text-slate-700">{c.label}</span>
-                  <span className="flex items-center gap-2">
-                    <span className={closed ? "text-slate-400" : "text-emerald-600"}>{closed ? "Closed" : "Open"}</span>
-                    <input type="checkbox" checked={!closed} onChange={() => toggleCampusClosed(c.value)} />
-                  </span>
-                </label>
+                  <div className="flex overflow-hidden rounded-lg border border-slate-300">
+                    <button
+                      type="button"
+                      onClick={() => closed && toggleCampusClosed(c.value)}
+                      className={`px-3 py-1 text-xs font-semibold ${!closed ? "bg-emerald-600 text-white" : "bg-white text-slate-500 hover:bg-slate-100"}`}
+                    >
+                      Open
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => !closed && toggleCampusClosed(c.value)}
+                      className={`px-3 py-1 text-xs font-semibold ${closed ? "bg-red-600 text-white" : "bg-white text-slate-500 hover:bg-slate-100"}`}
+                    >
+                      Closed
+                    </button>
+                  </div>
+                </div>
               );
             })}
           </div>
