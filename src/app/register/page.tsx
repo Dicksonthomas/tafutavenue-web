@@ -61,15 +61,19 @@ export default function RegisterPage() {
     loading: settingsLoading,
     refresh: refreshSettings,
     cr_registration_closed_campuses,
-    staff_registration_open_from,
-    staff_registration_open_until,
+    staff_registration_windows,
   } = useSettings();
   const { campuses } = useReferenceData();
   const crFullyClosed = campuses.length > 0 && campuses.every((c) => cr_registration_closed_campuses.includes(c.value));
-  const todayIso = new Date().toISOString().slice(0, 10);
-  const staffFullyClosed =
-    (!!staff_registration_open_from && todayIso < staff_registration_open_from) ||
-    (!!staff_registration_open_until && todayIso > staff_registration_open_until);
+  const now = new Date();
+  const staffClosedForCampus = (c: string) => {
+    const window = staff_registration_windows[c];
+    if (!window) return false;
+    if (window.open_from && now < new Date(window.open_from)) return true;
+    if (window.open_until && now > new Date(window.open_until)) return true;
+    return false;
+  };
+  const staffFullyClosed = campuses.length > 0 && campuses.every((c) => staffClosedForCampus(c.value));
   const [mode, setMode] = useState<"cr" | "staff">("cr");
   const [title, setTitle] = useState("");
   const [name, setName] = useState("");
@@ -94,6 +98,7 @@ export default function RegisterPage() {
 
   const preview = useMemo(() => previewEmail(name, regNo), [name, regNo]);
   const crClosedForSelectedCampus = mode === "cr" && !!campus && cr_registration_closed_campuses.includes(campus);
+  const staffClosedForSelectedCampus = mode === "staff" && !!campus && staffClosedForCampus(campus);
 
   // If CR registration has been closed for every campus, only Staff
   // registration makes sense - force the mode and never show the CR tab.
@@ -147,7 +152,7 @@ export default function RegisterPage() {
 
   if (credentials) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4 py-10">
+      <div className="flex min-h-dvh items-center justify-center bg-slate-50 px-4 py-10">
         <div className="w-full max-w-md">
           <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
             <h1 className="text-lg font-semibold text-slate-900">
@@ -198,7 +203,7 @@ export default function RegisterPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4 py-10">
+    <div className="flex min-h-dvh items-center justify-center bg-slate-50 px-4 py-10">
       <div className="w-full max-w-lg">
         <div className="mb-6 flex flex-col items-center text-center">
           {settingsLoading ? (
@@ -233,7 +238,7 @@ export default function RegisterPage() {
 
         {staffFullyClosed && mode === "staff" && (
           <div className="mb-4 rounded-lg bg-amber-50 px-3 py-2 text-sm text-amber-800 ring-1 ring-inset ring-amber-200">
-            Staff registration is currently closed. Contact the Admin.
+            Staff registration is currently closed on every campus. Contact the Admin.
           </div>
         )}
 
@@ -259,6 +264,11 @@ export default function RegisterPage() {
               {crClosedForSelectedCampus && (
                 <p className="mt-1 text-xs text-red-600">
                   CR registration is closed for this campus. Register as Staff instead, or contact the Admin.
+                </p>
+              )}
+              {staffClosedForSelectedCampus && (
+                <p className="mt-1 text-xs text-red-600">
+                  Staff registration is currently closed for this campus. Contact the Admin.
                 </p>
               )}
             </div>
@@ -385,7 +395,7 @@ export default function RegisterPage() {
 
             <button
               type="submit"
-              disabled={submitting || crClosedForSelectedCampus || (mode === "staff" && staffFullyClosed)}
+              disabled={submitting || crClosedForSelectedCampus || staffClosedForSelectedCampus}
               className="col-span-full rounded-lg bg-accent-600 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50"
             >
               {submitting ? "Registering..." : "Register"}

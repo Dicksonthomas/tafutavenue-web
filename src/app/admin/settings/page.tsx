@@ -288,23 +288,38 @@ export default function AdminSettingsPage() {
     }
   }
 
-  // Staff Registration open window (from/until dates) - the Staff-side
-  // equivalent of CR Registration's per-campus toggle, managed by a Staff
-  // Admin instead. Outside the window, the Register page hides/closes the
-  // Staff tab the same way it does for a fully-closed CR registration.
-  const [staffRegFrom, setStaffRegFrom] = useState(settings.staff_registration_open_from ?? "");
-  const [staffRegUntil, setStaffRegUntil] = useState(settings.staff_registration_open_until ?? "");
+  // Staff Registration open window - the Staff-side equivalent of CR
+  // Registration's per-campus toggle, managed by a Staff Admin instead. Each
+  // campus gets its own optional [open_from, open_until] datetime window (not
+  // just a date - so an Admin can close it at a specific time of day too).
+  // Outside the window, the Register page disables the Staff tab for that
+  // campus the same way it does for a closed CR campus.
+  type StaffWindowState = { open_from: string; open_until: string };
+  function buildStaffWindowState(): Record<string, StaffWindowState> {
+    const windows = settings.staff_registration_windows ?? {};
+    return Object.fromEntries(
+      campuses.map((c) => [
+        c.value,
+        {
+          open_from: windows[c.value]?.open_from?.slice(0, 16) ?? "",
+          open_until: windows[c.value]?.open_until?.slice(0, 16) ?? "",
+        },
+      ])
+    );
+  }
+  const [staffWindows, setStaffWindows] = useState<Record<string, StaffWindowState>>({});
   const [staffRegError, setStaffRegError] = useState<string | null>(null);
   const [staffRegSuccess, setStaffRegSuccess] = useState<string | null>(null);
   const [savingStaffReg, setSavingStaffReg] = useState(false);
 
   useEffect(() => {
-    if (!settings.loading) {
-      setStaffRegFrom(settings.staff_registration_open_from ?? "");
-      setStaffRegUntil(settings.staff_registration_open_until ?? "");
-    }
+    if (!settings.loading && campuses.length > 0) setStaffWindows(buildStaffWindowState());
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [settings.loading]);
+  }, [settings.loading, campuses.length]);
+
+  function updateStaffWindow(campus: string, field: "open_from" | "open_until", value: string) {
+    setStaffWindows((prev) => ({ ...prev, [campus]: { ...prev[campus], [field]: value } }));
+  }
 
   async function saveStaffRegistration(e: React.FormEvent) {
     e.preventDefault();
@@ -312,16 +327,88 @@ export default function AdminSettingsPage() {
     setStaffRegSuccess(null);
     setSavingStaffReg(true);
     try {
-      const { data } = await api.post("/admin/settings", {
-        staff_registration_open_from: staffRegFrom || null,
-        staff_registration_open_until: staffRegUntil || null,
-      });
+      const payload = Object.fromEntries(
+        Object.entries(staffWindows).map(([campus, w]) => [
+          campus,
+          { open_from: w.open_from || null, open_until: w.open_until || null },
+        ])
+      );
+      const { data } = await api.post("/admin/settings", { staff_registration_windows: payload });
       setStaffRegSuccess(data.message);
       settings.refresh();
     } catch (err) {
       setStaffRegError(apiErrorMessage(err));
     } finally {
       setSavingStaffReg(false);
+    }
+  }
+
+  // Maintenance Mode - any Admin (general or Staff domain, super or not) can
+  // flip this to tell ordinary CR/Staff users the system is unavailable,
+  // while every Admin keeps logging in normally so they can turn it back off.
+  const [maintenanceMode, setMaintenanceMode] = useState(settings.maintenance_mode);
+  const [maintenanceUntil, setMaintenanceUntil] = useState(settings.maintenance_until ? settings.maintenance_until.slice(0, 16) : "");
+  const [maintenanceError, setMaintenanceError] = useState<string | null>(null);
+  const [maintenanceSuccess, setMaintenanceSuccess] = useState<string | null>(null);
+  const [savingMaintenance, setSavingMaintenance] = useState(false);
+
+  useEffect(() => {
+    if (!settings.loading) {
+      setMaintenanceMode(settings.maintenance_mode);
+      setMaintenanceUntil(settings.maintenance_until ? settings.maintenance_until.slice(0, 16) : "");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [settings.loading]);
+
+  async function saveMaintenance(e: React.FormEvent) {
+    e.preventDefault();
+    setMaintenanceError(null);
+    setMaintenanceSuccess(null);
+    setSavingMaintenance(true);
+    try {
+      const { data } = await api.post("/admin/settings", {
+        maintenance_mode: maintenanceMode,
+        maintenance_until: maintenanceUntil || null,
+      });
+      setMaintenanceSuccess(data.message);
+      settings.refresh();
+    } catch (err) {
+      setMaintenanceError(apiErrorMessage(err));
+    } finally {
+      setSavingMaintenance(false);
+    }
+  }
+
+  // Bulk-suspend every active CR (or Staff, for a Staff Admin) account on a
+  // campus in one action - for an operational issue affecting that campus.
+  // Reversible via the matching "Reactivate" button. Admins are never
+  // affected either way, so they can always log back in to undo this.
+  const suspendLabel = isStaffAdmin ? "Staff" : "CR";
+  const [suspendCampusValue, setSuspendCampusValue] = useState("");
+  const [suspendError, setSuspendError] = useState<string | null>(null);
+  const [suspendSuccess, setSuspendSuccess] = useState<string | null>(null);
+  const [suspending, setSuspending] = useState(false);
+
+  useEffect(() => {
+    if (visibleCampuses.length > 0 && !suspendCampusValue) setSuspendCampusValue(visibleCampuses[0].value);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [visibleCampuses.length]);
+
+  async function runCampusSuspend(action: "suspend-campus" | "unsuspend-campus") {
+    if (!suspendCampusValue) return;
+    const verb = action === "suspend-campus" ? "suspend" : "reactivate";
+    if (!window.confirm(`This will ${verb} ALL ${suspendLabel} accounts on this campus. Continue?`)) return;
+
+    setSuspendError(null);
+    setSuspendSuccess(null);
+    setSuspending(true);
+    try {
+      const { data } = await api.post(`/admin/users/${action}`, { campus: suspendCampusValue });
+      setSuspendSuccess(data.message);
+    } catch (err) {
+      setSuspendError(apiErrorMessage(err));
+    } finally {
+      setSuspending(false);
     }
   }
 
@@ -666,40 +753,118 @@ export default function AdminSettingsPage() {
         <Card className="p-6">
           <h2 className="mb-1 text-sm font-semibold text-slate-700">Staff Registration</h2>
           <p className="mb-4 text-xs text-slate-500">
-            Restrict Staff self-registration to a specific period - e.g. only during onboarding season. Leave both
-            blank to keep it open indefinitely. Outside this window, the Register page hides the Staff option.
+            Restrict Staff self-registration to a specific period per campus - e.g. only during onboarding season,
+            down to the exact time of day it opens/closes. Leave both blank for a campus to keep it open
+            indefinitely there. Outside its window, the Register page disables Staff registration for that campus.
           </p>
 
           {staffRegError && <div className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{staffRegError}</div>}
           {staffRegSuccess && <div className="mb-4 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-700">{staffRegSuccess}</div>}
 
-          <form onSubmit={saveStaffRegistration} className="space-y-3">
-            <div className="flex flex-wrap gap-4">
-              <div>
-                <label className="mb-1 block text-sm font-medium text-slate-600">Open from</label>
-                <input
-                  type="date"
-                  value={staffRegFrom}
-                  onChange={(e) => setStaffRegFrom(e.target.value)}
-                  className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none"
-                />
+          <form onSubmit={saveStaffRegistration} className="space-y-4">
+            {visibleCampuses.map((c) => (
+              <div key={c.value} className="rounded-lg border border-slate-200 p-3">
+                <p className="mb-2 text-sm font-medium text-slate-700">{c.label}</p>
+                <div className="flex flex-wrap gap-4">
+                  <div>
+                    <label className="mb-1 block text-xs font-medium text-slate-500">Open from</label>
+                    <input
+                      type="datetime-local"
+                      value={staffWindows[c.value]?.open_from ?? ""}
+                      onChange={(e) => updateStaffWindow(c.value, "open_from", e.target.value)}
+                      className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-xs font-medium text-slate-500">Open until</label>
+                    <input
+                      type="datetime-local"
+                      value={staffWindows[c.value]?.open_until ?? ""}
+                      onChange={(e) => updateStaffWindow(c.value, "open_until", e.target.value)}
+                      className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none"
+                    />
+                  </div>
+                </div>
               </div>
-              <div>
-                <label className="mb-1 block text-sm font-medium text-slate-600">Open until</label>
-                <input
-                  type="date"
-                  value={staffRegUntil}
-                  onChange={(e) => setStaffRegUntil(e.target.value)}
-                  className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none"
-                />
-              </div>
-            </div>
+            ))}
             <button disabled={savingStaffReg} className="rounded-lg bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50">
               {savingStaffReg ? "Saving..." : "Save"}
             </button>
           </form>
         </Card>
       )}
+
+      <Card className="p-6">
+        <h2 className="mb-1 text-sm font-semibold text-slate-700">Maintenance Mode</h2>
+        <p className="mb-4 text-xs text-slate-500">
+          When on, ordinary CR and Staff users are told the system is under maintenance and cannot use it. Every
+          Admin (any type) can still log in and use the system as normal, so this can always be switched back off.
+        </p>
+
+        {maintenanceError && <div className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{maintenanceError}</div>}
+        {maintenanceSuccess && <div className="mb-4 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-700">{maintenanceSuccess}</div>}
+
+        <form onSubmit={saveMaintenance} className="space-y-3">
+          <label className="flex items-center gap-2 text-sm text-slate-700">
+            <input type="checkbox" checked={maintenanceMode} onChange={(e) => setMaintenanceMode(e.target.checked)} />
+            System is under maintenance
+          </label>
+          <div>
+            <label className="mb-1 block text-sm font-medium text-slate-600">Expected back until (optional, shown to users)</label>
+            <input
+              type="datetime-local"
+              value={maintenanceUntil}
+              onChange={(e) => setMaintenanceUntil(e.target.value)}
+              className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none"
+            />
+          </div>
+          <button disabled={savingMaintenance} className="rounded-lg bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50">
+            {savingMaintenance ? "Saving..." : "Save"}
+          </button>
+        </form>
+      </Card>
+
+      <Card className="p-6">
+        <h2 className="mb-1 text-sm font-semibold text-slate-700">Suspend {suspendLabel} Accounts by Campus</h2>
+        <p className="mb-4 text-xs text-slate-500">
+          For an operational problem affecting one campus - suspends every currently-active {suspendLabel} account
+          there at once, so none of them can log in until you reactivate them. Admins are never affected.
+        </p>
+
+        {suspendError && <div className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{suspendError}</div>}
+        {suspendSuccess && <div className="mb-4 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-700">{suspendSuccess}</div>}
+
+        <div className="flex flex-wrap items-end gap-3">
+          <div>
+            <label className="mb-1 block text-sm font-medium text-slate-600">Campus</label>
+            <select
+              value={suspendCampusValue}
+              onChange={(e) => setSuspendCampusValue(e.target.value)}
+              className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none"
+            >
+              {visibleCampuses.map((c) => (
+                <option key={c.value} value={c.value}>{c.label}</option>
+              ))}
+            </select>
+          </div>
+          <button
+            type="button"
+            disabled={suspending || !suspendCampusValue}
+            onClick={() => runCampusSuspend("suspend-campus")}
+            className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700 disabled:opacity-50"
+          >
+            {suspending ? "Working..." : `Suspend all ${suspendLabel} on this campus`}
+          </button>
+          <button
+            type="button"
+            disabled={suspending || !suspendCampusValue}
+            onClick={() => runCampusSuspend("unsuspend-campus")}
+            className="rounded-lg border border-slate-300 px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 disabled:opacity-50"
+          >
+            {suspending ? "Working..." : "Reactivate"}
+          </button>
+        </div>
+      </Card>
 
       <MyColorPreference />
     </div>

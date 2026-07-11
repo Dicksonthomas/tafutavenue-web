@@ -127,11 +127,14 @@ export default function DashboardShell({
   }
 
   return (
-    <div className="flex min-h-screen bg-slate-50">
+    <div className="flex min-h-dvh bg-slate-50">
       {/* Permanent sidebar - from `lg` up, so tablets (which land in the
           `md`-`lg` range) still get the phone-style bottom nav + drawer
           below instead of a cramped permanent sidebar. */}
-      <aside className={`sticky top-0 hidden h-screen shrink-0 overflow-y-auto bg-brand-800 transition-all duration-200 lg:block ${collapsed ? "w-16" : "w-64"}`}>
+      {/* h-dvh (not h-screen) - h-screen is a fixed 100vh, which resizes as
+          the mobile browser's address bar shows/hides on scroll, making the
+          whole layout visibly jump. dvh tracks the actual visible viewport. */}
+      <aside className={`sticky top-0 hidden h-dvh shrink-0 overflow-y-auto bg-brand-800 transition-all duration-200 lg:block ${collapsed ? "w-16" : "w-64"}`}>
         {renderSidebar(true)}
       </aside>
 

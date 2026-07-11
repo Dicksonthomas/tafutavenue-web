@@ -7,6 +7,11 @@ export interface StudyUnitHours {
   [day: string]: { start: string; end: string };
 }
 
+export interface StaffRegistrationWindow {
+  open_from: string | null;
+  open_until: string | null;
+}
+
 interface AppSettings {
   primary_color: string | null;
   default_color: string | null;
@@ -18,10 +23,11 @@ interface AppSettings {
   login_background_color: string | null;
   study_unit_hours: StudyUnitHours | null;
   cr_registration_closed_campuses: string[];
+  staff_registration_windows: Record<string, StaffRegistrationWindow>;
   marquee_enabled: boolean;
   marquee_until: string | null;
-  staff_registration_open_from: string | null;
-  staff_registration_open_until: string | null;
+  maintenance_mode: boolean;
+  maintenance_until: string | null;
 }
 
 interface SettingsContextValue extends AppSettings {
@@ -44,10 +50,11 @@ const SettingsContext = createContext<SettingsContextValue>({
   login_background_color: null,
   study_unit_hours: null,
   cr_registration_closed_campuses: [],
+  staff_registration_windows: {},
   marquee_enabled: true,
   marquee_until: null,
-  staff_registration_open_from: null,
-  staff_registration_open_until: null,
+  maintenance_mode: false,
+  maintenance_until: null,
   loading: true,
   refresh: () => Promise.resolve(),
 });
@@ -203,10 +210,11 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     login_background_color: null,
     study_unit_hours: null,
     cr_registration_closed_campuses: [],
+    staff_registration_windows: {},
     marquee_enabled: true,
     marquee_until: null,
-    staff_registration_open_from: null,
-    staff_registration_open_until: null,
+    maintenance_mode: false,
+    maintenance_until: null,
   });
   const [loading, setLoading] = useState(true);
 

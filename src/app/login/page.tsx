@@ -58,11 +58,11 @@ export default function LoginPage() {
     // Wait for the logo/app name/background color to arrive before painting
     // anything branded, instead of flashing the fallback icon/text first and
     // then swapping to the real ones once /settings resolves.
-    return <div className="min-h-screen bg-slate-50" />;
+    return <div className="min-h-dvh bg-slate-50" />;
   }
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center gap-6 px-4 py-12 lg:gap-16" style={{ backgroundColor: loginBg }}>
+    <div className="relative flex min-h-dvh items-center justify-center gap-6 px-4 py-12 lg:gap-16" style={{ backgroundColor: loginBg }}>
       {/* Purely decorative - soft glows, a faint building silhouette, and a
           scatter of dots to give the flat blue background some depth
           without distracting from the form. Never intercepts clicks.
