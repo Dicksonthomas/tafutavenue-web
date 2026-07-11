@@ -1,9 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Building2, Check, Copy } from "lucide-react";
+import { Check, Copy } from "lucide-react";
 import { api, apiErrorMessage } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { useSettings } from "@/lib/settings";
@@ -55,14 +55,15 @@ function previewEmail(name: string, regNo: string): { email: string | null; erro
 export default function RegisterPage() {
   const router = useRouter();
   const { setUser } = useAuth();
-  const { logo_url, loading: settingsLoading, refresh: refreshSettings } = useSettings();
+  const { logo_url, loading: settingsLoading, refresh: refreshSettings, cr_registration_closed_campuses } = useSettings();
+  const { campuses } = useReferenceData();
+  const crFullyClosed = campuses.length > 0 && campuses.every((c) => cr_registration_closed_campuses.includes(c.value));
   const [mode, setMode] = useState<"cr" | "staff">("cr");
   const [name, setName] = useState("");
   const [regNo, setRegNo] = useState("");
   const [phone, setPhone] = useState("");
   const [sex, setSex] = useState("");
   const [campus, setCampus] = useState("");
-  const { campuses } = useReferenceData();
   const [edu, setEdu] = useState<EducationValue>({
     faculty: "",
     department: "",
@@ -79,6 +80,13 @@ export default function RegisterPage() {
   const [copied, setCopied] = useState(false);
 
   const preview = useMemo(() => previewEmail(name, regNo), [name, regNo]);
+  const crClosedForSelectedCampus = mode === "cr" && !!campus && cr_registration_closed_campuses.includes(campus);
+
+  // If CR registration has been closed for every campus, only Staff
+  // registration makes sense - force the mode and never show the CR tab.
+  useEffect(() => {
+    if (crFullyClosed && mode === "cr") setMode("staff");
+  }, [crFullyClosed, mode]);
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -179,37 +187,33 @@ export default function RegisterPage() {
         <div className="mb-6 flex flex-col items-center text-center">
           {settingsLoading ? (
             <div className="mb-3 h-11 w-11 rounded-xl bg-slate-100" />
-          ) : logo_url ? (
-            <img src={logo_url} alt="Logo" className="mb-3 h-11 w-11 rounded-xl object-contain" />
           ) : (
-            <div className="mb-3 flex h-11 w-11 items-center justify-center rounded-xl bg-brand-800 text-white">
-              <Building2 size={22} />
-            </div>
+            <img src={logo_url || "/default-logo.jpg"} alt="Logo" className="mb-3 h-11 w-11 rounded-xl object-contain" />
           )}
-          <h1 className="text-lg font-semibold text-slate-900">
-            {mode === "cr" ? "CR Registration" : "Staff Registration"}
-          </h1>
+          <h1 className="text-lg font-semibold text-slate-900">Registration</h1>
           <p className="text-sm text-slate-500">
             {mode === "cr" ? "Class Representative Registration" : "University Staff Registration"}
           </p>
         </div>
 
-        <div className="mb-4 grid grid-cols-2 gap-1 rounded-lg bg-slate-100 p-1 text-sm font-medium">
-          <button
-            type="button"
-            onClick={() => setMode("cr")}
-            className={`rounded-md py-1.5 ${mode === "cr" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500"}`}
-          >
-            Class Representative
-          </button>
-          <button
-            type="button"
-            onClick={() => setMode("staff")}
-            className={`rounded-md py-1.5 ${mode === "staff" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500"}`}
-          >
-            Staff
-          </button>
-        </div>
+        {!crFullyClosed && (
+          <div className="mb-4 grid grid-cols-2 gap-1 rounded-lg bg-slate-100 p-1 text-sm font-medium">
+            <button
+              type="button"
+              onClick={() => setMode("cr")}
+              className={`rounded-md py-1.5 ${mode === "cr" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500"}`}
+            >
+              Class Representative
+            </button>
+            <button
+              type="button"
+              onClick={() => setMode("staff")}
+              className={`rounded-md py-1.5 ${mode === "staff" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500"}`}
+            >
+              Staff
+            </button>
+          </div>
+        )}
 
         <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
           {error && (
@@ -230,6 +234,11 @@ export default function RegisterPage() {
                   <option key={c.value} value={c.value}>{c.label}</option>
                 ))}
               </select>
+              {crClosedForSelectedCampus && (
+                <p className="mt-1 text-xs text-red-600">
+                  CR registration is closed for this campus. Register as Staff instead, or contact the Admin.
+                </p>
+              )}
             </div>
 
             <div className="col-span-full">
@@ -342,7 +351,7 @@ export default function RegisterPage() {
 
             <button
               type="submit"
-              disabled={submitting}
+              disabled={submitting || crClosedForSelectedCampus}
               className="col-span-full rounded-lg bg-accent-600 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50"
             >
               {submitting ? "Registering..." : "Register"}

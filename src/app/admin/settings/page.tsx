@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { DatabaseZap, RotateCcw, UploadCloud } from "lucide-react";
+import { DatabaseZap, RotateCcw } from "lucide-react";
 import { api, apiErrorMessage } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import {
@@ -14,6 +14,7 @@ import {
 } from "@/lib/settings";
 import { Card, PageHeader } from "@/components/ui";
 import MyColorPreference from "@/components/MyColorPreference";
+import { useReferenceData } from "@/lib/referenceData";
 
 const BRAND_DEFAULT_COLOR = "#FF7F50";
 
@@ -196,6 +197,60 @@ export default function AdminSettingsPage() {
     }
   }
 
+  async function resetLogo() {
+    setError(null);
+    setSuccess(null);
+    setSubmitting(true);
+    try {
+      const formData = new FormData();
+      formData.append("reset_logo", "1");
+      const { data } = await api.post("/admin/settings", formData, {
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      setSuccess(data.message);
+      if (fileRef.current) fileRef.current.value = "";
+      setTimeout(() => window.location.reload(), 1200);
+    } catch (err) {
+      setError(apiErrorMessage(err));
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  // CR Registration open/closed, per campus. A regular Admin only sees/can
+  // toggle their own campus; a Super Admin sees and can toggle all four.
+  const { campuses } = useReferenceData();
+  const [closedCampuses, setClosedCampuses] = useState<string[]>(settings.cr_registration_closed_campuses ?? []);
+  const [crRegError, setCrRegError] = useState<string | null>(null);
+  const [crRegSuccess, setCrRegSuccess] = useState<string | null>(null);
+  const [savingCrReg, setSavingCrReg] = useState(false);
+  const visibleCampuses = user?.is_super_admin ? campuses : campuses.filter((c) => c.value === user?.campus);
+
+  useEffect(() => {
+    if (!settings.loading) setClosedCampuses(settings.cr_registration_closed_campuses ?? []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [settings.loading]);
+
+  function toggleCampusClosed(value: string) {
+    setClosedCampuses((prev) => (prev.includes(value) ? prev.filter((c) => c !== value) : [...prev, value]));
+  }
+
+  async function saveCrRegistration(e: React.FormEvent) {
+    e.preventDefault();
+    setCrRegError(null);
+    setCrRegSuccess(null);
+    setSavingCrReg(true);
+    try {
+      const { data } = await api.post("/admin/settings", { cr_registration_closed_campuses: closedCampuses });
+      setCrRegSuccess(data.message);
+      settings.refresh();
+    } catch (err) {
+      setCrRegError(apiErrorMessage(err));
+    } finally {
+      setSavingCrReg(false);
+    }
+  }
+
   return (
     <div className="mx-auto max-w-7xl space-y-6">
       <PageHeader title="System Settings" subtitle="Change the main color (default for all users) and the App logo." />
@@ -280,11 +335,17 @@ export default function AdminSettingsPage() {
               {logoPreview ? (
                 <img src={logoPreview} alt="Logo" className="h-14 w-14 rounded-lg border border-slate-200 object-contain" />
               ) : (
-                <div className="flex h-14 w-14 items-center justify-center rounded-lg border border-dashed border-slate-300 text-slate-300">
-                  <UploadCloud size={20} />
-                </div>
+                <img src="/default-logo.jpg" alt="Default logo" className="h-14 w-14 rounded-lg border border-slate-200 object-contain" />
               )}
               <input ref={fileRef} type="file" accept="image/*" onChange={handleLogoChange} className="text-sm" />
+              <button
+                type="button"
+                onClick={resetLogo}
+                disabled={submitting}
+                className="flex items-center gap-1 rounded-lg border border-slate-300 px-3 py-2 text-sm text-slate-600 hover:bg-slate-50 disabled:opacity-50"
+              >
+                <RotateCcw size={14} /> Reset to Default Logo
+              </button>
             </div>
           </div>
 
@@ -354,6 +415,38 @@ export default function AdminSettingsPage() {
               {savingHours ? "Saving..." : "Save Hours"}
             </button>
           </div>
+        </form>
+      </Card>
+
+      <Card className="p-6">
+        <h2 className="mb-1 text-sm font-semibold text-slate-700">CR Registration</h2>
+        <p className="mb-4 text-xs text-slate-500">
+          Close CR self-registration for a campus once that campus&apos;s intake is done - the Register page then
+          only shows Staff registration (or, for other campuses still open, disables just that campus with an
+          explanation).
+        </p>
+
+        {crRegError && <div className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{crRegError}</div>}
+        {crRegSuccess && <div className="mb-4 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-700">{crRegSuccess}</div>}
+
+        <form onSubmit={saveCrRegistration} className="space-y-3">
+          <div className="space-y-2">
+            {visibleCampuses.map((c) => {
+              const closed = closedCampuses.includes(c.value);
+              return (
+                <label key={c.value} className="flex items-center justify-between rounded-lg border border-slate-200 px-3 py-2 text-sm">
+                  <span className="font-medium text-slate-700">{c.label}</span>
+                  <span className="flex items-center gap-2">
+                    <span className={closed ? "text-slate-400" : "text-emerald-600"}>{closed ? "Closed" : "Open"}</span>
+                    <input type="checkbox" checked={!closed} onChange={() => toggleCampusClosed(c.value)} />
+                  </span>
+                </label>
+              );
+            })}
+          </div>
+          <button disabled={savingCrReg} className="rounded-lg bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50">
+            {savingCrReg ? "Saving..." : "Save"}
+          </button>
         </form>
       </Card>
 

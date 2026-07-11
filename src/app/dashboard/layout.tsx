@@ -4,6 +4,7 @@ import { ReactNode } from "react";
 import { LayoutDashboard, Search, CalendarClock, ClipboardList, DoorOpen, User2, Settings, Bell } from "lucide-react";
 import AuthGuard from "@/components/AuthGuard";
 import DashboardShell, { NavItem } from "@/components/DashboardShell";
+import AnnouncementMarquee from "@/components/AnnouncementMarquee";
 import { useAuth } from "@/lib/auth";
 
 const baseNavItems: NavItem[] = [
@@ -44,6 +45,7 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
         profileHref="/dashboard/profile"
         changePasswordHref="/dashboard/change-password"
       >
+        <AnnouncementMarquee />
         {children}
       </DashboardShell>
     </AuthGuard>

@@ -2,10 +2,10 @@
 
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { Briefcase, Check, Pencil, Search, Trash2, X } from "lucide-react";
+import { Briefcase, Check, Pencil, Plus, Search, Trash2, X } from "lucide-react";
 import Pagination from "@/components/Pagination";
 import { api, apiErrorMessage } from "@/lib/api";
-import { User } from "@/lib/types";
+import { User, VenueType } from "@/lib/types";
 import { Card, EmptyState, PageHeader, Spinner } from "@/components/ui";
 import { useDebouncedValue } from "@/lib/useDebounce";
 import { useReferenceData } from "@/lib/referenceData";
@@ -44,6 +44,7 @@ export default function AdminStaffPage() {
   const [editingUser, setEditingUser] = useState<User | null>(null);
   const [successMsg, setSuccessMsg] = useState<string | null>(null);
   const [busyId, setBusyId] = useState<number | null>(null);
+  const [showAddVenue, setShowAddVenue] = useState(false);
 
   const debouncedQ = useDebouncedValue(q, 350);
 
@@ -93,6 +94,25 @@ export default function AdminStaffPage() {
     }
   }
 
+  async function rejectStaff(u: User) {
+    const ok = await confirmAction(
+      "This account was never approved and has no booking history - it will be deleted completely and cannot be recovered.",
+      { title: `Reject Staff registration "${u.name}"?`, confirmText: "Yes, reject and delete" }
+    );
+    if (!ok) return;
+    setError(null);
+    setBusyId(u.id);
+    try {
+      const { data } = await api.post(`/admin/users/${u.id}/reject`);
+      setSuccessMsg(data.message);
+      load(debouncedQ, page);
+    } catch (err) {
+      setError(apiErrorMessage(err));
+    } finally {
+      setBusyId(null);
+    }
+  }
+
   async function deleteUser(u: User) {
     const ok = await confirmAction(
       `Their personal information (name, email, phone) will be deleted, but their booking history will remain on record.`,
@@ -116,7 +136,22 @@ export default function AdminStaffPage() {
       <PageHeader
         title="Staff"
         subtitle="Staff register themselves and need Admin approval before they can sign in and book meeting rooms."
+        action={
+          <button onClick={() => setShowAddVenue(true)} className="flex items-center gap-2 rounded-lg bg-accent-600 px-3 py-2 text-sm font-medium text-white hover:bg-accent-700">
+            <Plus size={16} /> Add Venue
+          </button>
+        }
       />
+
+      {showAddVenue && (
+        <QuickAddVenueModal
+          onClose={() => setShowAddVenue(false)}
+          onCreated={(message) => {
+            setShowAddVenue(false);
+            setSuccessMsg(message);
+          }}
+        />
+      )}
 
       {error && <div className="mb-4 rounded-lg bg-red-50 px-4 py-3 text-sm text-red-700 ring-1 ring-inset ring-red-200">{error}</div>}
 
@@ -227,27 +262,39 @@ export default function AdminStaffPage() {
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex justify-end gap-1">
-                        {isPending(u) && (
-                          <button
-                            onClick={() => approveStaff(u)}
-                            disabled={busyId === u.id}
-                            className="flex items-center gap-1 rounded-lg border border-emerald-200 px-2 py-1 text-xs text-emerald-700 hover:bg-emerald-50 disabled:opacity-50"
-                          >
-                            <Check size={12} /> {busyId === u.id ? "Approving..." : "Approve"}
-                          </button>
+                        {isPending(u) ? (
+                          <>
+                            <button
+                              onClick={() => approveStaff(u)}
+                              disabled={busyId === u.id}
+                              className="flex items-center gap-1 rounded-lg border border-emerald-200 px-2 py-1 text-xs text-emerald-700 hover:bg-emerald-50 disabled:opacity-50"
+                            >
+                              <Check size={12} /> {busyId === u.id ? "Approving..." : "Approve"}
+                            </button>
+                            <button
+                              onClick={() => rejectStaff(u)}
+                              disabled={busyId === u.id}
+                              className="flex items-center gap-1 rounded-lg border border-red-200 px-2 py-1 text-xs text-red-600 hover:bg-red-50 disabled:opacity-50"
+                            >
+                              <X size={12} /> Reject
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <button
+                              onClick={() => setEditingUser(u)}
+                              className="flex items-center gap-1 rounded-lg border border-slate-200 px-2 py-1 text-xs text-slate-500 hover:bg-slate-50"
+                            >
+                              <Pencil size={12} /> Edit
+                            </button>
+                            <button
+                              onClick={() => deleteUser(u)}
+                              className="flex items-center gap-1 rounded-lg border border-red-200 px-2 py-1 text-xs text-red-600 hover:bg-red-50"
+                            >
+                              <Trash2 size={12} /> Remove
+                            </button>
+                          </>
                         )}
-                        <button
-                          onClick={() => setEditingUser(u)}
-                          className="flex items-center gap-1 rounded-lg border border-slate-200 px-2 py-1 text-xs text-slate-500 hover:bg-slate-50"
-                        >
-                          <Pencil size={12} /> Edit
-                        </button>
-                        <button
-                          onClick={() => deleteUser(u)}
-                          className="flex items-center gap-1 rounded-lg border border-red-200 px-2 py-1 text-xs text-red-600 hover:bg-red-50"
-                        >
-                          <Trash2 size={12} /> Remove
-                        </button>
                       </div>
                     </td>
                   </tr>
@@ -342,6 +389,90 @@ function EditStaffModal({
             <button type="button" onClick={onClose} className="flex-1 rounded-lg border border-slate-300 py-2 text-sm text-slate-600 hover:bg-slate-50">Cancel</button>
             <button disabled={submitting} className="flex-1 rounded-lg bg-accent-600 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50">
               {submitting ? "Saving..." : "Save Changes"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+/**
+ * A lightweight "just create the venue" form - not the full Venues admin
+ * page (no restriction fields, CSV import, timetable scraping). For when a
+ * Staff-relevant venue (e.g. a boardroom) isn't already in the system,
+ * without needing the full Venues admin page's complexity.
+ */
+function QuickAddVenueModal({
+  onClose,
+  onCreated,
+}: {
+  onClose: () => void;
+  onCreated: (message: string) => void;
+}) {
+  const { campuses } = useReferenceData();
+  const [name, setName] = useState("");
+  const [campus, setCampus] = useState("");
+  const [capacity, setCapacity] = useState(10);
+  const [type, setType] = useState<VenueType>("seminar_room");
+  const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    setSubmitting(true);
+    try {
+      await api.post("/admin/venues", {
+        name,
+        campus,
+        capacity,
+        type,
+        restricted_role: "staff",
+      });
+      onCreated(`Venue "${name}" added for Staff.`);
+    } catch (err) {
+      setError(apiErrorMessage(err));
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-black/40 px-4 py-8">
+      <div className="w-full max-w-md rounded-xl bg-white p-5 shadow-xl">
+        <div className="mb-3 flex items-center justify-between">
+          <h2 className="font-semibold text-slate-900">Add Venue for Staff</h2>
+          <button onClick={onClose} className="text-slate-400 hover:text-slate-600"><X size={18} /></button>
+        </div>
+
+        <p className="mb-3 text-xs text-slate-500">
+          For a boardroom/meeting room not already in the system (e.g. not covered by the timetable). It's
+          automatically marked "Staff only".
+        </p>
+
+        {error && <div className="mb-3 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{error}</div>}
+
+        <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-3">
+          <input required placeholder="Venue name" value={name} onChange={(e) => setName(e.target.value)} className="col-span-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none" />
+
+          <select required value={campus} onChange={(e) => setCampus(e.target.value)} className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none">
+            <option value="" disabled>Choose Campus...</option>
+            {campuses.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
+          </select>
+
+          <input required type="number" min={1} placeholder="Capacity" value={capacity} onChange={(e) => setCapacity(Number(e.target.value))} className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none" />
+
+          <select value={type} onChange={(e) => setType(e.target.value as VenueType)} className="col-span-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none">
+            <option value="seminar_room">Seminar room</option>
+            <option value="hall">Hall</option>
+            <option value="other">Other</option>
+          </select>
+
+          <div className="col-span-full flex gap-2 pt-2">
+            <button type="button" onClick={onClose} className="flex-1 rounded-lg border border-slate-300 py-2 text-sm text-slate-600 hover:bg-slate-50">Cancel</button>
+            <button disabled={submitting} className="flex-1 rounded-lg bg-accent-600 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50">
+              {submitting ? "Adding..." : "Add Venue"}
             </button>
           </div>
         </form>

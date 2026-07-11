@@ -17,6 +17,7 @@ interface AppSettings {
   footer_link: string | null;
   login_background_color: string | null;
   study_unit_hours: StudyUnitHours | null;
+  cr_registration_closed_campuses: string[];
 }
 
 interface SettingsContextValue extends AppSettings {
@@ -38,6 +39,7 @@ const SettingsContext = createContext<SettingsContextValue>({
   footer_link: null,
   login_background_color: null,
   study_unit_hours: null,
+  cr_registration_closed_campuses: [],
   loading: true,
   refresh: () => Promise.resolve(),
 });
@@ -192,6 +194,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     footer_link: null,
     login_background_color: null,
     study_unit_hours: null,
+    cr_registration_closed_campuses: [],
   });
   const [loading, setLoading] = useState(true);
 

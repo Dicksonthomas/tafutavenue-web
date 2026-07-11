@@ -12,12 +12,14 @@ export const NOTIFICATION_TYPE_LABELS: Record<NotificationType, string> = {
   booking_edited: "Booking Edited",
   announcement: "Announcement",
   staff_pending: "Staff Pending Approval",
+  cr_pending: "CR Pending Approval",
 };
 
 /** Where clicking a notification of this type should navigate to, if anywhere. */
 export function notificationTargetHref(n: Notification): string | null {
   if (n.type === "booking_pending") return "/admin/bookings?status=pending";
   if (n.type === "staff_pending") return "/admin/staff";
+  if (n.type === "cr_pending") return "/admin/students";
   return null;
 }
 

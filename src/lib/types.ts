@@ -12,6 +12,7 @@ export interface User {
   role: Role;
   is_super_admin?: boolean;
   is_main_super_admin?: boolean;
+  admin_domain?: "general" | "staff" | null;
   phone?: string;
   campus?: string;
   sex?: "male" | "female" | null;
@@ -99,7 +100,7 @@ export interface Booking {
   approver?: User | null;
 }
 
-export type NotificationType = "booking_approved" | "booking_rejected" | "booking_pending" | "booking_edited" | "announcement" | "staff_pending";
+export type NotificationType = "booking_approved" | "booking_rejected" | "booking_pending" | "booking_edited" | "announcement" | "staff_pending" | "cr_pending";
 
 export interface Notification {
   id: number;

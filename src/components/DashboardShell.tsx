@@ -3,7 +3,7 @@
 import { ReactNode, useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LucideIcon, Menu, X, Building2 } from "lucide-react";
+import { LucideIcon, Menu, X } from "lucide-react";
 import TopBar from "./TopBar";
 import Footer from "./Footer";
 import BottomNav from "./BottomNav";
@@ -66,12 +66,8 @@ export default function DashboardShell({
               // shows the "no logo" fallback icon first and then swaps to
               // the real logo once it arrives.
               <div className="h-9 w-9 shrink-0 rounded-lg bg-white/10" />
-            ) : logo_url ? (
-              <img src={logo_url} alt="Logo" className="h-9 w-9 shrink-0 rounded-lg object-contain" />
             ) : (
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-accent-500 text-white">
-                <Building2 size={18} />
-              </div>
+              <img src={logo_url || "/default-logo.jpg"} alt="Logo" className="h-9 w-9 shrink-0 rounded-lg object-contain" />
             )}
             {!isCollapsed && (
               <div className="min-w-0">

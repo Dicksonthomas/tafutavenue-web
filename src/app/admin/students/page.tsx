@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { Download, GraduationCap, Pencil, Plus, Printer, Search, Trash2, Upload, X } from "lucide-react";
+import { Check, Download, GraduationCap, Pencil, Plus, Printer, Search, Trash2, Upload, X } from "lucide-react";
 import Pagination from "@/components/Pagination";
 import { api, apiErrorMessage, blobErrorMessage } from "@/lib/api";
 import { Level, User } from "@/lib/types";
@@ -17,6 +17,10 @@ import { campusBadgeClasses } from "@/lib/campusColors";
 function campusLabel(value: string | undefined, campuses: { value: string; label: string }[]): string {
   if (!value) return "—";
   return campuses.find((c) => c.value === value)?.label ?? value;
+}
+
+function isPending(u: User): boolean {
+  return !u.is_active && !u.approved_at;
 }
 
 const EMAIL_DOMAIN = "mustudent.ac.tz";
@@ -96,6 +100,7 @@ export default function AdminStudentsPage() {
   const [importing, setImporting] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [printing, setPrinting] = useState(false);
+  const [busyId, setBusyId] = useState<number | null>(null);
 
   const debouncedQ = useDebouncedValue(q, 350);
 
@@ -184,6 +189,39 @@ export default function AdminStudentsPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [perPage]);
 
+  async function approveCr(u: User) {
+    setError(null);
+    setBusyId(u.id);
+    try {
+      const { data } = await api.post(`/admin/users/${u.id}/approve`);
+      setSuccessMsg(data.message);
+      load(debouncedQ, page);
+    } catch (err) {
+      setError(apiErrorMessage(err));
+    } finally {
+      setBusyId(null);
+    }
+  }
+
+  async function rejectCr(u: User) {
+    const ok = await confirmAction(
+      "This account was never approved and has no booking history - it will be deleted completely and cannot be recovered.",
+      { title: `Reject CR registration "${u.name}"?`, confirmText: "Yes, reject and delete" }
+    );
+    if (!ok) return;
+    setError(null);
+    setBusyId(u.id);
+    try {
+      const { data } = await api.post(`/admin/users/${u.id}/reject`);
+      setSuccessMsg(data.message);
+      load(debouncedQ, page);
+    } catch (err) {
+      setError(apiErrorMessage(err));
+    } finally {
+      setBusyId(null);
+    }
+  }
+
   async function deleteUser(u: User) {
     const ok = await confirmAction(
       `Their personal information (name, email, phone) will be deleted, but their booking history will remain on record.`,
@@ -238,7 +276,7 @@ export default function AdminStudentsPage() {
     <div className="mx-auto max-w-7xl">
       <PageHeader
         title="Students (CR)"
-        subtitle="Register CRs one by one or import many at once via CSV/Excel. Email and password are generated automatically and sent to the CR."
+        subtitle="Self-registered CRs need your approval before they can sign in (Pending below). You can also add or import CRs directly here - their password is emailed to them right away."
         action={
           <div className="flex flex-wrap gap-2">
             <button onClick={downloadTemplate} className="flex items-center gap-2 rounded-lg border border-slate-300 px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50">
@@ -432,7 +470,9 @@ export default function AdminStudentsPage() {
                     </td>
                     <td className="px-4 py-3 text-slate-600">{u.sex === "male" ? "Male" : u.sex === "female" ? "Female" : "—"}</td>
                     <td className="px-4 py-3">
-                      {u.is_active ? (
+                      {isPending(u) ? (
+                        <span className="rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-700">Pending</span>
+                      ) : u.is_active ? (
                         <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-medium text-emerald-700">Active</span>
                       ) : (
                         <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs text-slate-500">Suspended</span>
@@ -443,18 +483,39 @@ export default function AdminStudentsPage() {
                     </td>
                     <td className="px-4 py-3">
                       <div className="flex justify-end gap-1">
-                        <button
-                          onClick={() => setEditingUser(u)}
-                          className="flex items-center gap-1 rounded-lg border border-slate-200 px-2 py-1 text-xs text-slate-500 hover:bg-slate-50"
-                        >
-                          <Pencil size={12} /> Edit
-                        </button>
-                        <button
-                          onClick={() => deleteUser(u)}
-                          className="flex items-center gap-1 rounded-lg border border-red-200 px-2 py-1 text-xs text-red-600 hover:bg-red-50"
-                        >
-                          <Trash2 size={12} /> Remove
-                        </button>
+                        {isPending(u) ? (
+                          <>
+                            <button
+                              onClick={() => approveCr(u)}
+                              disabled={busyId === u.id}
+                              className="flex items-center gap-1 rounded-lg border border-emerald-200 px-2 py-1 text-xs text-emerald-700 hover:bg-emerald-50 disabled:opacity-50"
+                            >
+                              <Check size={12} /> {busyId === u.id ? "Approving..." : "Approve"}
+                            </button>
+                            <button
+                              onClick={() => rejectCr(u)}
+                              disabled={busyId === u.id}
+                              className="flex items-center gap-1 rounded-lg border border-red-200 px-2 py-1 text-xs text-red-600 hover:bg-red-50 disabled:opacity-50"
+                            >
+                              <X size={12} /> Reject
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <button
+                              onClick={() => setEditingUser(u)}
+                              className="flex items-center gap-1 rounded-lg border border-slate-200 px-2 py-1 text-xs text-slate-500 hover:bg-slate-50"
+                            >
+                              <Pencil size={12} /> Edit
+                            </button>
+                            <button
+                              onClick={() => deleteUser(u)}
+                              className="flex items-center gap-1 rounded-lg border border-red-200 px-2 py-1 text-xs text-red-600 hover:bg-red-50"
+                            >
+                              <Trash2 size={12} /> Remove
+                            </button>
+                          </>
+                        )}
                       </div>
                     </td>
                   </tr>
