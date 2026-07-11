@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { BarChart3, Building2, CalendarClock, KeyRound, Search, UserRound, X } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { apiErrorMessage } from "@/lib/api";
@@ -195,6 +196,13 @@ export default function LoginPage() {
               {submitting ? "Signing in..." : "Sign In"}
             </button>
           </form>
+
+          <p className="mt-4 text-center text-sm text-slate-500">
+            Don&apos;t have an account?{" "}
+            <Link href="/register" className="font-medium text-accent-700 hover:underline">
+              Register
+            </Link>
+          </p>
         </div>
 
         <p className="mt-6 text-center text-xs" style={{ color: loginText, opacity: 0.85 }}>
