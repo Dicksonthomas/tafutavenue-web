@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { Check, Copy } from "lucide-react";
+import { Check, CheckCircle2, Copy, KeyRound, UserRound } from "lucide-react";
 import { api, apiErrorMessage } from "@/lib/api";
 import { useAuth } from "@/lib/auth";
 import { useSettings, getReadableTextColor, DEFAULT_LOGIN_BACKGROUND_COLOR } from "@/lib/settings";
@@ -15,6 +15,12 @@ import { useReferenceData } from "@/lib/referenceData";
 const EMAIL_DOMAIN = "mustudent.ac.tz";
 const MIN_INTAKE_YEAR = 2022;
 const STAFF_TITLES = ["Mr", "Mrs", "Ms", "Dr", "Prof", "Eng", "CPA"];
+
+const REGISTRATION_POINTS = [
+  { icon: UserRound, title: "Choose Your Role", description: "Register as a Class Representative or a Staff member." },
+  { icon: KeyRound, title: "Instant Password", description: "Your login password is generated and shown to you right after registering." },
+  { icon: CheckCircle2, title: "Admin Approval", description: "An Admin reviews and approves new accounts before you can first sign in." },
+];
 
 function maxIntakeYear(): number {
   const now = new Date();
@@ -269,7 +275,45 @@ export default function RegisterPage() {
 
   return (
     <div className="flex min-h-dvh flex-col items-center justify-center px-4 py-10" style={{ backgroundColor: loginBg }}>
-      <div className="w-full max-w-lg">
+      {/* Side "about registration" panel - only from `xl` up, so the
+          (already wide, 2-column) registration form never loses space to it
+          on laptop/tablet widths - it only ever appears once there's
+          guaranteed spare room beside the form. */}
+      <div className="flex w-full max-w-6xl items-center justify-center gap-16">
+        <div className="hidden min-w-0 max-w-sm shrink text-left xl:block">
+          <p className="text-[22px] font-semibold" style={{ color: loginText, opacity: 0.9 }}>
+            Welcome to
+          </p>
+          <h2 className="mt-1 text-4xl font-extrabold uppercase leading-[1.05] tracking-tight" style={{ color: loginText }}>
+            {app_name || "University Venue Booking"} Registration
+          </h2>
+
+          <div
+            className="mt-4 h-1 w-[180px] rounded-full bg-accent-500"
+            style={{ boxShadow: "0 0 16px 2px var(--color-accent-500)" }}
+          />
+
+          <p className="mt-4 max-w-md text-base leading-[1.6]" style={{ color: loginText, opacity: 0.85 }}>
+            Create an account to search for and book university venues. Class Representatives and Staff both
+            register here, and can sign in once an Admin approves the account.
+          </p>
+
+          <div className="mt-6 space-y-4">
+            {REGISTRATION_POINTS.map((f) => (
+              <div key={f.title} className="flex items-start gap-4">
+                <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-white/10">
+                  <f.icon size={20} style={{ color: loginText }} />
+                </div>
+                <div>
+                  <p className="font-bold" style={{ color: loginText }}>{f.title}</p>
+                  <p className="mt-0.5 text-sm" style={{ color: loginText, opacity: 0.8 }}>{f.description}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+      <div className="w-full max-w-lg shrink-0">
         <div className="mb-6 flex flex-col items-center text-center">
           {settingsLoading ? (
             <div className="mb-3 h-11 w-11 rounded-xl bg-slate-100" />
@@ -468,6 +512,7 @@ export default function RegisterPage() {
             Sign In
           </Link>
         </p>
+      </div>
       </div>
       {footerMessage}
     </div>
