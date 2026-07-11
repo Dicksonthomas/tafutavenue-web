@@ -18,6 +18,8 @@ interface AppSettings {
   login_background_color: string | null;
   study_unit_hours: StudyUnitHours | null;
   cr_registration_closed_campuses: string[];
+  marquee_enabled: boolean;
+  marquee_until: string | null;
 }
 
 interface SettingsContextValue extends AppSettings {
@@ -40,6 +42,8 @@ const SettingsContext = createContext<SettingsContextValue>({
   login_background_color: null,
   study_unit_hours: null,
   cr_registration_closed_campuses: [],
+  marquee_enabled: true,
+  marquee_until: null,
   loading: true,
   refresh: () => Promise.resolve(),
 });
@@ -195,6 +199,8 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     login_background_color: null,
     study_unit_hours: null,
     cr_registration_closed_campuses: [],
+    marquee_enabled: true,
+    marquee_until: null,
   });
   const [loading, setLoading] = useState(true);
 

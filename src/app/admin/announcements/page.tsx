@@ -295,6 +295,8 @@ function NewAnnouncementModal({ onClose, onSent }: { onClose: () => void; onSent
         if (yearOfStudy) payload.year_of_study = Number(yearOfStudy);
       } else if (audience === "staff") {
         if (isSuperAdmin && campus) payload.campus = campus;
+      } else if (audience === "admin") {
+        if (campus) payload.campus = campus;
       }
 
       const { data } = await api.post("/admin/announcements", payload);
@@ -386,7 +388,18 @@ function NewAnnouncementModal({ onClose, onSent }: { onClose: () => void; onSent
               </div>
 
               {audience === "admin" ? (
-                <p className="text-xs text-slate-500">Goes to every other Admin, as a direct notification.</p>
+                <div className="mb-2">
+                  <label className="mb-1 block text-xs font-medium text-slate-600">Campus (optional)</label>
+                  <select
+                    value={campus}
+                    onChange={(e) => setCampus(e.target.value)}
+                    className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none"
+                  >
+                    <option value="">Every Admin (all campuses)</option>
+                    {campuses.map((c) => <option key={c.value} value={c.value}>{c.label}</option>)}
+                  </select>
+                  <p className="mt-1 text-xs text-slate-500">Goes to other Admins, as a direct notification.</p>
+                </div>
               ) : audience === "staff" ? (
                 <>
                   {isSuperAdmin ? (

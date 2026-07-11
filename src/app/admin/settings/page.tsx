@@ -40,6 +40,7 @@ function durationLabel(start: string, end: string): { label: string; invalid: bo
 
 export default function AdminSettingsPage() {
   const { user } = useAuth();
+  const isStaffAdmin = user?.admin_domain === "staff";
   const settings = useSettings();
   const [color, setColor] = useState(settings.default_color ?? BRAND_DEFAULT_COLOR);
   const isValidHex = /^#[0-9a-fA-F]{6}$/.test(color);
@@ -251,6 +252,42 @@ export default function AdminSettingsPage() {
     }
   }
 
+  // Marquee (scrolling announcement banner on CR/Staff dashboards) - a
+  // manual on/off switch, plus an optional "show until" date after which it
+  // hides itself automatically. Applies to both CR and Staff alike.
+  const [marqueeEnabled, setMarqueeEnabled] = useState(settings.marquee_enabled);
+  const [marqueeUntil, setMarqueeUntil] = useState(settings.marquee_until ? settings.marquee_until.slice(0, 16) : "");
+  const [marqueeError, setMarqueeError] = useState<string | null>(null);
+  const [marqueeSuccess, setMarqueeSuccess] = useState<string | null>(null);
+  const [savingMarquee, setSavingMarquee] = useState(false);
+
+  useEffect(() => {
+    if (!settings.loading) {
+      setMarqueeEnabled(settings.marquee_enabled);
+      setMarqueeUntil(settings.marquee_until ? settings.marquee_until.slice(0, 16) : "");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [settings.loading]);
+
+  async function saveMarquee(e: React.FormEvent) {
+    e.preventDefault();
+    setMarqueeError(null);
+    setMarqueeSuccess(null);
+    setSavingMarquee(true);
+    try {
+      const { data } = await api.post("/admin/settings", {
+        marquee_enabled: marqueeEnabled,
+        marquee_until: marqueeUntil || null,
+      });
+      setMarqueeSuccess(data.message);
+      settings.refresh();
+    } catch (err) {
+      setMarqueeError(apiErrorMessage(err));
+    } finally {
+      setSavingMarquee(false);
+    }
+  }
+
   return (
     <div className="mx-auto max-w-7xl space-y-6">
       <PageHeader title="System Settings" subtitle="Change the main color (default for all users) and the App logo." />
@@ -356,6 +393,41 @@ export default function AdminSettingsPage() {
       </Card>
 
       <Card className="p-6">
+        <h2 className="mb-1 text-sm font-semibold text-slate-700">Marquee (scrolling announcement banner)</h2>
+        <p className="mb-4 text-xs text-slate-500">
+          Controls the scrolling banner shown at the top of every CR and Staff dashboard, listing recent
+          announcements. Turn it off to hide it entirely, or set an end date/time after which it hides itself
+          automatically - you can turn it back on any time.
+        </p>
+
+        {marqueeError && <div className="mb-4 rounded-lg bg-red-50 px-3 py-2 text-sm text-red-700">{marqueeError}</div>}
+        {marqueeSuccess && <div className="mb-4 rounded-lg bg-emerald-50 px-3 py-2 text-sm text-emerald-700">{marqueeSuccess}</div>}
+
+        <form onSubmit={saveMarquee} className="space-y-3">
+          <label className="flex items-center gap-2 text-sm text-slate-600">
+            <input type="checkbox" checked={marqueeEnabled} onChange={(e) => setMarqueeEnabled(e.target.checked)} />
+            Show the marquee banner
+          </label>
+          <div>
+            <label className="mb-1 block text-sm font-medium text-slate-600">Show until (optional)</label>
+            <input
+              type="datetime-local"
+              value={marqueeUntil}
+              onChange={(e) => setMarqueeUntil(e.target.value)}
+              disabled={!marqueeEnabled}
+              className="rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none disabled:bg-slate-50 disabled:text-slate-400"
+            />
+            <p className="mt-1 text-xs text-slate-400">Leave blank to keep it showing until you turn it off yourself.</p>
+          </div>
+          <button disabled={savingMarquee} className="rounded-lg bg-accent-600 px-4 py-2 text-sm font-medium text-white hover:bg-accent-700 disabled:opacity-50">
+            {savingMarquee ? "Saving..." : "Save"}
+          </button>
+        </form>
+      </Card>
+
+      {!isStaffAdmin && (
+      <>
+      <Card className="p-6">
         <h2 className="mb-1 text-sm font-semibold text-slate-700">Study Unit Booking Hours</h2>
         <p className="mb-4 text-xs text-slate-500">
           Per day of the week, set the window CRs are allowed to book a venue for &quot;Study Unit&quot;. <b>Start</b> is when the window opens
@@ -449,6 +521,8 @@ export default function AdminSettingsPage() {
           </button>
         </form>
       </Card>
+      </>
+      )}
 
       {user?.is_super_admin && (
         <Card className="p-6">
