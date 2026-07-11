@@ -1,6 +1,6 @@
 "use client";
 
-import { Mail, Phone, Building2, GraduationCap, Layers, BookOpenCheck, IdCard, MapPin, UserRound } from "lucide-react";
+import { Mail, Phone, Building2, GraduationCap, Layers, BookOpenCheck, IdCard, MapPin, UserRound, Briefcase } from "lucide-react";
 import { useAuth } from "@/lib/auth";
 import { useReferenceData } from "@/lib/referenceData";
 import { Card, PageHeader } from "@/components/ui";
@@ -11,6 +11,7 @@ export default function ProfilePage() {
 
   if (!user) return null;
 
+  const isStaff = user.role === "staff";
   const campusLabel = campuses.find((c) => c.value === user.campus)?.label ?? user.campus ?? "—";
 
   const initials = user.name
@@ -20,21 +21,32 @@ export default function ProfilePage() {
     .join("")
     .toUpperCase();
 
-  const fields = [
-    { icon: IdCard, label: "Reg No", value: user.reg_no || "—" },
-    { icon: Mail, label: "Email", value: user.email },
-    { icon: Phone, label: "Phone Number", value: user.phone || "—" },
-    { icon: MapPin, label: "Campus", value: campusLabel },
-    { icon: UserRound, label: "Sex", value: user.sex === "male" ? "Male" : user.sex === "female" ? "Female" : "—" },
-    { icon: Building2, label: "Faculty", value: user.faculty || "—" },
-    { icon: Layers, label: "Department", value: user.department || "—" },
-    { icon: BookOpenCheck, label: "Program", value: user.program || "—" },
-    { icon: GraduationCap, label: "Level", value: user.level || "—" },
-  ];
+  const fields = isStaff
+    ? [
+        { icon: IdCard, label: "Staff ID", value: user.staff_id || "—" },
+        { icon: Mail, label: "Email", value: user.email },
+        { icon: Phone, label: "Phone Number", value: user.phone || "—" },
+        { icon: MapPin, label: "Campus", value: campusLabel },
+        { icon: Briefcase, label: "Position", value: user.position || "—" },
+      ]
+    : [
+        { icon: IdCard, label: "Reg No", value: user.reg_no || "—" },
+        { icon: Mail, label: "Email", value: user.email },
+        { icon: Phone, label: "Phone Number", value: user.phone || "—" },
+        { icon: MapPin, label: "Campus", value: campusLabel },
+        { icon: UserRound, label: "Sex", value: user.sex === "male" ? "Male" : user.sex === "female" ? "Female" : "—" },
+        { icon: Building2, label: "Faculty", value: user.faculty || "—" },
+        { icon: Layers, label: "Department", value: user.department || "—" },
+        { icon: BookOpenCheck, label: "Program", value: user.program || "—" },
+        { icon: GraduationCap, label: "Level", value: user.level || "—" },
+      ];
 
   return (
     <div className="mx-auto max-w-7xl">
-      <PageHeader title="My Profile" subtitle="Your information as a Class Representative (CR)." />
+      <PageHeader
+        title="My Profile"
+        subtitle={isStaff ? "Your information as Staff." : "Your information as a Class Representative (CR)."}
+      />
 
       <Card className="p-6">
         <div className="mb-6 flex items-center gap-4">
@@ -44,7 +56,7 @@ export default function ProfilePage() {
           <div>
             <h2 className="text-lg font-semibold text-slate-900">{user.name}</h2>
             <span className="inline-flex items-center rounded-full bg-accent-50 px-2.5 py-0.5 text-xs font-medium text-accent-700 ring-1 ring-inset ring-accent-200">
-              Class Representative
+              {isStaff ? "Staff" : "Class Representative"}
             </span>
           </div>
         </div>

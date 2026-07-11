@@ -1,7 +1,7 @@
 "use client";
 
 import { ReactNode } from "react";
-import { LayoutDashboard, DoorOpen, ClipboardCheck, CalendarRange, GraduationCap, Settings, CalendarClock, ShieldCheck, History, Bell } from "lucide-react";
+import { LayoutDashboard, DoorOpen, ClipboardCheck, CalendarRange, GraduationCap, Settings, CalendarClock, ShieldCheck, History, Bell, Briefcase } from "lucide-react";
 import AuthGuard from "@/components/AuthGuard";
 import DashboardShell, { NavItem } from "@/components/DashboardShell";
 
@@ -13,6 +13,7 @@ const navItems: NavItem[] = [
   { href: "/admin/booked-venues", label: "Booked Venues", icon: CalendarClock },
   { href: "/admin/semesters", label: "Semesters", icon: CalendarRange },
   { href: "/admin/students", label: "Students (CR)", icon: GraduationCap },
+  { href: "/admin/staff", label: "Staff", icon: Briefcase },
   { href: "/admin/admins", label: "Admins", icon: ShieldCheck },
   { href: "/admin/logs", label: "Logs", icon: History },
   { href: "/admin/settings", label: "Settings", icon: Settings },

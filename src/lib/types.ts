@@ -1,4 +1,4 @@
-export type Role = "cr" | "admin";
+export type Role = "cr" | "admin" | "staff";
 
 export type Level = "Certificate" | "Diploma" | "Degree" | "Masters" | "PhD";
 
@@ -6,6 +6,8 @@ export interface User {
   id: number;
   name: string;
   reg_no?: string | null;
+  staff_id?: string | null;
+  position?: string | null;
   email: string;
   role: Role;
   is_super_admin?: boolean;
@@ -19,6 +21,7 @@ export interface User {
   level?: Level;
   year_of_study?: number | null;
   is_active: boolean;
+  approved_at?: string | null;
   created_at?: string;
 }
 
@@ -50,6 +53,7 @@ export interface Venue {
   blocked_purposes?: BookingPurpose[] | null;
   restricted_levels?: Level[] | null;
   restricted_department?: string | null;
+  restricted_role?: "cr" | "staff" | null;
   free_from?: string;
   free_until?: string;
   occupied_until?: string | null;
@@ -95,7 +99,7 @@ export interface Booking {
   approver?: User | null;
 }
 
-export type NotificationType = "booking_approved" | "booking_rejected" | "booking_pending" | "booking_edited" | "announcement";
+export type NotificationType = "booking_approved" | "booking_rejected" | "booking_pending" | "booking_edited" | "announcement" | "staff_pending";
 
 export interface Notification {
   id: number;

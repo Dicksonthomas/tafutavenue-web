@@ -2,7 +2,7 @@
 
 import { Fragment, useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Bell, CheckCircle2, Clock, Megaphone, Pencil, XCircle } from "lucide-react";
+import { Bell, CheckCircle2, Clock, Megaphone, Pencil, UserCheck, XCircle } from "lucide-react";
 import { Notification, NotificationType } from "@/lib/types";
 import {
   NOTIFICATION_TYPE_LABELS,
@@ -27,6 +27,7 @@ const TYPE_ICON: Partial<Record<NotificationType, typeof Bell>> = {
   booking_pending: Clock,
   booking_edited: Pencil,
   announcement: Megaphone,
+  staff_pending: UserCheck,
 };
 
 const TYPE_COLOR: Partial<Record<NotificationType, string>> = {
@@ -35,6 +36,7 @@ const TYPE_COLOR: Partial<Record<NotificationType, string>> = {
   booking_pending: "bg-amber-50 text-amber-600",
   booking_edited: "bg-sky-50 text-sky-600",
   announcement: "bg-brand-50 text-brand-700",
+  staff_pending: "bg-amber-50 text-amber-600",
 };
 
 export default function NotificationsTable() {
@@ -197,7 +199,7 @@ export default function NotificationsTable() {
                         <td className="px-4 py-3">
                           <div className="flex items-center gap-2">
                             <p className={`truncate ${isUnread ? "font-semibold text-slate-900" : "text-slate-700"}`}>{n.title}</p>
-                            {n.type === "booking_pending" && (
+                            {(n.type === "booking_pending" || n.type === "staff_pending") && (
                               <span className="shrink-0 text-xs font-medium text-accent-600">Review →</span>
                             )}
                           </div>

@@ -28,6 +28,7 @@ interface VenueRestrictions {
   blocked_purposes: BookingPurpose[];
   restricted_levels: Level[];
   restricted_department: string;
+  restricted_role: "" | "cr" | "staff";
 }
 
 export default function AdminVenuesPage() {
@@ -218,7 +219,7 @@ export default function AdminVenuesPage() {
                 <VenueStatusBadge status={v.status} />
               </div>
 
-              {(v.blocked_purposes?.length || v.restricted_levels?.length || v.restricted_department) ? (
+              {(v.blocked_purposes?.length || v.restricted_levels?.length || v.restricted_department || v.restricted_role) ? (
                 <div className="mt-2 flex flex-wrap gap-1">
                   {v.blocked_purposes?.map((p) => (
                     <span key={p} className="rounded-full bg-red-50 px-2 py-0.5 text-[11px] text-red-600">No {p.replace("_", " ")}</span>
@@ -228,6 +229,9 @@ export default function AdminVenuesPage() {
                   ) : null}
                   {v.restricted_department && (
                     <span className="rounded-full bg-amber-50 px-2 py-0.5 text-[11px] text-amber-700">{v.restricted_department} only</span>
+                  )}
+                  {v.restricted_role && (
+                    <span className="rounded-full bg-sky-50 px-2 py-0.5 text-[11px] text-sky-700">{v.restricted_role === "staff" ? "Staff" : "CR"} only</span>
                   )}
                 </div>
               ) : null}
@@ -314,6 +318,18 @@ function RestrictionFields({
           className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none"
         />
       </div>
+      <div>
+        <p className="mb-1 text-xs font-medium text-slate-600">Restrict to (e.g. boardroom/meeting room for Staff only)</p>
+        <select
+          value={value.restricted_role}
+          onChange={(e) => onChange({ ...value, restricted_role: e.target.value as VenueRestrictions["restricted_role"] })}
+          className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none"
+        >
+          <option value="">Everyone (CR &amp; Staff)</option>
+          <option value="cr">Class Representatives only</option>
+          <option value="staff">Staff only</option>
+        </select>
+      </div>
     </div>
   );
 }
@@ -334,6 +350,7 @@ function VenueForm({ onCreated }: { onCreated: () => void }) {
     blocked_purposes: [],
     restricted_levels: [],
     restricted_department: "",
+    restricted_role: "",
   });
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -352,6 +369,7 @@ function VenueForm({ onCreated }: { onCreated: () => void }) {
         blocked_purposes: restrictions.blocked_purposes,
         restricted_levels: restrictions.restricted_levels,
         restricted_department: restrictions.restricted_department || null,
+        restricted_role: restrictions.restricted_role || null,
       });
       onCreated();
     } catch (err) {
@@ -403,6 +421,7 @@ function VenueEditModal({
     blocked_purposes: venue.blocked_purposes ?? [],
     restricted_levels: venue.restricted_levels ?? [],
     restricted_department: venue.restricted_department ?? "",
+    restricted_role: venue.restricted_role ?? "",
   });
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
@@ -416,6 +435,7 @@ function VenueEditModal({
         blocked_purposes: restrictions.blocked_purposes,
         restricted_levels: restrictions.restricted_levels,
         restricted_department: restrictions.restricted_department || null,
+        restricted_role: restrictions.restricted_role || null,
       });
       onSaved();
     } catch (err) {

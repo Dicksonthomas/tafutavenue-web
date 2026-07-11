@@ -4,8 +4,9 @@ import { ReactNode } from "react";
 import { LayoutDashboard, Search, CalendarClock, ClipboardList, DoorOpen, User2, Settings, Bell } from "lucide-react";
 import AuthGuard from "@/components/AuthGuard";
 import DashboardShell, { NavItem } from "@/components/DashboardShell";
+import { useAuth } from "@/lib/auth";
 
-const navItems: NavItem[] = [
+const baseNavItems: NavItem[] = [
   { href: "/dashboard/home", label: "Dashboard", icon: LayoutDashboard },
   { href: "/dashboard", label: "Find Venue", icon: Search },
   { href: "/dashboard/notifications", label: "Notifications", icon: Bell },
@@ -28,12 +29,18 @@ const mobileNavItems: NavItem[] = [
 ];
 
 export default function DashboardLayout({ children }: { children: ReactNode }) {
+  const { user } = useAuth();
+  const isStaff = user?.role === "staff";
+  // Lecturer Timetable is about looking up CR class schedules - meaningless
+  // for Staff booking a meeting room.
+  const navItems = isStaff ? baseNavItems.filter((item) => item.href !== "/dashboard/lecturer") : baseNavItems;
+
   return (
-    <AuthGuard allow={["cr"]}>
+    <AuthGuard allow={["cr", "staff"]}>
       <DashboardShell
         navItems={navItems}
         mobileNavItems={mobileNavItems}
-        roleLabel="Class Representative"
+        roleLabel={isStaff ? "Staff" : "Class Representative"}
         profileHref="/dashboard/profile"
         changePasswordHref="/dashboard/change-password"
       >
