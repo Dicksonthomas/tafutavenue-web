@@ -16,6 +16,7 @@ interface AdminUser {
   campus: string | null;
   is_super_admin: boolean;
   is_main_super_admin: boolean;
+  admin_domain?: "general" | "staff" | null;
 }
 
 export default function AdminAdminsPage() {
@@ -121,17 +122,22 @@ export default function AdminAdminsPage() {
                     )}
                   </td>
                   <td className="px-4 py-3">
-                    {a.is_main_super_admin ? (
-                      <span className="flex w-fit items-center gap-1 rounded-full bg-brand-50 px-2 py-0.5 text-xs font-medium text-brand-700">
-                        <ShieldCheck size={12} /> Super Admin Mkuu
-                      </span>
-                    ) : a.is_super_admin ? (
-                      <span className="flex w-fit items-center gap-1 rounded-full bg-brand-50 px-2 py-0.5 text-xs font-medium text-brand-700">
-                        <ShieldCheck size={12} /> Super Admin
-                      </span>
-                    ) : (
-                      <span className="text-xs text-slate-400">Admin</span>
-                    )}
+                    <div className="flex flex-wrap items-center gap-1">
+                      {a.is_main_super_admin ? (
+                        <span className="flex w-fit items-center gap-1 rounded-full bg-brand-50 px-2 py-0.5 text-xs font-medium text-brand-700">
+                          <ShieldCheck size={12} /> Super Admin Mkuu
+                        </span>
+                      ) : a.is_super_admin ? (
+                        <span className="flex w-fit items-center gap-1 rounded-full bg-brand-50 px-2 py-0.5 text-xs font-medium text-brand-700">
+                          <ShieldCheck size={12} /> Super Admin
+                        </span>
+                      ) : (
+                        <span className="text-xs text-slate-400">Admin</span>
+                      )}
+                      {a.admin_domain === "staff" && (
+                        <span className="rounded-full bg-sky-50 px-2 py-0.5 text-xs font-medium text-sky-700">Staff Domain</span>
+                      )}
+                    </div>
                   </td>
                   <td className="px-4 py-3">
                     {a.is_main_super_admin ? (
@@ -186,8 +192,14 @@ function AddAdminForm({ onCreated }: { onCreated: () => void }) {
   const [password, setPassword] = useState("");
   const [campus, setCampus] = useState("");
   const [makeSuperAdmin, setMakeSuperAdmin] = useState(false);
+  const [adminDomain, setAdminDomain] = useState<"general" | "staff">("general");
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
+
+  // A Staff Admin viewing this page always creates other Staff Admins
+  // regardless of this field (the backend forces it), so the choice is
+  // only meaningful - and only shown - for a general-domain Super Admin.
+  const canChooseDomain = user?.admin_domain !== "staff";
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -199,6 +211,7 @@ function AddAdminForm({ onCreated }: { onCreated: () => void }) {
         email,
         password,
         ...(makeSuperAdmin ? { is_super_admin: true } : { campus }),
+        ...(canChooseDomain ? { admin_domain: adminDomain } : {}),
       });
       onCreated();
     } catch (err) {
@@ -227,6 +240,19 @@ function AddAdminForm({ onCreated }: { onCreated: () => void }) {
             <option key={c.value} value={c.value}>{c.label}</option>
           ))}
         </select>
+        {canChooseDomain && (
+          <div className="col-span-full">
+            <label className="mb-1 block text-sm font-medium text-slate-600">Admin Domain</label>
+            <select
+              value={adminDomain}
+              onChange={(e) => setAdminDomain(e.target.value as "general" | "staff")}
+              className="w-full max-w-xs rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-accent-500 focus:outline-none"
+            >
+              <option value="general">General (full admin area)</option>
+              <option value="staff">Staff Admin (Staff-related work only)</option>
+            </select>
+          </div>
+        )}
         {user?.is_main_super_admin && (
           <label className="col-span-full flex items-center gap-2 text-sm text-slate-600">
             <input type="checkbox" checked={makeSuperAdmin} onChange={(e) => setMakeSuperAdmin(e.target.checked)} className="rounded border-slate-300" />
